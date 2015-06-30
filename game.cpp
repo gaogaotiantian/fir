@@ -83,7 +83,7 @@ NodeType Game::CheckNode(Point p)
         return curType;
     vic = true;
     for (int i = 1; i < 5; i++) {
-        Point nextP(p.x+1, p.y+1);
+        Point nextP(p.x+i, p.y+i);
         if (GetType(nextP) != curType) {
             vic = false;
             break;

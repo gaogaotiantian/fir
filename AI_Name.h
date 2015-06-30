@@ -19,7 +19,7 @@ Point ExampleAI(const NodeType board[BoardSize][BoardSize], NodeType yourType);
 // And add your function here!
 S_AIList AIList[MAX_AI_NUM] = {
 //  ID | Function Name   | Name
-    0,   ExampleAI       , "Example"
+   {0,   ExampleAI       , "Example"}
 };
 
 #endif
