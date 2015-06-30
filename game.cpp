@@ -4,6 +4,10 @@
 #include <unistd.h>
 #include <time.h>
 #include "game.h"
+#include "AI_Name.h"
+
+Point (*BlackAI)(const NodeType board[BoardSize][BoardSize], NodeType yourType);
+Point (*WhiteAI)(const NodeType board[BoardSize][BoardSize], NodeType yourType);
 
 void Game::Initialize()
 {
@@ -112,6 +116,9 @@ void SetGamerAI(int gamer1ID, int gamer2ID)
     if (rand() % 2 == 0) {
         BlackAI = AIList[gamer1ID];
         WhiteAI = AIList[gamer2ID];
+    } else {
+        BlackAI = AIList[gamer2ID];
+        WhiteAI = AIList[gamer1ID];
     }
 }
 int main(int argc, char* argv[]) 
