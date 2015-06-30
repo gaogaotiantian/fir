@@ -113,12 +113,32 @@ void Game::PrintBoard()
 }
 void SetGamerAI(int gamer1ID, int gamer2ID)
 {
+
+    AIFunc func1 = NULL;
+    AIFunc func2 = NULL;
+
+    for (int i = 0; i < MAX_AI_NUM; i++) {
+        if (AIList[i].id == gamer1ID)
+            func1 = AIList[i].func;
+        if (AIList[i].id == gamer2ID)
+            func2 = AIList[i].func;
+    }
+
+    if (func1 == NULL) {
+        printf("Invalid gamer1ID!\n");
+        exit(1);
+    }
+    if (func2 == NULL) {
+        printf("Invalid gamer2ID!\n");
+        exit(1);
+    }
+    
     if (rand() % 2 == 0) {
-        BlackAI = AIList[gamer1ID];
-        WhiteAI = AIList[gamer2ID];
+        BlackAI = func1;
+        WhiteAI = func2;
     } else {
-        BlackAI = AIList[gamer2ID];
-        WhiteAI = AIList[gamer1ID];
+        BlackAI = func1;
+        WhiteAI = func2;
     }
 }
 int main(int argc, char* argv[]) 
