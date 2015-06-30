@@ -19,4 +19,10 @@ Example: your ID is 3 and you want to compete with exampleAI, then you should
 use "./game.out 0 3". The order of arguments will not affect the result because
 who move first is random.
 
+Current ID assigning:
+example:0
+gaogaotiantian:1
+Beokro:2
+jimzhu1993:3
+
 Have Fun!
