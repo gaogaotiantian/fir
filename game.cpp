@@ -3,8 +3,12 @@
 #include <assert.h>
 #include <unistd.h>
 #include <time.h>
+#include <cstring>
+#include <iostream>
 #include "game.h"
 #include "AI_Name.h"
+
+using namespace std;
 
 Point (*BlackAI)(const NodeType board[BoardSize][BoardSize], NodeType yourType);
 const char* BlackAIName;
@@ -24,7 +28,51 @@ Game::Game()
             board[i][j] = Empty;
         }
     }
-    
+
+    // Draw board
+    int drawSize = BoardSize*2;
+    boardChar[1][1]                   = "┌";
+    boardChar[1][drawSize-1]          = "┐";
+    boardChar[drawSize-1][1]          = "└";
+    boardChar[drawSize-1][drawSize-1] = "┘";
+    for (int i = 2; i < drawSize-1; ++i) {
+        if (i%2 == 1) {
+            boardChar[1][i]          = "┬";
+            boardChar[drawSize-1][i] = "┴";
+            boardChar[i][1]          = "├";
+            boardChar[i][drawSize-1] = "┤";
+        }
+        else {
+            boardChar[1][i]          = "─";
+            boardChar[drawSize-1][i] = "─";
+            boardChar[i][1]          = "│";
+            boardChar[i][drawSize-1] = "│";
+
+        }
+    }
+    for (int i = 2; i < drawSize - 1; ++i) {
+        for (int j = 2; j < drawSize - 1; ++j) {
+            if (i%2 == 0) {
+                if (j%2 == 0)
+                    boardChar[i][j] = " ";
+                else
+                    boardChar[i][j] = "│";
+            } else {
+                if (j%2 == 0)
+                    boardChar[i][j] = "─";
+                else
+                    boardChar[i][j] = "┼";
+            }
+        }
+    }
+
+    /*for (int i = 1; i < drawSize; ++i) {
+        for (int j = 1; j < drawSize; ++j) {
+            cout<<boardChar[i][j];
+        }
+        cout<<endl;
+    }*/
+
     for (int i = 0; i < MAX_AI_NUM; ++i) {
         struct S_AI ai = AIList[i];
         if (ai.id > 0 && ai.id <= MAX_AI_NUM) {
@@ -38,7 +86,6 @@ Game::Game()
             }
         }
     }
-
 }
 void Game::Initialize()
 {
@@ -169,25 +216,24 @@ NodeType Game::CheckNode(Point p)
 }
 void Game::PrintBoard()
 {
-    const char* emptyChar = "-  ";
-    const char* blackChar = "*  ";
-    const char* whiteChar = "o  ";
+    const char* blackChar = "○";
+    const char* whiteChar = "●";
     system("clear");
     printf(" ");
     for (int i = 0; i < BoardSize; ++i) {
-        printf("%3d", i);
+        printf("%2d", i);
     }
     printf("\n");
     for (int i = 0; i < BoardSize; ++i) {
-        printf("%2d ", i);
+        printf("%2d", i);
         for (int j = 0; j < BoardSize; ++j) {
             Point p(i,j);
             if (GetType(p) == Empty)
-                printf("%s", emptyChar);
+                cout<<boardChar[i*2+1][j*2]<<boardChar[i*2+1][j*2+1];
             else if (GetType(p) == White)
-                printf("%s", whiteChar);
+                cout<<boardChar[i*2+1][j*2]<<whiteChar;
             else if (GetType(p) == Black)
-                printf("%s", blackChar);
+                cout<<boardChar[i*2+1][j*2]<<blackChar;
         }
         printf("\n");
     }

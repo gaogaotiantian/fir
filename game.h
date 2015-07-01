@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <map>
+#include <string>
+#include <iostream>
 
 #ifndef __GAME_H__
 #define __GAME_H__
@@ -47,6 +49,7 @@ public:
     unsigned int sleepTime;
     bool isPrint;
     NodeType board[BoardSize][BoardSize];
+    std::string boardChar[BoardSize*2][BoardSize*2];
     AI_Map aiMap;
 private:
     NodeType CheckNode(Point p);
