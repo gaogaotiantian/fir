@@ -12,7 +12,7 @@ class Point{
 public:
     Point() {x = -1; y = -1;};
     Point(int xx, int yy) {x = xx; y = yy;};
-    void set(int xx, int yy);
+    void Set(int xx, int yy) {x = xx; y = yy;};
     bool Valid() {return (0 <= x && x < BoardSize && 0 <= y && y < BoardSize);};
 
     int x;
@@ -20,6 +20,7 @@ public:
 };
 
 typedef Point (*AIFunc)(const NodeType[BoardSize][BoardSize], NodeType);
+//typedef Point (*AIFunc)(const NodeType**, NodeType);
 
 struct S_AI {
     int id;
