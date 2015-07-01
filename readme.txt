@@ -16,15 +16,15 @@ The prototype has to be exactly the same as exampleAI.
 5. run "./game.out * *", in which * represents the ID for the function.
 
 Example: your ID is 3 and you want to compete with exampleAI, then you should
-use "./game.out 0 3". The order of arguments will not affect the result because
+use "./game.out 1 3". The order of arguments will not affect the result because
 who move first is random.
 
 Current ID assigning:
-example:0
-gaogaotiantian:1
-Beokro:2
-jimzhu1993:3
-dummyindex:4
-ShaoyiZhang:5
+example:1
+gaogaotiantian:2
+Beokro:3
+jimzhu1993:4
+dummyindex:5
+ShaoyiZhang:6
 
 Have Fun!
