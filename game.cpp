@@ -169,12 +169,18 @@ NodeType Game::CheckNode(Point p)
 }
 void Game::PrintBoard()
 {
-    const char* emptyChar = "- ";
-    const char* blackChar = "* ";
-    const char* whiteChar = "o ";
+    const char* emptyChar = "-  ";
+    const char* blackChar = "*  ";
+    const char* whiteChar = "o  ";
     system("clear");
-    for (int i = 0; i < BoardSize; i++) {
-        for (int j = 0; j < BoardSize; j++) {
+    printf(" ");
+    for (int i = 0; i < BoardSize; ++i) {
+        printf("%3d", i);
+    }
+    printf("\n");
+    for (int i = 0; i < BoardSize; ++i) {
+        printf("%2d ", i);
+        for (int j = 0; j < BoardSize; ++j) {
             Point p(i,j);
             if (GetType(p) == Empty)
                 printf("%s", emptyChar);
@@ -185,6 +191,8 @@ void Game::PrintBoard()
         }
         printf("\n");
     }
+    printf("Black: %s\n", blackAI.name);
+    printf("White: %s\n", whiteAI.name);
 }
 void Game::SetGamerAI(int gamer1ID, int gamer2ID, bool isRand)
 {
@@ -224,6 +232,7 @@ int main(int argc, char* argv[])
     int gamer1ID = -1;
     int gamer2ID = -1;
     game.Initialize();
+    srand(time(NULL));
 
     for (int i = 1; i < argc; ++i) {
         if (argv[i][0] == '-') {
@@ -273,15 +282,12 @@ int main(int argc, char* argv[])
     } else {
         game.SetGamerAI(gamer1ID, gamer2ID, true);
     }
-
-    
-    srand(time(NULL));
     
     NodeType result = game.Play(blackAI, whiteAI, game.isPrint);
     if (result == Black) {
         printf("Black Wins! AI: \"%s\" beat AI: \"%s\"\n", blackAI.name, whiteAI.name);
     } else if (result == White) {
-        printf("White Wins! AI: \"%s\" beat AI: \"%s\"\n", blackAI.name, whiteAI.name);
+        printf("White Wins! AI: \"%s\" beat AI: \"%s\"\n", whiteAI.name, blackAI.name);
     }
 
     return 0;
