@@ -104,8 +104,8 @@ NodeType Game::GetType(Point p)
 }
 NodeType Game::CheckVictory()
 {
-    for (int i = 0; i < BoardSize - 4; i++) {
-        for (int j = 0; j < BoardSize - 4; j++) {
+    for (int i = 0; i < BoardSize; ++i) {
+        for (int j = 0; j < BoardSize; ++j) {
             Point p(i,j);
             NodeType winType = CheckNode(p);
             if (winType == Black) 
@@ -119,39 +119,52 @@ NodeType Game::CheckVictory()
 // We only check right, down and right-down
 NodeType Game::CheckNode(Point p)
 {
-    assert(p.x < BoardSize - 4);
-    assert(p.y < BoardSize - 4);
     NodeType curType = GetType(p);
+    // right
     bool vic = true;
     for (int i = 1; i < 5; i++) {
         Point nextP(p.x+i, p.y);
-        if (GetType(nextP) != curType) {
+        if (p.x+i >= BoardSize || GetType(nextP) != curType) {
             vic = false;
             break;
         }
     }
     if (vic == true)
         return curType;
+    // down
     vic = true;
     for (int i = 1; i < 5; i++) {
         Point nextP(p.x, p.y+i);
-        if (GetType(nextP) != curType) {
+        if (p.y+i >= BoardSize || GetType(nextP) != curType) {
             vic = false;
             break;
         }
     }
     if (vic == true)
         return curType;
+    // right down
     vic = true;
     for (int i = 1; i < 5; i++) {
         Point nextP(p.x+i, p.y+i);
-        if (GetType(nextP) != curType) {
+        if (p.x+i >= BoardSize || p.y+i >= BoardSize || GetType(nextP) != curType) {
             vic = false;
             break;
         }
     }
     if (vic == true)
         return curType;
+    //left down
+    vic = true;
+    for (int i = 1; i < 5; i++) {
+        Point nextP(p.x-i, p.y+i);
+        if (p.x-i < 0 || p.y+i >= BoardSize || GetType(nextP) != curType) {
+            vic = false;
+            break;
+        }
+    }
+    if (vic == true)
+        return curType;
+
     return Empty;
 }
 void Game::PrintBoard()
