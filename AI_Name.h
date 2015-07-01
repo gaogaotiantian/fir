@@ -3,7 +3,7 @@
 #define __AI_NAME_H__
 
 // If you added a new AI, please change this number
-#define MAX_AI_NUM 6
+#define MAX_AI_NUM 7
 
 // You need to declare you function here!
 Point ExampleAI(const NodeType board[BoardSize][BoardSize], NodeType yourType);
