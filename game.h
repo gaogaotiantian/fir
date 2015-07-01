@@ -13,6 +13,7 @@ public:
     Point() {x = -1; y = -1;};
     Point(int xx, int yy) {x = xx; y = yy;};
     void set(int xx, int yy);
+    bool Valid() {return (0 <= x && x < BoardSize && 0 <= y && y < BoardSize);};
 
     int x;
     int y;
