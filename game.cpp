@@ -276,10 +276,11 @@ int main(int argc, char* argv[])
 
     
     srand(time(NULL));
-
-    if (game.Play(blackAI, whiteAI, game.isPrint) == Black) {
+    
+    NodeType result = game.Play(blackAI, whiteAI, game.isPrint);
+    if (result == Black) {
         printf("Black Wins! AI: \"%s\" beat AI: \"%s\"\n", blackAI.name, whiteAI.name);
-    } else if (game.Play(blackAI, whiteAI, game.isPrint) == White) {
+    } else if (result == White) {
         printf("White Wins! AI: \"%s\" beat AI: \"%s\"\n", blackAI.name, whiteAI.name);
     }
 

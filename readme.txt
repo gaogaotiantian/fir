@@ -1,6 +1,6 @@
 This is a AI for "五子棋". To write an AI, you need to do the following:
 
-1. Create a file ai*.cpp based on your id. You can use ai0.cpp as an example. 
+1. Create a file ai*.cpp based on your id. You can use ai1.cpp as an example. 
 The function name has to be unique but you can name your AI anything you like.
 The prototype has to be exactly the same as exampleAI.
 
