@@ -8,6 +8,7 @@
 
 enum Direction {LeftRight, TopBot, LTRB, RTLB};
 
+
 void PrintNode(NodeType node) 
 {
     if (node == Empty)
@@ -24,6 +25,8 @@ public:
     ReqCounts();
     bool isImportant();
     friend ReqCounts operator + (const ReqCounts &l, const ReqCounts &r);
+    friend ReqCounts operator - (const ReqCounts &l, int r);
+    friend ReqCounts operator * (const ReqCounts &l, int r);
     friend bool operator > (const ReqCounts &l, const ReqCounts &r);
     void operator = (const ReqCounts &r);
     void Print();
@@ -39,7 +42,10 @@ ReqCounts::ReqCounts()
 }
 bool ReqCounts::isImportant()
 {
-    if (counts[0] != 0 || counts[1] > 1)
+    if (counts[0] != 0 || 
+           (counts[1] >= 2) || 
+           (counts[1] == 1 && counts[2] >= 3 ) ||
+           (counts[2] >= 5))
         return true;
     return false;
 }
@@ -51,15 +57,36 @@ ReqCounts operator + (const ReqCounts &l, const ReqCounts &r)
     }
     return ret;
 }
+ReqCounts operator * (const ReqCounts &l, int r)
+{
+    ReqCounts ret;
+    for (int i = 0; i <= 5; i++) {
+        ret.counts[i] = l.counts[i] * r;
+    }
+    return ret;
+
+}
+ReqCounts operator - (const ReqCounts &l, int r)
+{
+    ReqCounts ret;
+    for (int i = 0; i <= 5; i++) {
+        if (l.counts[i] >= r)
+            ret.counts[i] = l.counts[i] - r;
+        else
+            ret.counts[i] = 0;
+    }
+    return ret;
+
+}
 bool operator > (const ReqCounts &l, const ReqCounts &r)
 {
     if (l.counts[0] != 0) 
         return true;
     if (r.counts[0] != 0)
         return false;
-    if (l.counts[1] > 1)
+    if (l.counts[1] > 1 && l.counts[1] > r.counts[1])
         return true;
-    if (r.counts[1] > 1)
+    if (r.counts[1] > 1 && r.counts[1] > l.counts[1])
         return false;
     if (l.counts[1] == r.counts[1]) {
         if (l.counts[2] * 3 + l.counts[3] >= r.counts[2] * 3 + r.counts[3])
@@ -75,6 +102,25 @@ bool operator > (const ReqCounts &l, const ReqCounts &r)
         return true;
     return false;
 }
+bool FirstBetter(const ReqCounts &l, const ReqCounts &r);
+
+bool FirstBetter(const ReqCounts &l, const ReqCounts &r)
+{
+    if (l.counts[0] != 0) 
+        return true;
+    if (r.counts[0] != 0)
+        return false;
+    if (l.counts[1] > 1)
+        return true;
+    if (r.counts[1] > 1)
+        return false;
+    if (l.counts[1] == 1)
+        return true;
+    if (r.counts[1] == 1 && r.counts[2] >= 2)
+        return false;
+    // here, l.counts[0] == l.counts[1] == 0
+    return true;
+}
 
 void ReqCounts::operator = (const ReqCounts &r)
 {
@@ -89,6 +135,7 @@ void ReqCounts::Print()
         printf("Count %d: %d\n", i, counts[i]);
     }
 }
+
 class GT_FIRAI {
 public:
     GT_FIRAI(const NodeType[BoardSize][BoardSize], NodeType);
@@ -133,7 +180,8 @@ Point GT_FIRAI::Move()
     Point oppPoint(0,0);
     ReqCounts maxTotalCount;
     Point totalPoint(0,0);
-    bool importantMove = false;
+    bool importantSelfMove = false;
+    bool importantOppMove  = false;
     if (TotalMove() == 0) {
         retPoint.Set(BoardSize/2, BoardSize/2);
         return retPoint;
@@ -146,16 +194,16 @@ Point GT_FIRAI::Move()
             NodeType oppType = (type == Black) ? White : Black;
             ReqCounts selfCount  = EvalPoint(p, type, type);
             ReqCounts oppCount   = EvalPoint(p, oppType, oppType);
-            ReqCounts totalCount = selfCount + oppCount;
+            ReqCounts totalCount = selfCount * 2 + oppCount;
             if (selfCount.isImportant() && selfCount > maxSelfCount) {
                 maxSelfCount = selfCount;
                 selfPoint.Set(i,j);
-                importantMove = true;
+                importantSelfMove = true;
             }
             if (oppCount.isImportant() && oppCount > maxOppCount) {
                 maxOppCount = oppCount;
                 oppPoint.Set(i,j);
-                importantMove = true;
+                importantOppMove = true;
             }
             if (!selfCount.isImportant() && !oppCount.isImportant()) {
                 if (totalCount > maxTotalCount) {
@@ -165,13 +213,18 @@ Point GT_FIRAI::Move()
             }
         }
     }
-    if (importantMove) {
-        if (maxSelfCount > maxOppCount)
+    if (importantSelfMove && importantOppMove) {
+        if (FirstBetter(maxSelfCount, maxOppCount))
             return selfPoint;
         else
             return oppPoint;
-    } else
+    } else if (importantSelfMove) {
+        return selfPoint;
+    } else if (importantOppMove) {
+        return oppPoint;
+    } else {
         return totalPoint;
+    }
 }
 ReqCounts GT_FIRAI::EvalPoint(Point p, NodeType t, NodeType selfValue)
 {
