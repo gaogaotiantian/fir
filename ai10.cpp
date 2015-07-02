@@ -6,7 +6,7 @@ Point ActualPlayer(const NodeType board[BoardSize][BoardSize], NodeType yourType
     int x;
     int y;
     while (1) {
-        printf("You are %s\n", (yourType == Black) ? "Black" : "White");
+        printf("You are %s\n", (yourType == Black) ? blackChar : whiteChar);
         printf("Please input your move, colomn(x axis) first, for example:2 3\n");
         scanf("%d %d", &y, &x);
         p.Set(x,y);

@@ -66,13 +66,6 @@ Game::Game()
         }
     }
 
-    /*for (int i = 1; i < drawSize; ++i) {
-        for (int j = 1; j < drawSize; ++j) {
-            cout<<boardChar[i][j];
-        }
-        cout<<endl;
-    }*/
-
     for (int i = 0; i < MAX_AI_NUM; ++i) {
         struct S_AI ai = AIList[i];
         if (ai.id > 0 && ai.id <= MAX_AI_NUM) {
@@ -101,7 +94,7 @@ NodeType Game::Play(S_AI blackAI, S_AI whiteAI, bool isPrint) {
         Point p;
         p = blackAI.func(board, Black);
         if (Move(p) == false) {
-            printf("Stupid black AI made a move at (%i, %i)\n", p.x, p.y);
+            printf("Stupid AI %s(%s) made a move at (%i, %i)\n", blackAI.name, blackChar, p.x, p.y);
             return White;
         }
         if (isPrint) {
@@ -114,7 +107,7 @@ NodeType Game::Play(S_AI blackAI, S_AI whiteAI, bool isPrint) {
         
         p = whiteAI.func(board, White);
         if (Move(p) == false) {
-            printf("Stupid white AI made a move at (%i, %i)\n", p.x, p.y);
+            printf("Stupid AI %s(%s) made a move at (%i, %i)\n", whiteAI.name, whiteChar, p.x, p.y);
             return Black;
         }
         if (isPrint) {
@@ -216,8 +209,6 @@ NodeType Game::CheckNode(Point p)
 }
 void Game::PrintBoard()
 {
-    const char* blackChar = "○";
-    const char* whiteChar = "●";
     system("clear");
     printf(" ");
     for (int i = 0; i < BoardSize; ++i) {
@@ -237,8 +228,8 @@ void Game::PrintBoard()
         }
         printf("\n");
     }
-    printf("Black: %s\n", blackAI.name);
-    printf("White: %s\n", whiteAI.name);
+    printf("%s: %s\n", blackChar, blackAI.name);
+    printf("%s: %s\n", whiteChar, whiteAI.name);
 }
 void Game::SetGamerAI(int gamer1ID, int gamer2ID, bool isRand)
 {
@@ -331,9 +322,9 @@ int main(int argc, char* argv[])
     
     NodeType result = game.Play(blackAI, whiteAI, game.isPrint);
     if (result == Black) {
-        printf("Black Wins! AI: \"%s\" beat AI: \"%s\"\n", blackAI.name, whiteAI.name);
+        printf("%s Wins! AI: \"%s\" beat AI: \"%s\"\n", blackChar, blackAI.name, whiteAI.name);
     } else if (result == White) {
-        printf("White Wins! AI: \"%s\" beat AI: \"%s\"\n", whiteAI.name, blackAI.name);
+        printf("%s Wins! AI: \"%s\" beat AI: \"%s\"\n", whiteChar, whiteAI.name, blackAI.name);
     }
 
     return 0;

@@ -10,6 +10,9 @@
 
 enum NodeType {Empty, Black, White};
 
+static const char* blackChar = "○";
+static const char* whiteChar = "●";
+
 class Point{
 public:
     Point() {x = -1; y = -1;};
