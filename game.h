@@ -14,8 +14,13 @@ class Point{
 public:
     Point() {x = -1; y = -1;};
     Point(int xx, int yy) {x = xx; y = yy;};
+    Point(const Point & p) {x = p.x; y = p.y;};
     void Set(int xx, int yy) {x = xx; y = yy;};
-    bool Valid() {return (0 <= x && x < BoardSize && 0 <= y && y < BoardSize);};
+    void Copy(const Point & p) {x = p.x; y = p.y;};
+    bool Valid() const {return (0 <= x && x < BoardSize && 0 <= y && y < BoardSize);};
+    bool operator == (Point& p) const {return(x == p.x && y == p.y);};
+    bool operator != (Point& p) const {return(x != p.x || y != p.y);};
+
 
     int x;
     int y;
