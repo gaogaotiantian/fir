@@ -6,7 +6,6 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <map>
-#include <unordered_map>
 #include <iostream>
 #include "game.h"
 
