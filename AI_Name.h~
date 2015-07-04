@@ -15,7 +15,7 @@ const struct S_AI AIList[MAX_AI_NUM] = {
 //   ID | Function Name   | Name
     {1,   ExampleAI       , "Example"},
     {2,   GTAIFunc        , "GaoTian AI"},
-    {5,   dummyProcedure  , "DummyIndex's Mashiro"},
+    {5,   dummyProcedure    , "DummyIndex's Mashiro"},
     {10,  ActualPlayer    , "Player"}
 };
 
