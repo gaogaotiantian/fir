@@ -19,6 +19,14 @@ Example: your ID is 3 and you want to compete with exampleAI, then you should
 use "./game.out 1 3". The order of arguments will not affect the result because
 who move first is random.
 
+Now the program supports human vs AI. The human control AI has ID 10. You can
+start a game with an AI using "./game.out * 10"
+
+Possible Arguments:
+args | Description
+-s:* | sleeptime between moves
+-p:* | whether to print board, only accept 0/1
+
 Current ID assigning:
 example:1
 gaogaotiantian:2
@@ -27,5 +35,6 @@ jimzhu1993:4
 dummyindex:5
 ShaoyiZhang:6
 SeraphRoy:7
+ActualPlayer(Human Control):10
 
 Have Fun!

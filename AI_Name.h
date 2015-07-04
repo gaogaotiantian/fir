@@ -13,12 +13,13 @@
 Point ExampleAI(const NodeType board[BoardSize][BoardSize], NodeType yourType);
 Point GTAIFunc(const NodeType board[BoardSize][BoardSize], NodeType yourType);
 Point ActualPlayer(const NodeType board[BoardSize][BoardSize], NodeType yourType);
-
+Point dummyProcedure(const NodeType board[BoardSize][BoardSize], NodeType mytype);
 // And add your function here!
 const struct S_AI AIList[MAX_AI_NUM] = {
 //   ID | Function Name   | Name
     {1,   ExampleAI       , "Example"},
     {2,   GTAIFunc        , "GaoTian AI"},
+    {5,   dummyProcedure  , "DummyIndex's Mashiro"},
     {10,  ActualPlayer    , "Player"}
 };
 
