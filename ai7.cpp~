@@ -238,6 +238,12 @@ Point SeraphTheGreat(const NodeType board[BoardSize][BoardSize], NodeType myType
     calibur = omniknight.nextStep(omniknight.getOppoType(), 2, 1);
     if(calibur.Valid())
       return calibur;
+    calibur = omniknight.nextStep(omniknight.getMyType(), 1, 0);
+    if(calibur.Valid())
+      return calibur;
+    calibur = omniknight.nextStep(omniknight.getOppoType(), 1, 0);
+    if(calibur.Valid())
+      return calibur;
     Point sad(BoardSize/2, BoardSize/2);
     return sad;
 }
