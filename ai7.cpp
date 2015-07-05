@@ -128,7 +128,7 @@ public:
 	}
       }
     }
-    Point p(0, BoardSize-1);
+    Point p(-1, -1);
     return p;
   }
   Point horizontal(Point pp, NodeType xType, int num, int threshold){
