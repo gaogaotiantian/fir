@@ -497,8 +497,8 @@ Point GT_FIRAI::Move()
             if (totalInfo > maxTotalInfo) {
                 maxTotalInfo = totalInfo;
             }
-            int thisptSelfWinStep = TestWinMove(p, type, 4);
-            int thisptOppWinStep  = TestWinMove(p, oppType, 4);
+            int thisptSelfWinStep = TestWinMove(p, type, std::min(4, selfWinStep - 1));
+            int thisptOppWinStep  = TestWinMove(p, oppType, std::min(4, oppWinStep - 1));
 
             if (thisptSelfWinStep != 0 && thisptSelfWinStep < selfWinStep) {
                 selfWinStep  = thisptSelfWinStep;
@@ -532,8 +532,9 @@ int GT_FIRAI::TestWinMove(Point p, NodeType t, int step)
     PointInfo ptinfo = (t == type) ? selfptInfo[p.x][p.y] : oppptInfo[p.x][p.y];
     NodeType antit = t == Black ? White: Black;
     bool isPossible = false;
+    int  totalUpCount = 0;
 
-    if (ptinfo.valid == false) {
+    if (ptinfo.valid == false || step <= 0) {
         return 0;
     }
 
@@ -541,12 +542,9 @@ int GT_FIRAI::TestWinMove(Point p, NodeType t, int step)
         return 5;
     
     for (int s = 0; s < step; ++s) {
-        if (ptinfo.rCount.counts[s] > 0) {
-            isPossible = true;
-            break;
-        }
+        totalUpCount += ptinfo.rCount.counts[s];
     }
-    if (isPossible == false)
+    if (totalUpCount < step)
         return 0;
 
     if (ptinfo.rCount.counts[0] > 0)
