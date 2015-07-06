@@ -99,15 +99,95 @@ public:
     copyBoard(board, curBoard);
     oppoType = advType;
     myType = SeraphType;
-  } 
-  Point nextStep(NodeType xType, int num, int threshold){
-    Point search(0,0);
+  }
+  
+  bool isStepEmergent3(Point pp){
+    Point check = pp;
+    if(!check.Valid())
+      return false;
+    else{
+      Point test = check;
+      Point testR = check;
+      Point testL = check;
+      testR = check;
+      testL = check;
+      for(int i = 0; (test.x+i < BoardSize) && (curBoard[test.x+i][test.y] != oppoType); i++){
+	if(test.x+i >= BoardSize)
+	  return false;
+	testR.Set(test.x+i, test.y);
+      }
+      for(int i = 0; (test.x-i >= 0) && (curBoard[test.x-i][test.y] != oppoType); i++){
+	if(test.x-i < 0)
+	  return false;
+	testL.Set(test.x-i, test.y);
+      }
+      if(testR.x - testL.x > 4)
+	return true;
+      if(curBoard[testR.x][testR.y] == myType || curBoard[testL.x][testL.y] == myType)
+	return false;
+      
+      testR = check;
+      testL = check;
+      for(int i = 0; (test.y+i < BoardSize) && (curBoard[test.x][test.y+i] != oppoType); i++){
+	if(test.y+i >= BoardSize)
+	  return false;
+	testR.Set(test.x, test.y+i);
+      }
+      for(int i = 0; (test.y-i >= 0) && (curBoard[test.x][test.y-i] != oppoType); i++){
+	if(test.y-i < 0)
+	  return false;
+	testL.Set(test.y-i, test.y);
+      }
+      if(testR.y - testL.y > 4)
+	return true;
+      if(curBoard[testR.x][testR.y] == myType || curBoard[testL.x][testL.y] == myType)
+	return false;
+      
+      testR = check;
+      testL = check;
+      for(int i = 0; (test.x+i < BoardSize && test.y < BoardSize) && (curBoard[test.x+i][test.y+i] != oppoType); i++){
+	if(test.x+i >= BoardSize || test.y+i >= BoardSize)
+	  return false;
+	testR.Set(test.x+i, test.y+i);
+      }
+      for(int i = 0; (test.x-i >= 0 && test.y-i >= 0) && (curBoard[test.x-i][test.y-i] != oppoType); i++){
+	if(test.x-i < 0 || test.y < 0)
+	  return false;
+	testL.Set(test.x-i, test.y-i);
+      }
+      if(testR.x - testL.x > 4)
+	return true;
+      if(curBoard[testR.x][testR.y] == myType || curBoard[testL.x][testL.y] == myType)
+	return false;
+      
+      testR = check;
+      testL = check;
+      for(int i = 0; (test.x-i >= 0 && test.y+i < BoardSize) && (curBoard[test.x-i][test.y+i] != oppoType); i++){
+	if(test.x-i < 0 || test.y+i >= BoardSize)
+	  return false;
+	testR.Set(test.x-i, test.y+i);
+      }
+      for(int i = 0; (test.x+i < BoardSize && test.y-i >= 0) && (curBoard[test.x+i][test.y-i] != oppoType); i++){
+	if(test.x+i >= BoardSize || test.y-i < 0)
+	  return false;
+	testL.Set(test.x+i, test.y-i);
+      }
+      if(testR.y - testL.y > 4)
+	return true;
+      if(curBoard[testR.x][testR.y] == myType || curBoard[testL.x][testL.y] == myType)
+	return false;
+    }
+    return true;	  
+  }
+  
+    Point nextStep(NodeType xType, int num, int threshold, int startX, int startY){
+    Point search(startX , startY);
     Point hPoint;
     Point vPoint;
     Point rPoint;
     Point lPoint;
-    for(int i = 0; i < BoardSize; i++){
-      for(int j = 0; j < BoardSize; j++){
+    for(int i = startX; i < BoardSize; i++){
+      for(int j = startY; j < BoardSize; j++){
 	search.Set(i, j);
 	hPoint = horizontal(search, xType, num, threshold);
 	vPoint = vertical(search, xType, num, threshold);
@@ -214,31 +294,38 @@ Point SeraphTheGreat(const NodeType board[BoardSize][BoardSize], NodeType myType
     else
       omniknight.setOmni(White, Black, board);
     Point calibur;
-    calibur = omniknight.nextStep(omniknight.getMyType(), 5, 4);
+    calibur = omniknight.nextStep(omniknight.getMyType(), 5, 4, 0, 0);
     if(calibur.Valid())
       return calibur;
-    calibur = omniknight.nextStep(omniknight.getOppoType(), 5, 4);
+    calibur = omniknight.nextStep(omniknight.getOppoType(), 5, 4, 0, 0);
     if(calibur.Valid())
       return calibur;
-    calibur = omniknight.nextStep(omniknight.getOppoType(), 4, 3);
+    calibur = omniknight.nextStep(omniknight.getMyType(), 4, 3, 0, 0);
     if(calibur.Valid())
       return calibur;
-    calibur = omniknight.nextStep(omniknight.getMyType(), 4, 3);
+    calibur = omniknight.nextStep(omniknight.getOppoType(), 4, 3, 0, 0);
+    if(calibur.Valid()){
+      Point instant = calibur;
+      while(calibur.Valid() && !omniknight.isStepEmergent3(calibur)){
+	instant = calibur;
+	calibur = omniknight.nextStep(omniknight.getOppoType(), 4, 3, calibur.x+1, calibur.y);
+      }
+      if(calibur.Valid())
+	return calibur;
+    }
+    calibur = omniknight.nextStep(omniknight.getMyType(), 3, 2, 0, 0);
     if(calibur.Valid())
       return calibur;
-    calibur = omniknight.nextStep(omniknight.getOppoType(), 3, 2);
+    calibur = omniknight.nextStep(omniknight.getMyType(), 2, 1, 0, 0);
     if(calibur.Valid())
       return calibur;
-    calibur = omniknight.nextStep(omniknight.getMyType(), 3, 2);
+    calibur = omniknight.nextStep(omniknight.getOppoType(), 3, 2, 0, 0);
     if(calibur.Valid())
       return calibur;
-    calibur = omniknight.nextStep(omniknight.getMyType(), 2, 1);
+    calibur = omniknight.nextStep(omniknight.getOppoType(), 2, 1, 0, 0);
     if(calibur.Valid())
       return calibur;
-    calibur = omniknight.nextStep(omniknight.getOppoType(), 2, 1);
-    if(calibur.Valid())
-      return calibur;
-    Point sad(BoardSize/2, BoardSize/2);
+    Point sad((BoardSize+1)/2, (BoardSize+1)/2);
     return sad;
 }
 
