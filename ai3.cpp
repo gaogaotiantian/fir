@@ -41,6 +41,13 @@ Point c_Ai::XInHoriz(int size, const Point& P,const NodeType board[BoardSize][Bo
       count++;
     }
     else{
+      if(board[i][y]!=Empty){
+	count = 0;
+        space = false;
+        tempcount=0;
+        backupstart = 0;
+	continue;
+      }
       if(count==0)
 	continue;
       if(count>0 && !space && (i+1)<BoardSize && board[i+1][y]==type){
@@ -87,6 +94,13 @@ Point c_Ai::XInVerit(int size, const Point& P,const NodeType board[BoardSize][Bo
       count++;
     }
     else{
+      if(board[i][y]!=Empty){
+	count = 0;
+        space = false;
+        tempcount=0;
+        backupstart = 0;
+        continue;
+      }
       if(count==0)
 	continue;
       if(count>0 && !space && (i+1)<BoardSize && board[x][i+1]==type){
@@ -153,6 +167,13 @@ Point c_Ai::XInLRDCross(int size, const Point& P,const NodeType board[BoardSize]
       count++;
     }
     else{
+      if(board[i][tempy]!=Empty){
+	count =0;
+	space =false;
+	tempcount=0;
+	backupstartx=0;
+	backupstarty=0;
+}
       if (count==0) {
 	tempy--;
 	continue;
@@ -230,6 +251,13 @@ Point c_Ai::XInLRUCross(int size, const Point& P,const NodeType board[BoardSize]
       count++;
     }
     else{
+      if(board[i][tempy]!=Empty){
+	count =0;
+	space =false;
+	tempcount=0;
+	backupstartx=0;
+	backupstarty=0;
+     }
       if (count==0) {
 	tempy++;
 	continue;
