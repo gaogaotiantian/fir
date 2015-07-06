@@ -31,7 +31,7 @@ Point Ai3(const NodeType board[BoardSize][BoardSize], NodeType yourType){
 
 Point c_Ai::XInHoriz(int size, const Point& P,const NodeType board[BoardSize][BoardSize]){
   int x =P.x; int y = P.y; int tempcount =0, backupstart = 0; int spacex =0, count=0;
-  int Xstrat = (x<=(size-1))? 0 : (x-size+1);
+  int Xstrat = x;
   bool space = false;
   int Xend = (x>=(BoardSize+1-size))?BoardSize:(x+size-1);
   for(int i = Xstrat; i<=Xend; i++){
@@ -84,7 +84,7 @@ Point c_Ai::XInHoriz(int size, const Point& P,const NodeType board[BoardSize][Bo
 
 Point c_Ai::XInVerit(int size, const Point& P,const NodeType board[BoardSize][BoardSize]){
   int x =P.x; int y = P.y; int tempcount =0, backupstart = 0; int spacex =0,count=0;
-  int Ystrat = (y<size)? 0 : (y-size+1);
+  int Ystrat = y;
   bool space = false;
   int Yend = (y>=(BoardSize+1-size))?BoardSize:(y+size-1);
   for(int i = Ystrat; i<=Yend; i++){
