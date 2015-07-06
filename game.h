@@ -42,20 +42,30 @@ typedef struct S_AI S_AI;
 
 typedef std::map<int, struct S_AI> AI_Map;
 
+class GameSettings
+{
+public:
+    GameSettings();
+    bool isPrint;
+    bool isRandFirst;
+    int  sleepTime;
+    bool isNormal;
+};
+
 class Game {
 public:
     Game();
     void Initialize();
     bool Move(Point p);
-    NodeType Play(S_AI, S_AI, bool);
+    NodeType Play(S_AI, S_AI);
     NodeType CheckVictory();
     NodeType GetType(Point p);
     void PrintBoard();
-    void SetGamerAI(int gamer1ID, int gamer2ID, bool isRand);
+    void PreSetBoard();
+    void SetGamerAI(int gamer1ID, int gamer2ID);
     
+    GameSettings settings;
     bool isBlackPlaying;
-    unsigned int sleepTime;
-    bool isPrint;
     NodeType board[BoardSize][BoardSize];
     std::string boardChar[BoardSize*2][BoardSize*2];
     AI_Map aiMap;

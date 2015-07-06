@@ -18,11 +18,17 @@ const char* WhiteAIName;
 S_AI blackAI;
 S_AI whiteAI;
 
+
+GameSettings::GameSettings()
+{
+    isPrint      = true;
+    isRandFirst  = true;
+    sleepTime    = 1;
+    isNormal     = 1;
+}
+
 Game::Game()
 {
-    isBlackPlaying = true;
-    sleepTime      = 1;
-    isPrint        = true;
     for (int i = 0; i < BoardSize; i++) {
         for (int j = 0; j < BoardSize; j++) {
             board[i][j] = Empty;
@@ -89,17 +95,18 @@ void Game::Initialize()
     }
     isBlackPlaying = true;
 }
-NodeType Game::Play(S_AI blackAI, S_AI whiteAI, bool isPrint) {
+NodeType Game::Play(S_AI blackAI, S_AI whiteAI) {
     while (1) {
         Point p;
         p = blackAI.func(board, Black);
         if (Move(p) == false) {
-            printf("Stupid AI %s(%s) made a move at (%i, %i)\n", blackAI.name, blackChar, p.x, p.y);
+            if (settings.isPrint)
+                printf("Stupid AI %s(%s) made a move at (%i, %i)\n", blackAI.name, blackChar, p.x, p.y);
             return White;
         }
-        if (isPrint) {
+        if (settings.isPrint) {
             PrintBoard();
-            sleep(sleepTime);
+            sleep(settings.sleepTime);
         }
         if (CheckVictory() == Black) {
             return Black;
@@ -107,12 +114,13 @@ NodeType Game::Play(S_AI blackAI, S_AI whiteAI, bool isPrint) {
         
         p = whiteAI.func(board, White);
         if (Move(p) == false) {
-            printf("Stupid AI %s(%s) made a move at (%i, %i)\n", whiteAI.name, whiteChar, p.x, p.y);
+            if (settings.isPrint)
+                printf("Stupid AI %s(%s) made a move at (%i, %i)\n", whiteAI.name, whiteChar, p.x, p.y);
             return Black;
         }
-        if (isPrint) {
+        if (settings.isPrint) {
             PrintBoard();
-            sleep(sleepTime);
+            sleep(settings.sleepTime);
         }
         if (CheckVictory() == White) {
             return White;
@@ -231,7 +239,20 @@ void Game::PrintBoard()
     printf("%s: %s\n", blackChar, blackAI.name);
     printf("%s: %s\n", whiteChar, whiteAI.name);
 }
-void Game::SetGamerAI(int gamer1ID, int gamer2ID, bool isRand)
+void Game::PreSetBoard()
+{
+    int x = 0;
+    int y = 0;
+    NodeType t;
+    for (int i = 0; i <= 2; ++i) {
+        t = (i == 1) ? Black : White;
+        x = (BoardSize - 9) / 2 + rand() % 9;
+        y = (BoardSize - 9) / 2 + rand() % 9;
+        if (board[x][y] == Empty)
+            board[x][y] = t;
+    }
+}
+void Game::SetGamerAI(int gamer1ID, int gamer2ID)
 {
     S_AI ai1;
     S_AI ai2;
@@ -250,7 +271,7 @@ void Game::SetGamerAI(int gamer1ID, int gamer2ID, bool isRand)
         exit(1);
     }
 
-    if (!isRand) {
+    if (!settings.isRandFirst) {
         blackAI = ai1;
         whiteAI = ai2;
     } else {
@@ -276,7 +297,7 @@ int main(int argc, char* argv[])
             switch (argv[i][1]) {
                 case 's':
                     if (argv[i][2] == ':') {
-                        game.sleepTime = atoi(argv[i]+3);
+                        game.settings.sleepTime = atoi(argv[i]+3);
                     } else {
                         printf("Unknown argument: %s\n", argv[i]);
                         exit(1);
@@ -285,9 +306,9 @@ int main(int argc, char* argv[])
                 case 'p':
                     if (argv[i][2] == ':') {
                         if (argv[i][3] == '0')
-                            game.isPrint = false;
+                            game.settings.isPrint = false;
                         else if (argv[i][3] == '1')
-                            game.isPrint = true;
+                            game.settings.isPrint = true;
                         else {
                             printf("Unknown argument: %s\n", argv[i]);
                             exit(1);
@@ -297,6 +318,37 @@ int main(int argc, char* argv[])
                         exit(1);
                     }
                     break;
+                case 'r':
+                    if (argv[i][2] == ':') {
+                        if (argv[i][3] == '0')
+                            game.settings.isRandFirst = false;
+                        else if (argv[i][3] == '1')
+                            game.settings.isRandFirst = true;
+                        else {
+                            printf("Unknown argument: %s\n", argv[i]);
+                            exit(1);
+                        }
+                    } else {
+                        printf("Unknown argument: %s\n", argv[i]);
+                        exit(1);
+                    }
+                    break;
+                case 'n':
+                    if (argv[i][2] == ':') {
+                        if (argv[i][3] == '0')
+                            game.settings.isNormal = false;
+                        else if (argv[i][3] == '1')
+                            game.settings.isNormal = true;
+                        else {
+                            printf("Unknown argument: %s\n", argv[i]);
+                            exit(1);
+                        }
+                    } else {
+                        printf("Unknown argument: %s\n", argv[i]);
+                        exit(1);
+                    }
+                    break;
+
                 default:
                     printf("Unknown argument: %s\n", argv[i]);
                     exit(1);
@@ -317,10 +369,11 @@ int main(int argc, char* argv[])
         printf("Not enough IDs!\n");
         exit(1);
     } else {
-        game.SetGamerAI(gamer1ID, gamer2ID, true);
+        game.SetGamerAI(gamer1ID, gamer2ID);
     }
-    
-    NodeType result = game.Play(blackAI, whiteAI, game.isPrint);
+    if (!game.settings.isNormal)
+        game.PreSetBoard();
+    NodeType result = game.Play(blackAI, whiteAI);
     if (result == Black) {
         printf("%s Wins! AI: \"%s\" beat AI: \"%s\"\n", blackChar, blackAI.name, whiteAI.name);
     } else if (result == White) {

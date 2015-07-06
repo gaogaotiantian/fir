@@ -16,16 +16,25 @@ The prototype has to be exactly the same as exampleAI.
 5. run "./game.out * *", in which * represents the ID for the function.
 
 Example: your ID is 3 and you want to compete with exampleAI, then you should
-use "./game.out 1 3". The order of arguments will not affect the result because
-who move first is random.
+use "./game.out 1 3". The order of arguments will not affect the result when 
+-r:1(which is the default )because who moves first is random. However, if you
+set -r:0, the first input ID will move first.
 
 Now the program supports human vs AI. The human control AI has ID 10. You can
 start a game with an AI using "./game.out * 10"
 
+There's a abnormal mode, which can be enabled by -n:0. In this mode, the board
+will be randomly placed two white pieces and one black piece in 9*9 range in 
+the middle, and then the game starts by black. This mode randonmize the result
+for deterministic algorithm. You can test your AI using this mode to see it's
+actual situation read ability.
+
 Possible Arguments:
-args | Description
--s:* | sleeptime between moves
--p:* | whether to print board, only accept 0/1
+args (default) | Description
+-s:* (1)       | sleeptime between moves
+-p:* (1)       | whether to print board, only accept 0/1
+-n:* (1)       | whether to play in normal mode, only accept 0/1
+-r:* (1)       | whether to random the first play AI, only accept 0/1
 
 Current ID assigning:
 example:1
