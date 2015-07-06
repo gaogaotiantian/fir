@@ -16,11 +16,11 @@ private:
 public:
   c_Ai(NodeType yourType){type = yourType;};
   Point move(const NodeType board[BoardSize][BoardSize]);
-  Point XInHoriz(int size, const Point& P,const NodeType board[BoardSize][BoardSize]);
-  Point XInVerit(int size, const Point& P,const NodeType board[BoardSize][BoardSize]);
-  Point XInLRDCross(int size, const Point& P,const NodeType board[BoardSize][BoardSize]);
-  Point XInLRUCross(int size, const Point& P,const NodeType board[BoardSize][BoardSize]);
-  Point XInARow(int size, const Point& P,const NodeType board[BoardSize][BoardSize]);
+  Point XInHoriz(int size, const Point& P,const NodeType board[BoardSize][BoardSize],NodeType type);
+  Point XInVerit(int size, const Point& P,const NodeType board[BoardSize][BoardSize],NodeType type);
+  Point XInLRDCross(int size, const Point& P,const NodeType board[BoardSize][BoardSize],NodeType type);
+  Point XInLRUCross(int size, const Point& P,const NodeType board[BoardSize][BoardSize],NodeType type);
+  Point XInARow(int size, const Point& P,const NodeType board[BoardSize][BoardSize],NodeType type);
   void addAllPoint(const NodeType board[BoardSize][BoardSize]);
 };
 
@@ -29,9 +29,9 @@ Point Ai3(const NodeType board[BoardSize][BoardSize], NodeType yourType){
   return ai.move(board);
 }
 
-Point c_Ai::XInHoriz(int size, const Point& P,const NodeType board[BoardSize][BoardSize]){
+Point c_Ai::XInHoriz(int size, const Point& P,const NodeType board[BoardSize][BoardSize],NodeType type){
   int x =P.x; int y = P.y; int tempcount =0, backupstart = 0; int spacex =0, count=0;
-  int Xstrat = (x<=(size-1))? 0 : (x-size+1);
+  int Xstrat = x;
   bool space = false;
   int Xend = (x>=(BoardSize+1-size))?BoardSize:(x+size-1);
   for(int i = Xstrat; i<=Xend; i++){
@@ -82,9 +82,9 @@ Point c_Ai::XInHoriz(int size, const Point& P,const NodeType board[BoardSize][Bo
 }
 
 
-Point c_Ai::XInVerit(int size, const Point& P,const NodeType board[BoardSize][BoardSize]){
+Point c_Ai::XInVerit(int size, const Point& P,const NodeType board[BoardSize][BoardSize],NodeType type){
   int x =P.x; int y = P.y; int tempcount =0, backupstart = 0; int spacex =0,count=0;
-  int Ystrat = (y<size)? 0 : (y-size+1);
+  int Ystrat = y;
   bool space = false;
   int Yend = (y>=(BoardSize+1-size))?BoardSize:(y+size-1);
   for(int i = Ystrat; i<=Yend; i++){
@@ -137,18 +137,11 @@ Point c_Ai::XInVerit(int size, const Point& P,const NodeType board[BoardSize][Bo
 
 
 
-Point c_Ai::XInLRDCross(int size, const Point& P,const NodeType board[BoardSize][BoardSize]){
+Point c_Ai::XInLRDCross(int size, const Point& P,const NodeType board[BoardSize][BoardSize],NodeType type){
   int x =P.x; int y = P.y; int tempcount =0, backupstartx = 0, backupstarty =0,count=0; int spacex =0,spacey=0;
   int tempx = x; int tempy =y;
   bool space = false;
-  for(int i =0; i<size;i++){
-    if (tempx>0&&tempy<(BoardSize-1)) {
-      tempx--;
-      tempy++;
-    }
-    else break;
-  }
-  Point start = Point(tempx,tempy);
+  Point start = Point(x,y);
   tempx = x; tempy=y;
   for(int i =0; i<size; i++){
     if (tempx<(BoardSize-1)&&tempy>0) {
@@ -221,18 +214,11 @@ Point c_Ai::XInLRDCross(int size, const Point& P,const NodeType board[BoardSize]
 }
 
 
-Point c_Ai::XInLRUCross(int size, const Point& P,const NodeType board[BoardSize][BoardSize]){
+Point c_Ai::XInLRUCross(int size, const Point& P,const NodeType board[BoardSize][BoardSize],NodeType type){
   int x =P.x; int y = P.y; int tempcount =0, backupstartx = 0, backupstarty =0,count=0; int spacex =0,spacey=0;
   int tempx = x; int tempy =y;
   bool space = false;
-  for(int i =0; i<size;i++){
-    if (tempx>0&&tempy>0) {
-      tempx--;
-      tempy--;
-    }
-    else break;
-  }
-  Point start = Point(tempx,tempy);
+  Point start = Point(x,y);
   tempx = x; tempy=y;
   for(int i =0; i<size; i++){
     if (tempx<(BoardSize-1)&&tempy<(BoardSize-1)) {
@@ -304,14 +290,14 @@ Point c_Ai::XInLRUCross(int size, const Point& P,const NodeType board[BoardSize]
     
 }
 
-Point c_Ai::XInARow(int size, const Point& P,const NodeType board[BoardSize][BoardSize]){
-  Point temp = XInHoriz(size,P,board);
+Point c_Ai::XInARow(int size, const Point& P,const NodeType board[BoardSize][BoardSize], NodeType type){
+  Point temp = XInHoriz(size,P,board,type);
   if(temp.x!=-1) return temp;
-  temp = XInHoriz(size,P,board);
+  temp = XInHoriz(size,P,board,type);
   if (temp.x!=-1) {return temp;}
-  temp = XInLRUCross(size,P,board);
+  temp = XInLRUCross(size,P,board,type);
   if(temp.x!=-1) {return temp;}
-  temp = XInLRDCross(size,P,board);
+  temp = XInLRDCross(size,P,board,type);
   if(temp.x!=-1) {return temp;}
   return Point(-1,-1);
 }
@@ -341,32 +327,36 @@ Point c_Ai::move(const NodeType board[BoardSize][BoardSize]){
     else return Point(11,10);
   }
   Point temp(0,0);
+
+  NodeType ytype;
+  if(type==Black) ytype = White;
+  else ytype = Black;
   for (int i =0; i<mysize; i++) {
-    temp = XInARow(4, Mylocation[i], board);
+    temp = XInARow(4, Mylocation[i], board,type);
     if (temp.x!=-1) {
       return temp;
     }
   }
   for (int i=0; i<ysize; i++) {
-    temp = XInARow(4, YLocation[i], board);
+    temp = XInARow(4, YLocation[i], board,ytype);
     if (temp.x!=-1) {
       return temp;
     }
   }
   for (int i =0; i<mysize; i++) {
-    temp = XInARow(3, Mylocation[i], board);
+    temp = XInARow(3, Mylocation[i], board,type);
     if (temp.x!=-1) {
       return temp;
     }
   }
   for (int i=0; i<ysize; i++) {
-    temp = XInARow(3, YLocation[i], board);
+    temp = XInARow(3, YLocation[i], board,ytype);
     if (temp.x!=-1) {
       return temp;
     }
   }
   for (int i =0; i<mysize; i++) {
-    temp = XInARow(2, Mylocation[i], board);
+    temp = XInARow(2, Mylocation[i], board,type);
     if (temp.x!=-1) {
       return temp;
     }
