@@ -22,7 +22,7 @@ public:
     void Copy(const Point & p) {x = p.x; y = p.y;};
     bool Valid() const {return (0 <= x && x < BoardSize && 0 <= y && y < BoardSize);};
     bool operator == (Point& p) const {return(x == p.x && y == p.y);};
-    bool operator != (Point& p) const {return(x != p.x || y != p.y);};
+    bool operator != (const Point& p) const {return(x != p.x || y != p.y);};
 
 
     int x;
