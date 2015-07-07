@@ -180,97 +180,130 @@ public:
     return true;	  
   }
   
-    Point nextStep(NodeType xType, int num, int threshold, int startX, int startY){
-    Point search(startX , startY);
+  Point nextStep(NodeType xType, int num, int threshold, int startX, int startY){ //还是要另开一个function来搞双3因为单2的优先级很低要用一个special case把它提高
     Point hPoint;
     Point vPoint;
     Point rPoint;
     Point lPoint;
-    for(int i = startX; i < BoardSize; i++){
-      for(int j = startY; j < BoardSize; j++){
-	search.Set(i, j);
-	hPoint = horizontal(search, xType, num, threshold);
-	vPoint = vertical(search, xType, num, threshold);
-	rPoint = rightDown(search, xType, num, threshold);
-	lPoint = leftDown(search, xType, num, threshold);
-	
-	if(hPoint.Valid()){
-	  return hPoint;
-	}
-	if(vPoint.Valid()){
-	  return vPoint;
-	}
-	if(rPoint.Valid()){
-	  return rPoint;
-	}
-	if(lPoint.Valid()){
-	  return lPoint;
-	}
-      }
+    hPoint = horizontal(search, xType, num, threshold, startX, startY);
+    vPoint = vertical(search, xType, num, threshold, startX, startY);
+    rPoint = rightDown(search, xType, num, threshold, startX, startY);
+    lPoint = leftDown(search, xType, num, threshold, startX, startY);    
+    Point hPointT = hPoint;
+    Point vPointT = vPoint;
+    Point rPointT = rPoint;
+    Point lPointT = lPoint;
+    while(hPointT.Valid() || vPointT.Valid() || rPointT.Valid() || lPointT.Valid()){
+      if(hPointT.Valid() && hPointT == vPointT && vPointT == rPointT && rPointT == lPointT)
+	return hPointT;
+      if(hPointT.Valid() && hPointT == vPointT && vPointT == rPointT)
+	return hPointT;
+      if(hPointT.Valid() && hPointT == vPointT && vPointT == lPointT)
+	return hPoint;
+      if(hPointT.Valid() && hPointT == rPointT && rPointT == lPointT)
+	return hPointT;
+      if(vPointT.Valid() && vPointT == rPointT && rPointT == lPointT)
+	return vPointT;
+      if(hPointT.Valid() && hPointT == vPointT)
+	return hPointT;
+      if(hPointT.Valid() && hPointT == rPointT)
+	return hPointT;
+      if(hPointT.Valid() && hPointT == lPointT)
+	return hPointT;
+      if(vPointT.Valid() && vPointT == rPointT)
+	return vPointT;
+      
+    if(hPoint.Valid()){
+      return hPoint;
+    }
+    if(vPoint.Valid()){
+      return vPoint;
+    }
+    if(rPoint.Valid()){
+      return rPoint;
+    }
+    if(lPoint.Valid()){
+      return lPoint;
     }
     Point p(-1, -1);
     return p;
   }
-  Point horizontal(Point pp, NodeType xType, int num, int threshold){
+  Point horizontal(Point pp, NodeType xType, int num, int threshold, int startX, int startY){
     int count = 0;
     Point solution;
-    for(int i = 0; i < num; i++){
-      if(pp.x+i < BoardSize && curBoard[pp.x+i][pp.y] == xType){
-	count ++;
+    for(int i = startX; i < BoardSize; i++){
+      for(int j = startY; j < BoardSize; j++){
+	for(int i = 0; i < num; i++){
+	  if(pp.x+i < BoardSize && curBoard[pp.x+i][pp.y] == xType){
+	    count ++;
+	  }
+	  if(curBoard[pp.x+i][pp.y] == Empty)
+	    solution.Set(pp.x+i, pp.y);
+	}
+	if(count >= threshold && solution.Valid())
+	  return solution;
       }
-      if(curBoard[pp.x+i][pp.y] == Empty)
-	solution.Set(pp.x+i, pp.y);
     }
-    if(count >= threshold && solution.Valid())
-      return solution;
     Point invalid;
     return invalid;
   }
 
-  Point vertical(Point pp, NodeType xType, int num, int threshold){
+  Point vertical(Point pp, NodeType xType, int num, int threshold, int startX, int startY){
     int count = 0;
     Point solution;
-    for(int i = 0; i < num; i++){
-      if(pp.y+i < BoardSize && curBoard[pp.x][pp.y+i] == xType){
-	count ++;
+    for(int i = startX; i < BoardSize; i++){
+      for(int j = startY; j < BoardSize; j++){
+	for(int i = 0; i < num; i++){
+	  if(pp.y+i < BoardSize && curBoard[pp.x][pp.y+i] == xType){
+	    count ++;
+	  }
+	  if(curBoard[pp.x][pp.y+i] == Empty)
+	    solution.Set(pp.x, pp.y+i);
+	}
+	if(count >= threshold && solution.Valid())
+	  return solution;
       }
-      if(curBoard[pp.x][pp.y+i] == Empty)
-	solution.Set(pp.x, pp.y+i);
     }
-    if(count >= threshold && solution.Valid())
-      return solution;
     Point invalid;
     return invalid;
   }
-  Point rightDown(Point pp, NodeType xType, int num, int threshold){
+  Point rightDown(Point pp, NodeType xType, int num, int threshold, int startX, int startY){
     int count = 0;
     Point solution;
-    for(int i = 0; i < num; i++){
-      if((pp.x+i < BoardSize) && 
-	 (pp.y+i < BoardSize) && 
-	 (curBoard[pp.x+i][pp.y+i] == xType))
-	count ++;
-      if(curBoard[pp.x+i][pp.y+i] == Empty)
-	solution.Set(pp.x+i, pp.y+i);
+    for(int i = startX; i < BoardSize; i++){
+      for(int j = startY; j < BoardSize; j++){
+	for(int i = 0; i < num; i++){
+	  if((pp.x+i < BoardSize) && 
+	     (pp.y+i < BoardSize) && 
+	     (curBoard[pp.x+i][pp.y+i] == xType))
+	    count ++;
+	  if(curBoard[pp.x+i][pp.y+i] == Empty)
+	    solution.Set(pp.x+i, pp.y+i);
+	}
+	if(count >= threshold && solution.Valid())
+	  return solution;
+      }
     }
-    if(count >= threshold && solution.Valid())
-      return solution;
     Point invalid;
     return invalid;
   }
-  Point leftDown(Point pp, NodeType xType, int num, int threshold){
+  Point leftDown(Point pp, NodeType xType, int num, int threshold, int startX, int startY){
     int count = 0;
     Point solution;
-    for(int i = 0; i < num; i++){
-      if((pp.x-i >= 0) && 
-	 (pp.y+i < BoardSize) && 
-	 (curBoard[pp.x-i][pp.y+i] == xType))
-	count ++;
-      if(curBoard[pp.x-i][pp.y+i] == Empty)
-	solution.Set(pp.x-i, pp.y+i);
+    for(int i = startX; i < BoardSize; i++){
+      for(int j = startY; j < BoardSize; j++){
+	for(int i = 0; i < num; i++){
+	  if((pp.x-i >= 0) && 
+	     (pp.y+i < BoardSize) && 
+	     (curBoard[pp.x-i][pp.y+i] == xType))
+	    count ++;
+	  if(curBoard[pp.x-i][pp.y+i] == Empty)
+	    solution.Set(pp.x-i, pp.y+i);
+	}
+	if(count >= threshold && solution.Valid())
+	  return solution;
+      }
     }
-    if(count >= threshold && solution.Valid())
-      return solution;
     Point invalid;
     return invalid;
   }
