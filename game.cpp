@@ -5,6 +5,7 @@
 #include <time.h>
 #include <cstring>
 #include <iostream>
+#include <vector>
 #include "game.h"
 #include "AI_Name.h"
 
@@ -24,7 +25,9 @@ GameSettings::GameSettings()
     isPrint      = true;
     isRandFirst  = true;
     sleepTime    = 1;
-    isNormal     = 1;
+    repeatTime   = 1;
+    isNormal     = true;
+    isEval       = false;
 }
 
 Game::Game()
@@ -96,6 +99,9 @@ void Game::Initialize()
     isBlackPlaying = true;
 }
 NodeType Game::Play(S_AI blackAI, S_AI whiteAI) {
+    Initialize();
+    if (!settings.isNormal)
+        PreSetBoard();
     while (1) {
         Point p;
         p = blackAI.func(board, Black);
@@ -254,24 +260,13 @@ void Game::PreSetBoard()
             board[x][y] = t;
     }
 }
+// We assume both IDs exist
 void Game::SetGamerAI(int gamer1ID, int gamer2ID)
 {
     S_AI ai1;
     S_AI ai2;
-    AI_Map::iterator it = aiMap.find(gamer1ID);
-    if (it != aiMap.end()) {
-        ai1 = aiMap[gamer1ID];
-    } else {
-        printf("Gamer1ID: %d does not exist!\n", gamer1ID);
-        exit(1);
-    }
-    it = aiMap.find(gamer2ID);
-    if (it != aiMap.end()) {
-        ai2 = aiMap[gamer2ID];
-    } else {
-        printf("Gamer2ID: %d does not exist!\n", gamer2ID);
-        exit(1);
-    }
+    ai1 = aiMap[gamer1ID];
+    ai2 = aiMap[gamer2ID];
 
     if (!settings.isRandFirst) {
         blackAI = ai1;
@@ -285,6 +280,50 @@ void Game::SetGamerAI(int gamer1ID, int gamer2ID)
             whiteAI = ai1;
         }
     }
+}
+void Game::PrintEval(int total, const std::vector< std::vector<int> >& blackWinArray) 
+{
+    int IDnum = playerIDList.size();
+    printf("First\\Last ");
+    for (int i = 0; i < IDnum; ++i) {
+        printf("| %10.10s", aiMap[playerIDList[i]].name);
+    }
+    printf("\n");
+
+    for (int i = 0; i < IDnum; ++i) {
+        printf("%10.10s ", aiMap[playerIDList[i]].name);
+        for (int j = 0; j < IDnum; ++j) {
+            int blackWinTimes = blackWinArray[i][j];
+            printf("|     %5.2f%%", (float)blackWinTimes*100/total);
+        }
+        printf("\n");
+    }
+
+} 
+void Game::Evaluate()
+{
+    int IDnum = playerIDList.size();
+    std::vector< std::vector<int> > blackWinTimesArray(IDnum, vector<int>(IDnum));
+    settings.isRandFirst = false;
+    settings.isPrint     = false;
+    settings.isNormal    = false;
+    settings.sleepTime   = 0;
+    for (int repeat = 1; repeat <= settings.repeatTime; repeat++) {
+        for (int i = 0; i < IDnum; ++i) {
+            int  IDBlack = playerIDList[i];
+            for (int j = 0; j < IDnum; ++j) {
+                int      IDWhite       = playerIDList[j];
+                NodeType result        = Empty;
+                SetGamerAI(IDBlack, IDWhite);
+                result = Play(blackAI, whiteAI);
+                if (result == Black)
+                    blackWinTimesArray[i][j]++;
+            }
+        }
+        system("clear");
+        PrintEval(repeat, blackWinTimesArray);
+    }
+
 }
 void CheckBoolArguments(char* arg, char c, bool& dest)
 {
@@ -319,42 +358,44 @@ void CheckIntArguments(char* arg, char c, int& dest)
 int main(int argc, char* argv[]) 
 {
     Game game;
-    int gamer1ID = -1;
-    int gamer2ID = -1;
     game.Initialize();
     srand(time(NULL));
 
     for (int i = 1; i < argc; ++i) {
         if (argv[i][0] == '-') {
             CheckIntArguments (argv[i], 's', game.settings.sleepTime);
+            CheckIntArguments (argv[i], 't', game.settings.repeatTime);
             CheckBoolArguments(argv[i], 'p', game.settings.isPrint);
             CheckBoolArguments(argv[i], 'r', game.settings.isRandFirst);
             CheckBoolArguments(argv[i], 'n', game.settings.isNormal);
+            CheckBoolArguments(argv[i], 'e', game.settings.isEval);
         } else {
-            if (gamer1ID == -1) {
-                gamer1ID = atoi(argv[i]);
-            } else if (gamer2ID == -1) {
-                gamer2ID = atoi(argv[i]);
+            int ID = atoi(argv[i]);
+            AI_Map::iterator it = game.aiMap.find(ID);
+            if (it != game.aiMap.end()) {
+                game.playerIDList.push_back(ID);
             } else {
-                printf("Too many IDs!\n");
+                printf("ID: %d does not exist!\n", ID);
                 exit(1);
             }
         }
     }
 
-    if (gamer1ID == -1 || gamer2ID == -1) {
-        printf("Not enough IDs!\n");
-        exit(1);
+    if (!game.settings.isEval) {
+        if (game.playerIDList.size() != 2) {
+            printf("We need two IDs for a non-evaluation game!\n");
+            exit(1);
+        } else {
+            game.SetGamerAI(game.playerIDList[0], game.playerIDList[1]);
+            NodeType result = game.Play(blackAI, whiteAI);
+            if (result == Black) {
+                printf("%s Wins! AI: \"%s\" beat AI: \"%s\"\n", blackChar, blackAI.name, whiteAI.name);
+            } else if (result == White) {
+                printf("%s Wins! AI: \"%s\" beat AI: \"%s\"\n", whiteChar, whiteAI.name, blackAI.name);
+            }
+        }
     } else {
-        game.SetGamerAI(gamer1ID, gamer2ID);
-    }
-    if (!game.settings.isNormal)
-        game.PreSetBoard();
-    NodeType result = game.Play(blackAI, whiteAI);
-    if (result == Black) {
-        printf("%s Wins! AI: \"%s\" beat AI: \"%s\"\n", blackChar, blackAI.name, whiteAI.name);
-    } else if (result == White) {
-        printf("%s Wins! AI: \"%s\" beat AI: \"%s\"\n", whiteChar, whiteAI.name, blackAI.name);
+        game.Evaluate(); 
     }
 
     return 0;

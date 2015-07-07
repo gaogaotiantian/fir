@@ -3,6 +3,7 @@
 #include <map>
 #include <string>
 #include <iostream>
+#include <vector>
 
 #ifndef __GAME_H__
 #define __GAME_H__
@@ -49,7 +50,9 @@ public:
     bool isPrint;
     bool isRandFirst;
     int  sleepTime;
+    int  repeatTime;
     bool isNormal;
+    bool isEval;
 };
 
 class Game {
@@ -62,12 +65,15 @@ public:
     NodeType GetType(Point p);
     void PrintBoard();
     void PreSetBoard();
-    void SetGamerAI(int gamer1ID, int gamer2ID);
+    void SetGamerAI(int, int);
+    void Evaluate();
+    void PrintEval(int, const std::vector< std::vector<int> >&); 
     
     GameSettings settings;
     bool isBlackPlaying;
     NodeType board[BoardSize][BoardSize];
     std::string boardChar[BoardSize*2][BoardSize*2];
+    std::vector<int> playerIDList;
     AI_Map aiMap;
 private:
     NodeType CheckNode(Point p);
