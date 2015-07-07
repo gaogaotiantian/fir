@@ -296,7 +296,7 @@ void Game::PrintEval(int total, const std::vector< std::vector<int> >& blackWinA
             int blackWinTimes = blackWinArray[i][j];
             printf("|    %6.2f%%", (float)blackWinTimes*100/total);
         }
-        printf(" Time Cost: %6f\n", timeCostArray[i]/total);
+        printf(" Time Cost: %6.3fs\n", timeCostArray[i]/total);
     }
 
 } 
