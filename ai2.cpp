@@ -54,7 +54,6 @@ bool isConnected(Point p1, Point p2)
 class ReqCounts {
 public:
     ReqCounts();
-    bool isImportant();
     friend ReqCounts operator + (const ReqCounts &l, const ReqCounts &r);
     friend ReqCounts operator - (const ReqCounts &l, const ReqCounts &r);
     friend ReqCounts operator - (const ReqCounts &l, int r);
@@ -64,6 +63,7 @@ public:
     void operator = (const ReqCounts &r);
     int& operator [](int i);
 
+    void Clear();
     void Print() const;
     
     int counts[6];
@@ -79,15 +79,7 @@ ReqCounts::ReqCounts()
         counts[i] = 0;
     }
 }
-bool ReqCounts::isImportant()
-{
-    if (counts[0] != 0 || 
-           (counts[1] >= 2) || 
-           (counts[1] == 1 && counts[2] >= 3 ) ||
-           (counts[2] >= 5))
-        return true;
-    return false;
-}
+
 ReqCounts operator + (const ReqCounts &l, const ReqCounts &r)
 {
     ReqCounts ret;
@@ -142,30 +134,6 @@ ReqCounts operator - (const ReqCounts &l, int r)
     return ret;
 
 }
-/*bool operator > (const ReqCounts &l, const ReqCounts &r)
-{
-    if (l.counts[0] != 0) 
-        return true;
-    if (r.counts[0] != 0)
-        return false;
-    if (l.counts[1] > 1 && l.counts[1] > r.counts[1])
-        return true;
-    if (r.counts[1] > 1 && r.counts[1] > l.counts[1])
-        return false;
-    if (l.counts[1] == r.counts[1]) {
-        if (l.counts[2] * 3 + l.counts[3] >= r.counts[2] * 3 + r.counts[3])
-            return true;
-        return false;
-    } else {
-        if (l.counts[1] * 3 + l.counts[2] > r.counts[1] * 3 + r.counts[2])
-            return true;
-        if (l.counts[1] * 3 + l.counts[2] < r.counts[1] * 3 + r.counts[2])
-            return false;
-    }
-    if (l.counts[3] * 5 + l.counts[4] >= r.counts[3] * 5 + r.counts[4])
-        return true;
-    return false;
-}*/
 
 void ReqCounts::operator = (const ReqCounts &r)
 {
@@ -180,6 +148,12 @@ int& ReqCounts::operator [](int i)
     return counts[i];
 }
 
+void ReqCounts::Clear()
+{
+    for (int i = 0; i <= 5; ++i) {
+        counts[i] = 0;
+    }
+}
 void ReqCounts::Print() const
 {
     for (int i = 0; i <=5; ++i) {
@@ -198,16 +172,12 @@ public:
     PointInfo(){};
     PointInfo(Point p);
     PointInfo(const PointInfo &);
-    bool isImportant() const;
-    Point FindMostContriPoint() const;
-    //friend PointInfo operator + (const PointInfo &l, const PointInfo &r);
+    friend PointInfo operator + (const PointInfo &l, const PointInfo &r);
 
     Point     pos;
     ReqCounts rCount;
     pointContriMap pointContri;
     bool valid;
-    bool important;
-    int  stepsToWin;
 };
 PointInfo::PointInfo(Point p)
 {
@@ -220,57 +190,6 @@ PointInfo::PointInfo(const PointInfo &r)
     pointContri = r.pointContri;
 
     valid       = r.valid;
-    important   = r.important;
-    stepsToWin  = r.stepsToWin;
-}
-
-bool PointInfo::isImportant() const
-{
-    ReqCounts tempReq;
-    if (!pos.Valid())
-        return false;
-    if (rCount.counts[0] > 0)
-        return true;
-    else {
-        Point p = FindMostContriPoint();
-        pointContriMap::const_iterator it = pointContri.find(p);
-        //assert(it != pointContri.end());
-        tempReq = rCount - it->second;
-        
-        if (tempReq.counts[1] >= 1 || tempReq.counts[2] >= 2) {
-            return true;
-        }
-    }
-    return false;
-}
-Point PointInfo::FindMostContriPoint() const
-{
-    Point retP;
-    ReqCounts retCounts;
-    pointContriMap::const_iterator it = pointContri.begin();
-    for (; it != pointContri.end(); ++it) {
-        if (it->second.counts[1] > retCounts.counts[1]) {
-            retP      = it->first;
-            retCounts = it->second;
-        } else if (it->second.counts[1] == retCounts.counts[1]) {
-            if (it->second.counts[2] > retCounts.counts[2]) {
-                retP      = it->first;
-                retCounts = it->second;
-            }
-            else if (it->second.counts[2] == retCounts.counts[2]) {
-                if (it->second.counts[3] > retCounts.counts[3]) {
-                    retP      = it->first;
-                    retCounts = it->second;
-                } else if (it->second.counts[3] == retCounts.counts[3]) {
-                    if (it->second.counts[4] > retCounts.counts[4]) {
-                        retP      = it->first;
-                        retCounts = it->second;
-                    }
-                }
-            }
-        }
-    }
-    return retP;
 }
 
 PointInfo operator + (const PointInfo &l, const PointInfo &r)
@@ -316,30 +235,6 @@ bool operator > (const PointInfo &l, const PointInfo &r)
 
 }
 
-
-bool FirstBetter(const ReqCounts &li, const ReqCounts &ri);
-
-// This function will only be called if both move are important
-bool FirstBetter(const PointInfo &li, const PointInfo &ri)
-{
-    ReqCounts l = li.rCount;
-    ReqCounts r = ri.rCount;
-    if (l.counts[0] != 0) 
-        return true;
-    if (r.counts[0] != 0)
-        return false;
-    if (l.counts[1] > 1)
-        return true;
-    if (r.counts[1] > 1)
-        return false;
-    if (l.counts[1] == 1)
-        return true;
-    if (r.counts[1] == 1 && r.counts[2] >= 2)
-        return false;
-    // here, l.counts[0] == l.counts[1] == 0
-    return true;
-}
-
 void PrintPointContriMap(pointContriMap m)
 {
     pointContriMap::iterator it = m.begin();
@@ -358,16 +253,16 @@ class GT_FIRAI {
 public:
     GT_FIRAI(const NodeType[BoardSize][BoardSize], NodeType);
     Point Move();
-    void AssumeMove(Point p, NodeType t);
-    void RemoveAssume(Point p);
+    void AssumeMove(const Point& p, const NodeType& t);
+    void RemoveAssume(const Point& p);
     void ClearAssume();
     void EvalBoard();
-    void UpdateEvalPoint(Point p);
-    PointInfo EvalPoint(Point p, NodeType t, NodeType selfValue);
+    void UpdateEvalPoint(const Point& p);
+    void EvalPoint(PointInfo& retPointInfo, const Point& p, const NodeType& t, const NodeType& selfValue);
     void GetTotalCounts();
     int TotalMove();
-    int TestWinMove(Point p, NodeType t, int step);
-    bool isEmpty(Point p);
+    int TestWinMove(const Point& p, const NodeType& t, int step);
+    bool isEmpty(const Point& p);
    
     NodeType board[BoardSize][BoardSize];
     PointInfo selfptInfo[BoardSize][BoardSize];
@@ -378,8 +273,6 @@ public:
     assumeNodeMap assumeNodes;
 
 private:
-    int EvalFive(NodeType[5], NodeType);
-    PointInfo EvalPointOneDir(Point p, NodeType t, Direction d, NodeType selfValue);
 };
 
 GT_FIRAI::GT_FIRAI(const NodeType b[BoardSize][BoardSize], NodeType yourType) {
@@ -392,7 +285,7 @@ GT_FIRAI::GT_FIRAI(const NodeType b[BoardSize][BoardSize], NodeType yourType) {
     EvalBoard();
 }
 
-bool GT_FIRAI::isEmpty(Point p)
+bool GT_FIRAI::isEmpty(const Point& p)
 {
     if (board[p.x][p.y] == Empty)
         return true;
@@ -492,7 +385,7 @@ Point GT_FIRAI::Move()
 // if step == 0, it's impossible
 // if step == 1, this step needs to win
 // if step == 2, after opponent move, need to win next move
-int GT_FIRAI::TestWinMove(Point p, NodeType t, int step)
+int GT_FIRAI::TestWinMove(const Point& p, const NodeType& t, int step)
 {
     PointInfo ptinfo = (t == type) ? selfptInfo[p.x][p.y] : oppptInfo[p.x][p.y];
     NodeType antit = t == Black ? White: Black;
@@ -545,7 +438,7 @@ int GT_FIRAI::TestWinMove(Point p, NodeType t, int step)
                                 (step >= 4 && nextit->second[3] > 0))) {
                             Point nextp(nextit->first);
                             if (nextp.Valid() && isEmpty(nextp)) {
-                                int s = TestWinMove(nextp, t, step-1);
+                                int s = TestWinMove(nextp, t, minStep-2);
                                 if (s > 0 && s + 1 < minStep)
                                     minStep = s + 1;
                             }
@@ -576,7 +469,7 @@ int GT_FIRAI::TestWinMove(Point p, NodeType t, int step)
     return 0;
 }
 
-void GT_FIRAI::AssumeMove(Point p, NodeType t)
+void GT_FIRAI::AssumeMove(const Point& p, const NodeType& t)
 {
     assert(p.Valid());
     assert(board[p.x][p.y] == Empty);
@@ -585,7 +478,7 @@ void GT_FIRAI::AssumeMove(Point p, NodeType t)
     UpdateEvalPoint(p);
 }
 
-void GT_FIRAI::RemoveAssume(Point p)
+void GT_FIRAI::RemoveAssume(const Point& p)
 {
     assumeNodeMap::iterator it = assumeNodes.find(p);
     assert(p.Valid());
@@ -607,7 +500,7 @@ void GT_FIRAI::ClearAssume()
     }
     assumeNodes.clear();
 }
-void GT_FIRAI::UpdateEvalPoint(Point p)
+void GT_FIRAI::UpdateEvalPoint(const Point& p)
 {
     int rightInc = 0;
     int botInc = 0;
@@ -640,8 +533,8 @@ void GT_FIRAI::UpdateEvalPoint(Point p)
             Point thisp(x+i*rightInc, y+i*botInc);
             if (thisp.Valid()) {
                 if (isEmpty(thisp)) {
-                    selfptInfo[thisp.x][thisp.y] = EvalPoint(thisp, type, type);
-                    oppptInfo[thisp.x][thisp.y]  = EvalPoint(thisp, oppType, oppType);
+                    EvalPoint(selfptInfo[thisp.x][thisp.y], thisp, type, type);
+                    EvalPoint(oppptInfo[thisp.x][thisp.y], thisp, oppType, oppType);
                 } else {
                     selfptInfo[thisp.x][thisp.y].valid = false;
                     oppptInfo[thisp.x][thisp.y].valid  = false;
@@ -658,8 +551,8 @@ void GT_FIRAI::EvalBoard()
         for (int j = 0; j < BoardSize; ++j) {
             Point p(i,j);
             if (isEmpty(p)) {
-                selfptInfo[i][j] = EvalPoint(p, type, type);
-                oppptInfo[i][j]  = EvalPoint(p, oppType, oppType);
+                EvalPoint(selfptInfo[i][j], p, type, type);
+                EvalPoint(oppptInfo[i][j], p, oppType, oppType);
             } else {
                 selfptInfo[i][j].valid = false;
                 oppptInfo[i][j].valid  = false;
@@ -667,14 +560,13 @@ void GT_FIRAI::EvalBoard()
         }
     }
 }
-PointInfo GT_FIRAI::EvalPoint(Point p, NodeType t, NodeType selfValue)
+void GT_FIRAI::EvalPoint(PointInfo &retPointInfo, const Point& p, const NodeType& t, const NodeType& selfValue)
 {
-    PointInfo retPointInfo; 
-
     retPointInfo.pos.Copy(p);
-    retPointInfo.important = retPointInfo.isImportant();
-    retPointInfo.valid     = true;
+    retPointInfo.valid = true;
     NodeType oppType = t == Black ? White : Black;
+    retPointInfo.rCount.Clear();
+    retPointInfo.pointContri.clear();
     int rightInc = 0;
     int botInc = 0;
     for (int dindex = 0; dindex <=3; ++dindex) {
@@ -729,77 +621,6 @@ PointInfo GT_FIRAI::EvalPoint(Point p, NodeType t, NodeType selfValue)
             }
         }
     }
-    return retPointInfo;
-}
-PointInfo GT_FIRAI::EvalPointOneDir(Point p, NodeType t, Direction d, NodeType selfValue)
-{
-    PointInfo retPointInfo;
-    ReqCounts totalCounts;
-    NodeType oppType = t == Black ? White : Black;
-    int rightInc = 0;
-    int botInc = 0;
-    switch (d) {
-        case LeftRight:
-            rightInc = 1;
-            botInc   = 0;
-            break;
-        case TopBot:
-            rightInc = 0;
-            botInc   = 1;
-            break;
-        case LTRB:
-            rightInc = 1;
-            botInc   = 1;
-            break;
-        case RTLB:
-            rightInc = -1;
-            botInc   = 1;
-            break;
-        default:
-            assert(false);
-    }
-    int x = p.x-4*rightInc;
-    int y = p.y-4*botInc;
-    int conti = 0;
-    int empty = 0;
-    for (int i = 0; i <= 8; ++i) {
-        Point thisp(x+i*rightInc, y+i*botInc);
-        if (!thisp.Valid() || board[thisp.x][thisp.y] == oppType) {
-            conti = 0;
-            empty = 0;
-            if (i >= 5)
-                break;
-        } else if (board[thisp.x][thisp.y] == Empty) {
-            conti += 1;
-            empty += 1;
-        } else {
-            conti += 1;
-        }
-        if (conti >= 5) {
-            retPointInfo.rCount[empty-1] += 1;
-            for (int j = 0; j <= 4; ++j) {
-                Point lastp(thisp.x-j*rightInc, thisp.y-j*botInc);
-                if (board[lastp.x][lastp.y] == Empty && lastp != p) {
-                    retPointInfo.pointContri[lastp][empty-1] = retPointInfo.pointContri[lastp][empty-1] + 1;
-                    if (j == 4)
-                        empty--;
-                }
-            }
-        }
-    }
-    return retPointInfo;
-}
-int GT_FIRAI::EvalFive(NodeType nodeList[5], NodeType t) 
-{
-    int num = 5;
-    for (int i = 0; i < 5; i++) {
-        if (nodeList[i] == t) {
-            num--;
-        } else if (nodeList[i] != Empty) {
-            return -1;
-        }
-    }
-    return num;
 }
 
 Point GTAIFunc(const NodeType board[BoardSize][BoardSize], NodeType yourType)
