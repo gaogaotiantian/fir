@@ -399,7 +399,7 @@ int GT_FIRAI::TestWinMove(const Point& p, const NodeType& t, int step)
     if (step >= 5)
         return 5;
     
-    for (int s = 0; s < step; ++s) {
+    for (int s = 0; s < std::min(3, step); ++s) {
         totalUpCount += ptinfo.rCount[s];
         if (totalUpCount > s) {
             isPossible = true;
