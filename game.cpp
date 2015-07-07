@@ -284,6 +284,36 @@ void Game::SetGamerAI(int gamer1ID, int gamer2ID)
         }
     }
 }
+void CheckBoolArguments(char* arg, char c, bool& dest)
+{
+    if (arg[1] == c) {
+        if (arg[2] == ':') {
+            if (arg[3] == '0') {
+                dest = false;
+            } else if (arg[3] == '1') {
+                dest = true;
+            } else {
+                printf("Unknown argument: %s\n", arg);
+                exit(1);
+            }
+        } else {
+            printf("Unknown argument: %s\n", arg);
+            exit(1);
+        }
+    }
+}
+void CheckIntArguments(char* arg, char c, int& dest)
+{
+    if (arg[1] == c) {
+        if (arg[2] == ':') {
+            dest = atoi(arg+3);            
+        } else {
+            printf("Unknown argument: %s\n", arg);
+            exit(1);
+        }
+    }
+}
+
 int main(int argc, char* argv[]) 
 {
     Game game;
@@ -294,65 +324,10 @@ int main(int argc, char* argv[])
 
     for (int i = 1; i < argc; ++i) {
         if (argv[i][0] == '-') {
-            switch (argv[i][1]) {
-                case 's':
-                    if (argv[i][2] == ':') {
-                        game.settings.sleepTime = atoi(argv[i]+3);
-                    } else {
-                        printf("Unknown argument: %s\n", argv[i]);
-                        exit(1);
-                    }
-                    break;
-                case 'p':
-                    if (argv[i][2] == ':') {
-                        if (argv[i][3] == '0')
-                            game.settings.isPrint = false;
-                        else if (argv[i][3] == '1')
-                            game.settings.isPrint = true;
-                        else {
-                            printf("Unknown argument: %s\n", argv[i]);
-                            exit(1);
-                        }
-                    } else {
-                        printf("Unknown argument: %s\n", argv[i]);
-                        exit(1);
-                    }
-                    break;
-                case 'r':
-                    if (argv[i][2] == ':') {
-                        if (argv[i][3] == '0')
-                            game.settings.isRandFirst = false;
-                        else if (argv[i][3] == '1')
-                            game.settings.isRandFirst = true;
-                        else {
-                            printf("Unknown argument: %s\n", argv[i]);
-                            exit(1);
-                        }
-                    } else {
-                        printf("Unknown argument: %s\n", argv[i]);
-                        exit(1);
-                    }
-                    break;
-                case 'n':
-                    if (argv[i][2] == ':') {
-                        if (argv[i][3] == '0')
-                            game.settings.isNormal = false;
-                        else if (argv[i][3] == '1')
-                            game.settings.isNormal = true;
-                        else {
-                            printf("Unknown argument: %s\n", argv[i]);
-                            exit(1);
-                        }
-                    } else {
-                        printf("Unknown argument: %s\n", argv[i]);
-                        exit(1);
-                    }
-                    break;
-
-                default:
-                    printf("Unknown argument: %s\n", argv[i]);
-                    exit(1);
-            }
+            CheckIntArguments (argv[i], 's', game.settings.sleepTime);
+            CheckBoolArguments(argv[i], 'p', game.settings.isPrint);
+            CheckBoolArguments(argv[i], 'r', game.settings.isRandFirst);
+            CheckBoolArguments(argv[i], 'n', game.settings.isNormal);
         } else {
             if (gamer1ID == -1) {
                 gamer1ID = atoi(argv[i]);
