@@ -29,13 +29,19 @@ the middle, and then the game starts by black. This mode randonmize the result
 for deterministic algorithm. You can test your AI using this mode to see it's
 actual situation read ability.
 
+Evaluation mode is available now. You can evaluate an arbitrary number of AIs
+in this mode. "./game.out 2 3 7 -e:1 -t:100" will evaluate AI number 2 3 7 
+competing with each other 100 times and see the win rate. -s -p -b -r do not
+have effects in this mode.
+
 Possible Arguments:
 args (default) | Description
 -s:* (1)       | sleeptime between moves
 -p:* (1)       | whether to print board, only accept 0/1
 -n:* (1)       | whether to play in normal mode, only accept 0/1
 -r:* (1)       | whether to random the first play AI, only accept 0/1
-
+-e:* (0)       | whether to use evaluation mode
+-t:* (0)       | repeat times in evaluation mode
 Current ID assigning:
 example:1
 gaogaotiantian:2
