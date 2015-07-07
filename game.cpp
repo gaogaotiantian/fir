@@ -284,6 +284,7 @@ void Game::SetGamerAI(int gamer1ID, int gamer2ID)
 void Game::PrintEval(int total, const std::vector< std::vector<int> >& blackWinArray, const std::vector<double>& timeCostArray) 
 {
     int IDnum = playerIDList.size();
+    printf("Total round: %d\n", total);
     printf("First\\Last ");
     for (int i = 0; i < IDnum; ++i) {
         printf("| %10.10s", aiMap[playerIDList[i]].name);
