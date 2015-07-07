@@ -330,7 +330,6 @@ void Game::Evaluate()
             }
         }
         if (repeat % settings.printLength == 0) {
-            system("clear");
             PrintEval(repeat, blackWinTimesArray, timeCostArray);
         }
     }
