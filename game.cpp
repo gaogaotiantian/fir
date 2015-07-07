@@ -30,6 +30,7 @@ GameSettings::GameSettings()
     printLength  = 1;
     isNormal     = true;
     isEval       = false;
+    savePath[0]  = '\0'; 
 }
 
 Game::Game()
@@ -286,22 +287,42 @@ void Game::SetGamerAI(int gamer1ID, int gamer2ID)
 void Game::PrintEval(int total, const std::vector< std::vector<int> >& blackWinArray, const std::vector<double>& timeCostArray) 
 {
     int IDnum = playerIDList.size();
-    printf("Total round: %d\n", total);
-    printf("First\\Last ");
-    for (int i = 0; i < IDnum; ++i) {
-        printf("| %10.10s", aiMap[playerIDList[i]].name);
-    }
-    printf("\n");
-
-    for (int i = 0; i < IDnum; ++i) {
-        printf("%10.10s ", aiMap[playerIDList[i]].name);
-        for (int j = 0; j < IDnum; ++j) {
-            int blackWinTimes = blackWinArray[i][j];
-            printf("|    %6.2f%%", (float)blackWinTimes*100/total);
+    if (settings.savePath[0] != '\0') {
+        FILE *pFile;
+        pFile = fopen(settings.savePath, "w");
+        if (pFile == NULL) {
+            printf("Filename %s invalid!\n", settings.savePath);
+            exit(1);
         }
-        printf(" Time Cost: %6.3fs\n", timeCostArray[i]/total);
-    }
+        fprintf(pFile, "%d\n", total);
+        fprintf(pFile, "%d\n", IDnum);
+        for (int i = 0; i < IDnum; ++i) {
+            fprintf(pFile, "%s\n", aiMap[playerIDList[i]].name);
+        }
+        for (int i = 0; i < IDnum; ++i) {
+            for (int j = 0; j < IDnum; ++j) {
+                int blackWinTimes = blackWinArray[i][j];
+                fprintf(pFile, "%d\n", blackWinTimes);
+            }
+        }
+        fclose(pFile);
+    } else {
+        printf("Total round: %d\n", total);
+        printf("First\\Last ");
+        for (int i = 0; i < IDnum; ++i) {
+            printf("| %10.10s", aiMap[playerIDList[i]].name);
+        }
+        printf("\n");
 
+        for (int i = 0; i < IDnum; ++i) {
+            printf("%10.10s ", aiMap[playerIDList[i]].name);
+            for (int j = 0; j < IDnum; ++j) {
+                int blackWinTimes = blackWinArray[i][j];
+                printf("|    %6.2f%%", (float)blackWinTimes*100/total);
+            }
+            printf(" Time Cost: %6.3fs\n", timeCostArray[i]/total);
+        }
+    }
 } 
 void Game::Evaluate()
 {
@@ -351,12 +372,23 @@ void CheckBoolArguments(char* arg, const char* c, bool& dest)
         } 
     }
 }
+
 void CheckIntArguments(char* arg, const char* c, int& dest)
 {
     int length = strlen(c);
     if (!strncmp((arg+1), c, length)) {
         if (arg[length+1] == ':') {
             dest = atoi(arg+length+2);            
+        } 
+    }
+}
+
+void CheckStringArguments(char* arg, const char* c, char* dest)
+{
+    int length = strlen(c);
+    if (!strncmp((arg+1), c, length)) {
+        if (arg[length+1] == ':') {
+            dest = strcpy(dest, arg+length+2);
         } 
     }
 }
@@ -376,6 +408,7 @@ int main(int argc, char* argv[])
             CheckBoolArguments(argv[i], "rand_first", game.settings.isRandFirst);
             CheckBoolArguments(argv[i], "normal", game.settings.isNormal);
             CheckBoolArguments(argv[i], "eval", game.settings.isEval);
+            CheckStringArguments(argv[i], "file", game.settings.savePath);
         } else {
             int ID = atoi(argv[i]);
             AI_Map::iterator it = game.aiMap.find(ID);

@@ -54,6 +54,8 @@ public:
     int  printLength;
     bool isNormal;
     bool isEval;
+
+    char savePath[256];
 };
 
 class Game {
