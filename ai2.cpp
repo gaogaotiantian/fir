@@ -60,7 +60,7 @@ public:
     friend ReqCounts operator - (const ReqCounts &l, int r);
     friend ReqCounts operator * (const ReqCounts &l, int r);
     friend ReqCounts operator / (const ReqCounts &l, int r);
-    friend bool operator > (const ReqCounts &l, const ReqCounts &r);
+    //friend bool operator > (const ReqCounts &l, const ReqCounts &r);
     void operator = (const ReqCounts &r);
     int& operator [](int i);
 
@@ -142,7 +142,7 @@ ReqCounts operator - (const ReqCounts &l, int r)
     return ret;
 
 }
-bool operator > (const ReqCounts &l, const ReqCounts &r)
+/*bool operator > (const ReqCounts &l, const ReqCounts &r)
 {
     if (l.counts[0] != 0) 
         return true;
@@ -165,7 +165,7 @@ bool operator > (const ReqCounts &l, const ReqCounts &r)
     if (l.counts[3] * 5 + l.counts[4] >= r.counts[3] * 5 + r.counts[4])
         return true;
     return false;
-}
+}*/
 
 void ReqCounts::operator = (const ReqCounts &r)
 {
@@ -200,7 +200,7 @@ public:
     PointInfo(const PointInfo &);
     bool isImportant() const;
     Point FindMostContriPoint() const;
-    friend PointInfo operator + (const PointInfo &l, const PointInfo &r);
+    //friend PointInfo operator + (const PointInfo &l, const PointInfo &r);
 
     Point     pos;
     ReqCounts rCount;
@@ -309,40 +309,11 @@ PointInfo operator / (const PointInfo &l, int r)
 
 bool operator > (const PointInfo &l, const PointInfo &r)
 {
-    Point p;
-    if (!r.pos.Valid())
-        return true;
-    if (!l.pos.Valid())
-        return false;
-    if (l.rCount.counts[0] >= 1)
-        return true;
-    if (r.rCount.counts[0] >= 1)
-        return false;
-    if (l.isImportant() && r.isImportant()) {
-        if (l.rCount.counts[1] > r.rCount.counts[1]) 
-            return true;
-        if (l.rCount.counts[1] < r.rCount.counts[1])
-            return false;
-        if (l.rCount.counts[2] >= r.rCount.counts[2])
-            return true;
-        return false;
-    } else if (l.isImportant()) { 
-        return true;
-    } else if (r.isImportant()) {
-        return false;
-    } else {
-        Point pl = l.FindMostContriPoint();
-        Point pr = r.FindMostContriPoint();
-        pointContriMap::const_iterator itl = l.pointContri.find(pl);
-        pointContriMap::const_iterator itr = r.pointContri.find(pr);
-        //assert(itl != l.pointContri.end() && itr != r.pointContri.end());
-        ReqCounts templ = l.rCount - itl->second;
-        ReqCounts tempr = r.rCount - itr->second;
-        if (((templ.counts[1] * 3 + templ.counts[2]) * 3 + templ.counts[3]) * 5 + templ.counts[4] >= 
-                ((tempr.counts[1] * 3 + tempr.counts[2]) * 3 + tempr.counts[3]) * 5 + tempr.counts[4])
-            return true;
-        return false;
-    }
+   if (((l.rCount.counts[1] * 2 + l.rCount.counts[2]) * 2 + l.rCount.counts[3]) * 3 + l.rCount.counts[4] > 
+           ((r.rCount.counts[1] * 2 + r.rCount.counts[2]) * 2 + r.rCount.counts[3]) * 3 + r.rCount.counts[4])
+       return true;
+   return false;
+
 }
 
 
@@ -436,9 +407,8 @@ void GT_FIRAI::GetTotalCounts()
             Point p(i, j);
             if (board[i][j] != Empty)
                 continue;
-            NodeType oppType   = (type == Black) ? White : Black;
-            PointInfo selfInfo = EvalPoint(p, type, type);
-            PointInfo oppInfo  = EvalPoint(p, oppType, oppType);
+            PointInfo selfInfo = selfptInfo[i][j];
+            PointInfo oppInfo  = oppptInfo[i][j];
             totalSelfCounts    = totalSelfCounts + selfInfo.rCount;
             totalOppCounts     = totalOppCounts  + oppInfo.rCount;
         }
@@ -463,13 +433,11 @@ Point GT_FIRAI::Move()
     PointInfo maxSelfInfo;
     PointInfo maxOppInfo;
     PointInfo maxTotalInfo;
-    bool importantSelfMove = false;
-    bool importantOppMove  = false;
     int selfWinStep = 100;
     Point selfWinPoint;
     int oppWinStep = 100;
     Point oppWinPoint;
-    bool hasWinPoint;
+    bool hasWinPoint = false;
     if (TotalMove() == 0) {
         retPoint.Set(BoardSize/2, BoardSize/2);
         return retPoint;
@@ -485,10 +453,7 @@ Point GT_FIRAI::Move()
             PointInfo oppInfo    = oppptInfo[i][j];
 
             PointInfo totalInfo;
-            if (totalSelfCounts > totalOppCounts)
-                totalInfo = selfInfo * 3 + oppInfo * 2;
-            else
-                totalInfo = selfInfo * 2 + oppInfo * 3;
+            totalInfo = selfInfo + oppInfo;
 
             selfInfo.pos.Set(i, j);
             oppInfo.pos.Set(i, j);
