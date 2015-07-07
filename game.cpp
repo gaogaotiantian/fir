@@ -281,7 +281,7 @@ void Game::SetGamerAI(int gamer1ID, int gamer2ID)
         }
     }
 }
-void Game::PrintEval(int total, const std::vector< std::vector<int> >& blackWinArray) 
+void Game::PrintEval(int total, const std::vector< std::vector<int> >& blackWinArray, const std::vector<double>& timeCostArray) 
 {
     int IDnum = playerIDList.size();
     printf("First\\Last ");
@@ -296,14 +296,17 @@ void Game::PrintEval(int total, const std::vector< std::vector<int> >& blackWinA
             int blackWinTimes = blackWinArray[i][j];
             printf("|    %6.2f%%", (float)blackWinTimes*100/total);
         }
-        printf("\n");
+        printf(" Time Cost: %6f\n", timeCostArray[i]/total);
     }
 
 } 
 void Game::Evaluate()
 {
     int IDnum = playerIDList.size();
+    clock_t begin = 0;
+    clock_t end   = 0;
     std::vector< std::vector<int> > blackWinTimesArray(IDnum, vector<int>(IDnum));
+    std::vector<double> timeCostArray(IDnum);
     settings.isRandFirst = false;
     settings.isPrint     = false;
     settings.isNormal    = false;
@@ -315,13 +318,16 @@ void Game::Evaluate()
                 int      IDWhite       = playerIDList[j];
                 NodeType result        = Empty;
                 SetGamerAI(IDBlack, IDWhite);
+                begin  = clock();
                 result = Play(blackAI, whiteAI);
+                end    = clock();
+                timeCostArray[i] += (double)(end - begin) / CLOCKS_PER_SEC;
                 if (result == Black)
                     blackWinTimesArray[i][j]++;
             }
         }
         system("clear");
-        PrintEval(repeat, blackWinTimesArray);
+        PrintEval(repeat, blackWinTimesArray, timeCostArray);
     }
 
 }

@@ -67,7 +67,7 @@ public:
     void PreSetBoard();
     void SetGamerAI(int, int);
     void Evaluate();
-    void PrintEval(int, const std::vector< std::vector<int> >&); 
+    void PrintEval(int, const std::vector< std::vector<int> >&, const std::vector<double>&); 
     
     GameSettings settings;
     bool isBlackPlaying;
