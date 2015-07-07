@@ -51,6 +51,7 @@ public:
     bool isRandFirst;
     int  sleepTime;
     int  repeatTime;
+    int  printLength;
     bool isNormal;
     bool isEval;
 };

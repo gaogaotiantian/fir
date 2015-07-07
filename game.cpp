@@ -6,6 +6,7 @@
 #include <cstring>
 #include <iostream>
 #include <vector>
+#include <limits.h>
 #include "game.h"
 #include "AI_Name.h"
 
@@ -25,7 +26,8 @@ GameSettings::GameSettings()
     isPrint      = true;
     isRandFirst  = true;
     sleepTime    = 1;
-    repeatTime   = 1;
+    repeatTime   = INT_MAX;
+    printLength  = 1;
     isNormal     = true;
     isEval       = false;
 }
@@ -327,8 +329,10 @@ void Game::Evaluate()
                     blackWinTimesArray[i][j]++;
             }
         }
-        system("clear");
-        PrintEval(repeat, blackWinTimesArray, timeCostArray);
+        if (repeat % settings.printLength == 0) {
+            system("clear");
+            PrintEval(repeat, blackWinTimesArray, timeCostArray);
+        }
     }
 
 }
@@ -345,10 +349,7 @@ void CheckBoolArguments(char* arg, const char* c, bool& dest)
                 printf("Unknown argument: %s\n", arg);
                 exit(1);
             }
-        } else {
-            printf("Unknown argument: %s\n", arg);
-            exit(1);
-        }
+        } 
     }
 }
 void CheckIntArguments(char* arg, const char* c, int& dest)
@@ -357,10 +358,7 @@ void CheckIntArguments(char* arg, const char* c, int& dest)
     if (!strncmp((arg+1), c, length)) {
         if (arg[length+1] == ':') {
             dest = atoi(arg+length+2);            
-        } else {
-            printf("Unknown argument: %s\n", arg);
-            exit(1);
-        }
+        } 
     }
 }
 
@@ -372,12 +370,13 @@ int main(int argc, char* argv[])
 
     for (int i = 1; i < argc; ++i) {
         if (argv[i][0] == '-') {
-            CheckIntArguments (argv[i], "s", game.settings.sleepTime);
-            CheckIntArguments (argv[i], "t", game.settings.repeatTime);
-            CheckBoolArguments(argv[i], "p", game.settings.isPrint);
-            CheckBoolArguments(argv[i], "r", game.settings.isRandFirst);
-            CheckBoolArguments(argv[i], "n", game.settings.isNormal);
-            CheckBoolArguments(argv[i], "e", game.settings.isEval);
+            CheckIntArguments (argv[i], "sleep", game.settings.sleepTime);
+            CheckIntArguments (argv[i], "eval_round", game.settings.repeatTime);
+            CheckIntArguments (argv[i], "eval_print_length", game.settings.printLength);
+            CheckBoolArguments(argv[i], "print", game.settings.isPrint);
+            CheckBoolArguments(argv[i], "rand_first", game.settings.isRandFirst);
+            CheckBoolArguments(argv[i], "normal", game.settings.isNormal);
+            CheckBoolArguments(argv[i], "eval", game.settings.isEval);
         } else {
             int ID = atoi(argv[i]);
             AI_Map::iterator it = game.aiMap.find(ID);
