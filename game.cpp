@@ -294,7 +294,7 @@ void Game::PrintEval(int total, const std::vector< std::vector<int> >& blackWinA
         printf("%10.10s ", aiMap[playerIDList[i]].name);
         for (int j = 0; j < IDnum; ++j) {
             int blackWinTimes = blackWinArray[i][j];
-            printf("|     %5.2f%%", (float)blackWinTimes*100/total);
+            printf("|    %6.2f%%", (float)blackWinTimes*100/total);
         }
         printf("\n");
     }
