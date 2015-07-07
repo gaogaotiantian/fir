@@ -166,7 +166,7 @@ private:
                     if(board[last_r][last_c]==Empty) score[last_r][last_c]+=four_score;
                 }
             }
-            if(segment==3)cout<<"3!"<<endl;
+            //if(segment==3)cout<<"3!"<<endl;
             if(segment==3){
                 bool side = false;
                 if( (r-dr > boardsize-1 || c-dc<0 || r-dr<0 || c-dc>boardsize-1 || board[r-dr][c-dc]== mytype) ||
