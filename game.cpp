@@ -99,6 +99,7 @@ NodeType Game::Play(S_AI blackAI, S_AI whiteAI, bool isPrint) {
         }
         if (isPrint) {
             PrintBoard();
+            printf("%s made a move at (%d, %d)\n", blackChar, p.x, p.y);
             sleep(sleepTime);
         }
         if (CheckVictory() == Black) {
@@ -112,6 +113,7 @@ NodeType Game::Play(S_AI blackAI, S_AI whiteAI, bool isPrint) {
         }
         if (isPrint) {
             PrintBoard();
+            printf("%s made a move at (%d, %d)\n", whiteChar, p.x, p.y);
             sleep(sleepTime);
         }
         if (CheckVictory() == White) {
@@ -228,7 +230,7 @@ void Game::PrintBoard()
         }
         printf("\n");
     }
-    printf("%s: %s\n", blackChar, blackAI.name);
+    printf("%s: %s | ", blackChar, blackAI.name);
     printf("%s: %s\n", whiteChar, whiteAI.name);
 }
 void Game::SetGamerAI(int gamer1ID, int gamer2ID, bool isRand)
