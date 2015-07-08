@@ -9,7 +9,14 @@
 #include <string.h>
 #include <vector>
 using namespace std;
-
+const static double four_score = 5;
+const static double three_score = 1.5;
+const static double side_three = 0.6;
+const static double two_step_three_score = 0;
+const static double side_two_step_three = 0;
+const static double neighbor_score = 0.05;
+const static double two_score = 0.7;
+const static double side_two = 0.3;
 class AntiAI{
 private:
     NodeType **board;
@@ -17,21 +24,15 @@ private:
     NodeType othertype;
     double **score;
     int boardsize;
-    int has_three;
-    int has_four;
-    const static double four_score = 5;
-    const static double three_score = 1.5;
-    const static double side_three = 0.6;
-    const static double two_step_three_score = 0;
-    const static double side_two_step_three = 0;
-    const static double neighbor_score = 0.05;
-    const static double two_score = 0.9;
-    const static double side_two = 0.3;
+    //int has_three;
+    //int has_four;
+    bool isAllEmpty;
 public:
     double max_score;
 /*constructors*/
 public:
     AntiAI(const NodeType mboard[BoardSize][BoardSize], NodeType mytype):mytype(mytype){
+        isAllEmpty = true;
         boardsize = BoardSize;
         othertype = mytype==White?Black:White;
         board = new NodeType*[BoardSize];
@@ -40,30 +41,8 @@ public:
         for(int i = 0 ; i < BoardSize ; i++)
             for(int j = 0 ; j < BoardSize; j++) {
                 board[i][j] = mboard[i][j];
-                if(board[i][j]==othertype){
-                    int dx[8] = {-1,1,0,0,1,-1,-1,1};
-                    int dy[8] = {0,0,1,-1,1,-1,1,-1};
-                    for(int k = 0 ; k < 8 ; k++){
-                        int nr = dx[k] + i, nc = dy[k]+j;
-                        if(!(nr<boardsize && nc < boardsize && nr>=0 && nc>=0))continue;
-                        score[nr][nc] = score[nr][nc]==INT_MIN?INT_MIN:neighbor_score;
-                    }
-                }
-                score[i][j] = board[i][j] == Empty?0:INT_MIN;
-        }
-        evaluate_empty();
-    }
-    AntiAI(const NodeType** mboard, NodeType mytype):mytype(mytype){
-
-        boardsize = BoardSize;
-        othertype = mytype==White?Black:White;
-        board = new NodeType*[BoardSize];
-        score = new double*[BoardSize];
-        for(int i = 0 ; i < BoardSize ; i++)board[i] = new NodeType[BoardSize], score[i] = new double[BoardSize];
-        for(int i = 0 ; i < BoardSize ; i++)
-            for(int j = 0 ; j < BoardSize; j++) {
-                board[i][j] = mboard[i][j];
-                if(board[i][j]==othertype){
+                if(board[i][j]==othertype || board[i][j]==mytype){
+                    isAllEmpty = false;
                     int dx[8] = {-1,1,0,0,1,-1,-1,1};
                     int dy[8] = {0,0,1,-1,1,-1,1,-1};
                     for(int k = 0 ; k < 8 ; k++){
@@ -77,6 +56,7 @@ public:
         evaluate_empty();
     }
     AntiAI( NodeType** mboard, NodeType mytype):mytype(mytype){
+        isAllEmpty = true;
         boardsize = BoardSize;
         othertype = mytype==White?Black:White;
         board = new NodeType*[BoardSize];
@@ -85,7 +65,8 @@ public:
         for(int i = 0 ; i < BoardSize ; i++)
             for(int j = 0 ; j < BoardSize; j++) {
                 board[i][j] = mboard[i][j];
-                if(board[i][j]==othertype){
+                if(board[i][j]==othertype || board[i][j]==mytype){
+                    isAllEmpty = false;
                     int dx[8] = {-1,1,0,0,1,-1,-1,1};
                     int dy[8] = {0,0,1,-1,1,-1,1,-1};
                     for(int k = 0 ; k < 8 ; k++){
@@ -172,7 +153,7 @@ private:
                 if( (r-dr > boardsize-1 || c-dc<0 || r-dr<0 || c-dc>boardsize-1 || board[r-dr][c-dc]== mytype) ||
                     (last_r < 0 || last_c > boardsize - 1 || last_r > boardsize -1 || last_c < 0 || board[last_r][last_c]==mytype))
                     side = true;
-                if(r-dr >= 0 && c-dc >= 0){
+                if(r-dr >= 0 && c-dc >= 0 && r-dr < boardsize && c-dc < boardsize){
                     if(board[r-dr][c-dc]==Empty){
                         score[r-dr][c-dc]+= side?side_three:three_score;
                         //cout<<"side="<< (side?"TRUE":"FALSE")<<endl;
@@ -182,11 +163,19 @@ private:
                         score[r-2*dr][c-2*dc]+=side?side_two_step_three:two_step_three_score;
                 }
 
-                if( last_r < boardsize && last_c < boardsize){
+                if( last_r < boardsize && last_c < boardsize && last_r >=0 && last_c>=0){
                         if(board[last_r][last_c]==Empty)score[last_r][last_c]+=side?side_three:three_score;;
                         if(last_r + dr < boardsize && last_c + dc < boardsize && last_r+dr >= 0 && last_c+dc >=0 && board[last_r+dr][last_c+dc]==Empty)
                             score[last_r+dr][last_c+dc]+=side?side_two_step_three:two_step_three_score;
                 }
+                //check interim
+
+
+                if(r-2*dr>=0 && c-2*dc >= 0 && r-2*dr < boardsize && c-2*dc < boardsize && board[r-2*dr][c-2*dc]==othertype)
+                        score[r-dr][c-dc] += score[r-dr][c-dc]==INT_MIN?0:four_score;
+                if(last_r + dr < boardsize && last_c + dc < boardsize && last_r+dr >= 0 && last_c+dc >=0 && board[last_r+dr][last_c+dc]==othertype)
+                        score[last_r][last_c]+= score[last_r][last_c]==INT_MIN?0:four_score;
+
             }
             if(segment == 2){
                 bool side = false;
@@ -201,12 +190,20 @@ private:
                 if( last_r < boardsize && last_c < boardsize){
                         if(board[last_r][last_c]==Empty)score[last_r][last_c]+=side?side_two:two_score;;
                 }
-
+                // check if there is xxox
+                if(r-2*dr>=0 && c-2*dc >= 0 && r-2*dr < boardsize && c-2*dc < boardsize && board[r-2*dr][c-2*dc]==othertype)
+                        score[r-dr][c-dc] += score[r-dr][c-dc]==INT_MIN?0:three_score;
+                if(last_r + dr < boardsize && last_c + dc < boardsize && last_r+dr >= 0 && last_c+dc >=0 && board[last_r+dr][last_c+dc]==othertype)
+                        score[last_r][last_c]+= score[last_r][last_c]==INT_MIN?0:three_score;
             }
 
             r=last_r==r?r+dr:last_r;
             c=last_c==c?c+dc:last_c;
         }
+    }
+    Point getFirstStep(){
+        Point p(boardsize/2,boardsize/2);
+        return p;
     }
 public:
     Point defend(){
@@ -241,9 +238,13 @@ public:
 
     Point response(){
          AntiAI enemy(board,othertype);
-         if(enemy.max_score>=1.5)return enemy.defend();
+         if(isAllEmpty){
+            return getFirstStep();
+         }
          else
-         if(max_score>=three_score)return defend();
+         if(max_score>=2*two_score)return defend();
+         else
+         if(enemy.max_score>=three_score)return enemy.defend();
          else
          return enemy.defend();
     }
