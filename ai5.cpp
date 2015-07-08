@@ -182,12 +182,12 @@ private:
                 if( (r-dr > boardsize-1 || c-dc<0 || r-dr<0 || c-dc>boardsize-1 || board[r-dr][c-dc]== mytype) ||
                     (last_r < 0 || last_c > boardsize - 1 || last_r > boardsize -1 || last_c < 0 || board[last_r][last_c]==mytype))
                     side = true;
-                if(r-dr >= 0 && c-dc >= 0){
+                if(r-dr >= 0 && c-dc >= 0 && r-dr < boardsize && c-dc <boardsize){
                     if(board[r-dr][c-dc]==Empty){
                         score[r-dr][c-dc]+= side?side_two:two_score;
                     }
                 }
-                if( last_r < boardsize && last_c < boardsize){
+                if( last_r < boardsize && last_c < boardsize && last_r>=0 && last_c>=0){
                         if(board[last_r][last_c]==Empty)score[last_r][last_c]+=side?side_two:two_score;;
                 }
                 // check if there is xxox
