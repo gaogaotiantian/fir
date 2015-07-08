@@ -20,6 +20,7 @@ const char* WhiteAIName;
 S_AI blackAI;
 S_AI whiteAI;
 
+static bool argIsValid;
 
 GameSettings::GameSettings()
 {
@@ -366,9 +367,10 @@ void CheckBoolArguments(char* arg, const char* c, bool& dest)
             } else if (arg[length+2] == '1') {
                 dest = true;
             } else {
-                printf("Unknown argument: %s\n", arg);
+                printf("Error: Invalud argument: %s\n", arg);
                 exit(1);
             }
+            argIsValid = true;
         } 
     }
 }
@@ -379,7 +381,8 @@ void CheckIntArguments(char* arg, const char* c, int& dest)
     if (!strncmp((arg+1), c, length)) {
         if (arg[length+1] == ':') {
             dest = atoi(arg+length+2);            
-        } 
+            argIsValid = true;
+        }
     }
 }
 
@@ -389,7 +392,8 @@ void CheckStringArguments(char* arg, const char* c, char* dest)
     if (!strncmp((arg+1), c, length)) {
         if (arg[length+1] == ':') {
             dest = strcpy(dest, arg+length+2);
-        } 
+            argIsValid = true;
+        }
     }
 }
 
@@ -401,14 +405,19 @@ int main(int argc, char* argv[])
 
     for (int i = 1; i < argc; ++i) {
         if (argv[i][0] == '-') {
+            argIsValid = false;
             CheckIntArguments (argv[i], "sleep", game.settings.sleepTime);
             CheckIntArguments (argv[i], "eval_round", game.settings.repeatTime);
             CheckIntArguments (argv[i], "eval_print_length", game.settings.printLength);
             CheckBoolArguments(argv[i], "print", game.settings.isPrint);
             CheckBoolArguments(argv[i], "rand_first", game.settings.isRandFirst);
             CheckBoolArguments(argv[i], "normal", game.settings.isNormal);
-            CheckBoolArguments(argv[i], "eval", game.settings.isEval);
+            CheckBoolArguments(argv[i], "eval_enable", game.settings.isEval);
             CheckStringArguments(argv[i], "file", game.settings.savePath);
+            if (!argIsValid) {
+                printf("Error: Unknown argument %s\n", argv[i]);
+                exit(1);
+            }
         } else {
             int ID = atoi(argv[i]);
             AI_Map::iterator it = game.aiMap.find(ID);
