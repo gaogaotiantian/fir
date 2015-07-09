@@ -41,7 +41,7 @@ args (default)           | Description
 -print:* (1)             | whether to print board, only accept 0/1
 -normal:* (1)            | whether to play in normal mode, only accept 0/1
 -rand_first:* (1)        | whether to random the first play AI, only accept 0/1
--eval:* (0)              | whether to use evaluation mode
+-eval_enable:* (0)       | whether to use evaluation mode
 -eval_round:* (INT_MAX)  | repeat times in evaluation mode
 -eval_print_length:* (1) | rounds for each print in evaluation mode 
 
@@ -53,6 +53,7 @@ jimzhu1993:4
 dummyindex:5
 ShaoyiZhang:6
 SeraphRoy:7
+MichaelGuoXY:8
 ActualPlayer(Human Control):10
 
 Have Fun!
