@@ -30,10 +30,10 @@ result for deterministic algorithm. You can test your AI using this mode to see
 it's actual situation read ability.
 
 Evaluation mode is available now. You can evaluate an arbitrary number of AIs
-in this mode. "./game.out 2 3 7 -eval:1 -eval_print_length:10" will evaluate 
-AI number 2 3 7 competing with each other for INT_MAX times and see the win 
-rate every 10 rounds. -sleep -print -normal -rand_first do not have effects in 
-this mode.
+in this mode. "./game.out 2 3 7 -eval_enable:1 -eval_print_length:10" will 
+evaluate AI number 2 3 7 competing with each other for INT_MAX times and see 
+the win rate every 10 rounds. -sleep -print -normal -rand_first do not have 
+effects in this mode.
 
 Possible Arguments:
 args (default)           | Description
