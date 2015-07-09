@@ -12,8 +12,8 @@ Point ActualPlayer(const NodeType board[BoardSize][BoardSize], NodeType yourType
 Point GaeBolg(const NodeType board[BoardSize][BoardSize], NodeType myType);
 Point Ai3(const NodeType board[BoardSize][BoardSize], NodeType yourType);
 Point dummyProcedure(const NodeType board[BoardSize][BoardSize], NodeType yourType);
-//Point dummyProcedure(const NodeType board[BoardSize][BoardSize], NodeType mytype);
 // And add your function here!
+// Please set Name 10 char at most!
 const struct S_AI AIList[MAX_AI_NUM] = {
 //   ID | Function Name   | Name
     {1,   ExampleAI       , "Example"},
