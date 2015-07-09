@@ -336,12 +336,13 @@ void Game::Evaluate()
     settings.isPrint     = false;
     settings.isNormal    = false;
     settings.sleepTime   = 0;
-    for (int repeat = 1; repeat <= settings.repeatTime; repeat++) {
+    for (int repeat = 1; repeat <= settings.repeatTime; ++repeat) {
+        srand(time(NULL));
         for (int i = 0; i < IDnum; ++i) {
             int  IDBlack = playerIDList[i];
             for (int j = 0; j < IDnum; ++j) {
-                int      IDWhite       = playerIDList[j];
-                NodeType result        = Empty;
+                int      IDWhite = playerIDList[j];
+                NodeType result  = Empty;
                 SetGamerAI(IDBlack, IDWhite);
                 begin  = clock();
                 result = Play(blackAI, whiteAI);
