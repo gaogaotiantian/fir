@@ -139,8 +139,8 @@ bool operator > (const ReqCounts &l, const ReqCounts &r)
         return true;
     else if (r.counts[0] > l.counts[0])
         return false;
-    else if (((l.counts[1] * 2 + l.counts[2]) * 2 + l.counts[3]) * 4 + l.counts[4] > 
-            ((r.counts[1] * 2 + r.counts[2]) * 2 + r.counts[3]) * 4 + r.counts[4])
+    else if (((l.counts[1] * 2 + l.counts[2]) * 2 + l.counts[3]) * 5 + l.counts[4] > 
+            ((r.counts[1] * 2 + r.counts[2]) * 2 + r.counts[3]) * 5 + r.counts[4])
         return true;
     return false;
 }
@@ -359,7 +359,7 @@ Point GT_FIRAI::Move()
             Point p(i, j);
             if (!isEmpty(p))
                 continue;
-            if (selfptInfo[p.x][p.y].rCount + oppptInfo[p.x][p.y].rCount > maxTotalCount) {
+            if (selfptInfo[p.x][p.y].rCount + oppptInfo[p.x][p.y].rCount> maxTotalCount || firstCount) {
                 ReqCounts tempTotalCount;
                 if (totalMove < 8)
                     tempTotalCount = selfptInfo[p.x][p.y].rCount + oppptInfo[p.x][p.y].rCount;
@@ -400,27 +400,39 @@ Point GT_FIRAI::Move()
 ReqCounts GT_FIRAI::EvaluateMove(const Point& p) 
 {
     ReqCounts selfCounts = selfptInfo[p.x][p.y].rCount;
-    ReqCounts oppCounts  = oppptInfo[p.x][p.y].rCount;
-    ReqCounts minTotalCounts;
+    ReqCounts minTotalCounts = selfCounts;
     const pointContriMap& selfInitContri = selfptInfo[p.x][p.y].pointContri;
+    const pointContriMap& oppInitContri  = oppptInfo[p.x][p.y].pointContri;
 
     pointContriMap::const_iterator selfit = selfInitContri.find(maxInitOppInfo.pos);
+    pointContriMap::const_iterator oppit  = oppInitContri.find(maxInitOppInfo.pos);
 
     // Initialize min counts to a possible value 
-    if (selfit != selfInitContri.end()) {
-        minTotalCounts = oppCounts + selfCounts - selfit->second - 
-            maxInitOppInfo.rCount + maxInitOppInfo.pointContri[p];
-    } else {
-        minTotalCounts = oppCounts + selfCounts  - maxInitOppInfo.rCount;
+    if (maxInitOppInfo.pos != p && selfit == selfInitContri.end() && oppit == oppInitContri.end()) {
+        minTotalCounts = selfCounts  - maxInitOppInfo.rCount;
     }
+    // if the opponent play to defend
     for (selfit = selfInitContri.begin(); selfit != selfInitContri.end(); ++selfit) {
-        ReqCounts tempTotalCounts = oppCounts + selfCounts;
         Point antip = selfit->first;
+        ReqCounts tempTotalCounts = selfCounts;
         tempTotalCounts = tempTotalCounts - selfit->second;
         tempTotalCounts = tempTotalCounts - oppptInfo[antip.x][antip.y].rCount;
         tempTotalCounts = tempTotalCounts + oppptInfo[antip.x][antip.y].pointContri[p];
         if (minTotalCounts > tempTotalCounts) {
             minTotalCounts = tempTotalCounts;
+        }
+    }
+    // if the opponent play to attack
+    for (oppit = oppInitContri.begin(); oppit != oppInitContri.end(); ++oppit) {
+        Point antip = oppit->first;
+        // Only check anti points that's not contributing to selfType
+        if (selfInitContri.find(antip) == selfInitContri.end()) {
+            ReqCounts tempTotalCounts = selfCounts;
+            tempTotalCounts = tempTotalCounts - oppptInfo[antip.x][antip.y].rCount;
+            tempTotalCounts = tempTotalCounts + oppptInfo[antip.x][antip.y].pointContri[p];
+            if (minTotalCounts > tempTotalCounts) {
+                minTotalCounts = tempTotalCounts;
+            }
         }
     }
     return minTotalCounts;
