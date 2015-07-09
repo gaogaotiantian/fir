@@ -21,7 +21,7 @@ const struct S_AI AIList[MAX_AI_NUM] = {
     {10,  ActualPlayer    , "Player"},
     {7,   GaeBolg         , "Seraph"},
     {3,   Ai3             , "Ai3"},
-    {5,   dummyProcedure  , "DummyIndex's Mashiro"},
+    {5,   dummyProcedure  , "Mashiro"},
 };
 
 #endif
