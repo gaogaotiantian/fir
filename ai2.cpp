@@ -367,6 +367,12 @@ Point GT_FIRAI::Move()
         return retPoint;
     }
     GetTotalCounts();
+
+    // Check for direct win/lose point, speed the algorithm up
+    if (maxInitSelfInfo.rCount[0] > 0)
+        return maxInitSelfInfo.pos;
+    if (maxInitOppInfo.rCount[0] > 0)
+        return maxInitOppInfo.pos;
     for (int i = 0; i < BoardSize; ++i) {
         for (int j = 0; j < BoardSize; ++j) {
             Point p(i, j);
