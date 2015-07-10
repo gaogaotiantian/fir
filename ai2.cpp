@@ -140,8 +140,8 @@ bool operator > (const ReqCounts &l, const ReqCounts &r)
         return true;
     else if (r.counts[0] > l.counts[0])
         return false;
-    else if (((l.counts[1] * 2 + l.counts[2]) * 3 + l.counts[3]) * 5 + l.counts[4] > 
-            ((r.counts[1] * 2 + r.counts[2]) * 3 + r.counts[3]) * 5 + r.counts[4])
+    else if (((l.counts[1] * 2 + l.counts[2]) * 2 + l.counts[3]) * 5 + l.counts[4] > 
+            ((r.counts[1] * 2 + r.counts[2]) * 2 + r.counts[3]) * 5 + r.counts[4])
         return true;
     return false;
 }
@@ -409,12 +409,16 @@ Point GT_FIRAI::Move()
             }
 
             if (!hasWinPoint) {
-                if (selfptInfo[p.x][p.y].rCount > maxTotalCount || firstCount) {
-                    ReqCounts tempTotalCount;
-                    if (totalMove < 7)
-                        tempTotalCount = selfptInfo[p.x][p.y].rCount + oppptInfo[p.x][p.y].rCount;
-                    else
-                        tempTotalCount = EvaluateMove(p);
+                ReqCounts tempTotalCount;
+                if (totalMove < 7) {
+    	            tempTotalCount = selfptInfo[p.x][p.y].rCount + oppptInfo[p.x][p.y].rCount;
+            	    if (tempTotalCount > maxTotalCount || firstCount) {
+                        maxTotalCount = tempTotalCount;
+                        maxTotalPoint = p;
+                        firstCount = false;
+                    }
+                } else if (selfptInfo[p.x][p.y].rCount > maxTotalCount || firstCount) {
+                    tempTotalCount = EvaluateMove(p);
                     if (tempTotalCount > maxTotalCount || firstCount) {
                         maxTotalCount = tempTotalCount;
                         maxTotalPoint = p;
