@@ -361,6 +361,7 @@ Point GT_FIRAI::Move()
     Point oppWinPoint;
     ReqCounts maxOppWinCount;
     bool hasWinPoint = false;
+    std::vector<Point> oppWinPointList;
     if (totalMove == 0) {
         retPoint.Set(BoardSize/2, BoardSize/2);
         return retPoint;
@@ -373,7 +374,7 @@ Point GT_FIRAI::Move()
                 continue;
 
             int thisptSelfWinStep = TestWinMove(p, type, std::min(4, selfWinStep - 1));
-            int thisptOppWinStep  = TestWinMove(p, oppType, std::min(4, oppWinStep));
+            int thisptOppWinStep  = TestWinMove(p, oppType, std::min(selfWinStep - 1, std::min(5, oppWinStep)));
 
             if (thisptSelfWinStep != 0 && thisptSelfWinStep < selfWinStep) {
                 selfWinStep  = thisptSelfWinStep;
@@ -387,12 +388,24 @@ Point GT_FIRAI::Move()
                     oppWinPoint = p;
                     hasWinPoint = true;
                 } else if (thisptOppWinStep == oppWinStep) {
-                    ReqCounts tempWinCount = EvaluateMove(p);
-                    if (tempWinCount > maxOppWinCount) {
-                        oppWinStep  = thisptOppWinStep;
-                        oppWinPoint = p;
+                    bool canStopOppWin = true;
+                    AssumeMove(p, type);
+                    for (int wi = 0; wi < oppWinPointList.size(); ++wi) {
+                        if (TestWinMove(oppWinPointList[wi], oppType, oppWinStep) > 0) {
+                            canStopOppWin = false;
+                            break;
+                        }
+                    }
+                    RemoveAssume(p);
+                    if (canStopOppWin) {
+                        ReqCounts tempWinCount = EvaluateMove(p);
+                        if (tempWinCount > maxOppWinCount) {
+                            oppWinStep  = thisptOppWinStep;
+                            oppWinPoint = p;
+                        }
                     }
                 }
+                oppWinPointList.push_back(p);
             }
 
             if (!hasWinPoint) {
@@ -468,10 +481,7 @@ int GT_FIRAI::TestWinMove(const Point& p, const NodeType& t, int step)
     if (ptinfo.valid == false || step <= 0) {
         return 0;
     }
-
-    if (step >= 5)
-        return 5;
-    
+ 
     for (int s = 0; s < std::min(3, step); ++s) {
         totalUpCount += ptinfo.rCount[s];
         if (totalUpCount > s) {
