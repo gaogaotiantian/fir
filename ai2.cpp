@@ -410,6 +410,7 @@ Point GT_FIRAI::Move()
                     if (canStopOppWin) {
                         ReqCounts tempWinCount = EvaluateMove(p);
                         if (tempWinCount > maxOppWinCount) {
+                            maxOppWinCount = tempWinCount;
                             oppWinStep  = thisptOppWinStep;
                             oppWinPoint = p;
                         }
