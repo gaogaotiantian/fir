@@ -144,8 +144,8 @@ bool operator > (const ReqCounts &l, const ReqCounts &r)
         return true;
     else if (r.counts[0] > l.counts[0])
         return false;
-    else if (((l.counts[1] * 2 + l.counts[2]) * 2 + l.counts[3]) * 5 + l.counts[4] > 
-            ((r.counts[1] * 2 + r.counts[2]) * 2 + r.counts[3]) * 5 + r.counts[4])
+    else if (((l.counts[1] * 2 + l.counts[2]) * 3 + l.counts[3]) * 5 + l.counts[4] > 
+            ((r.counts[1] * 2 + r.counts[2]) * 3 + r.counts[3]) * 5 + r.counts[4])
         return true;
     return false;
 }
