@@ -29,7 +29,11 @@ void PrintNode(NodeType node)
 
 struct PointComparator {
     bool operator() (const Point& l, const Point& r) const {
-        if (l.x < r.x || (l.x == r.x && l.y < r.y))
+        int middlediff = abs(l.x - BoardSize/2) + abs(l.y - BoardSize/2) -
+            abs(r.x - BoardSize/2) - abs(r.y - BoardSize/2);
+        if (middlediff < 0)
+            return true;
+        if (middlediff == 0 && (l.x < r.x || (l.x == r.x && l.y < r.y)))
             return true;
         return false;
     }
@@ -416,14 +420,15 @@ Point GT_FIRAI::Move()
 
             if (!hasWinPoint) {
                 ReqCounts tempTotalCount;
-                if (totalMove < 7) {
+                /*if (totalMove < 3) {
     	            tempTotalCount = selfptInfo[p.x][p.y].rCount + oppptInfo[p.x][p.y].rCount;
             	    if (tempTotalCount > maxTotalCount || firstCount) {
                         maxTotalCount = tempTotalCount;
                         maxTotalPoint = p;
                         firstCount = false;
                     }
-                } else if (selfptInfo[p.x][p.y].rCount > maxTotalCount || firstCount) {
+                } else */
+                if (selfptInfo[p.x][p.y].rCount > maxTotalCount || firstCount) {
                     tempTotalCount = EvaluateMove(p);
                     if (tempTotalCount > maxTotalCount || firstCount) {
                         maxTotalCount = tempTotalCount;
@@ -532,10 +537,12 @@ int GT_FIRAI::TestWinMove(const Point& p, const NodeType& t, int step)
                             Point nextp(nextit->first);
                             if (nextp.Valid() && isEmpty(nextp)) {
                                 int s = TestWinMove(nextp, t, minStep-2);
-                                if (s > 0 && s + 1 < minStep)
+                                if (s > 0 && s + 1 < minStep) {
                                     minStep = s + 1;
+                                    if (minStep == 2)
+                                        break;
+                                }
                             }
-
                         }
                     }
                     RemoveAssume(antip);
@@ -545,7 +552,8 @@ int GT_FIRAI::TestWinMove(const Point& p, const NodeType& t, int step)
                     // update the maxStep to win.
                     // Otherwise this defense will terminate winMove
                     if (minStep < step + 1) {
-                        if (minStep > maxStep) maxStep = minStep;
+                        if (minStep > maxStep) 
+                            maxStep = minStep;
                     } else {
                         RemoveAssume(p);
                         return 0;
