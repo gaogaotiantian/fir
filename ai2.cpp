@@ -421,15 +421,14 @@ Point GT_FIRAI::Move()
 
             if (!hasWinPoint) {
                 ReqCounts tempTotalCount;
-                /*if (totalMove < 3) {
+                if (totalMove < 3) {
     	            tempTotalCount = selfptInfo[p.x][p.y].rCount + oppptInfo[p.x][p.y].rCount;
             	    if (tempTotalCount > maxTotalCount || firstCount) {
                         maxTotalCount = tempTotalCount;
                         maxTotalPoint = p;
                         firstCount = false;
                     }
-                } else */
-                if (selfptInfo[p.x][p.y].rCount > maxTotalCount || firstCount) {
+                } else if (selfptInfo[p.x][p.y].rCount > maxTotalCount || firstCount) {
                     tempTotalCount = EvaluateMove(p);
                     if (tempTotalCount > maxTotalCount || firstCount) {
                         maxTotalCount = tempTotalCount;
