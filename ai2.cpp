@@ -380,7 +380,7 @@ Point GT_FIRAI::Move()
     }
     GetTotalCounts();
 
-    if (totalMove <= 7) {
+    if (totalMove <= 11) {
         Point pstart = StartMove();
         if (pstart.Valid())
             return pstart;
@@ -438,11 +438,11 @@ Point GT_FIRAI::Move()
         if (selfWinStep <= oppWinStep) {
             return selfWinPoint;
         } else {
+            bool firstValidPoint = false;
             for (int i = oppWinPointList.size() - 1; i >= 0; --i) {
                 Point opppt = oppWinPointList[i];
                 int   oppstep = oppWinStepList[i];
                 bool  canStopWin = true;
-                bool  firstValidPoint = false;
                 ReqCounts oppMaxCounts;
                 ReqCounts tempCounts;               
                 if (oppstep < oppWinStep) {
@@ -453,9 +453,9 @@ Point GT_FIRAI::Move()
                     if (oppMaxCounts > tempCounts)
                         continue;
                 }
-                AssumeMove(opppt, oppType);
+                AssumeMove(opppt, type);
                 for (int wi = oppWinPointList.size() - 1; wi >= 0; --wi) {
-                    if (wi != i && TestWinMove(oppWinPointList[wi], oppType, oppWinStepList[wi]) > 0) {
+                    if (wi != i && TestWinMove(oppWinPointList[wi], oppType, 5) > 0) {
                         canStopWin = false;
                         break;
                     }
