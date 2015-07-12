@@ -17,31 +17,34 @@ The prototype has to be exactly the same as exampleAI.
 
 Example: your ID is 3 and you want to compete with exampleAI, then you should
 use "./game.out 1 3". The order of arguments will not affect the result when 
--r:1(which is the default )because who moves first is random. However, if you
-set -r:0, the first input ID will move first.
+-rand_first:1(which is the default) because who moves first is random. 
+However, if you set -rand_first:0, the first input ID will move first.
 
 Now the program supports human vs AI. The human control AI has ID 10. You can
 start a game with an AI using "./game.out * 10"
 
-There's a abnormal mode, which can be enabled by -n:0. In this mode, the board
-will be randomly placed two white pieces and one black piece in 9*9 range in 
-the middle, and then the game starts by black. This mode randonmize the result
-for deterministic algorithm. You can test your AI using this mode to see it's
-actual situation read ability.
+There's a abnormal mode, which can be enabled by -normal:0. In this mode, the 
+board will be randomly placed two white pieces and one black piece in 9*9 range 
+in the middle, and then the game starts by black. This mode randonmize the 
+result for deterministic algorithm. You can test your AI using this mode to see
+it's actual situation read ability.
 
 Evaluation mode is available now. You can evaluate an arbitrary number of AIs
-in this mode. "./game.out 2 3 7 -e:1 -t:100" will evaluate AI number 2 3 7 
-competing with each other 100 times and see the win rate. -s -p -b -r do not
-have effects in this mode.
+in this mode. "./game.out 2 3 7 -eval_enable:1 -eval_print_length:10" will 
+evaluate AI number 2 3 7 competing with each other for INT_MAX times and see 
+the win rate every 10 rounds. -sleep -print -normal -rand_first do not have 
+effects in this mode.
 
 Possible Arguments:
-args (default) | Description
--s:* (1)       | sleeptime between moves
--p:* (1)       | whether to print board, only accept 0/1
--n:* (1)       | whether to play in normal mode, only accept 0/1
--r:* (1)       | whether to random the first play AI, only accept 0/1
--e:* (0)       | whether to use evaluation mode
--t:* (0)       | repeat times in evaluation mode
+args (default)           | Description
+-sleep:* (1)             | sleeptime between moves
+-print:* (1)             | whether to print board, only accept 0/1
+-normal:* (1)            | whether to play in normal mode, only accept 0/1
+-rand_first:* (1)        | whether to random the first play AI, only accept 0/1
+-eval_enable:* (0)       | whether to use evaluation mode
+-eval_round:* (INT_MAX)  | repeat times in evaluation mode
+-eval_print_length:* (1) | rounds for each print in evaluation mode 
+
 Current ID assigning:
 example:1
 gaogaotiantian:2
@@ -50,6 +53,7 @@ jimzhu1993:4
 dummyindex:5
 ShaoyiZhang:6
 SeraphRoy:7
+MichaelGuoXY:8
 ActualPlayer(Human Control):10
 
 Have Fun!

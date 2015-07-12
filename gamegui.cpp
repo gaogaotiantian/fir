@@ -17,6 +17,9 @@ const char* BlackAIName;
 Point (*WhiteAI)(const NodeType board[BoardSize][BoardSize], NodeType yourType);
 const char* WhiteAIName;
 
+//extern "C" S_AI blackAI;
+//extern "C" S_AI whiteAI;
+
 static bool argIsValid;
 
 GameSettings::GameSettings()
@@ -98,6 +101,7 @@ void Game::Initialize()
         }
     }
     isBlackPlaying = true;
+    winner = Empty;
 }
 NodeType Game::Play(S_AI blackAI, S_AI whiteAI) {
     Initialize();
@@ -165,10 +169,13 @@ NodeType Game::CheckVictory()
         for (int j = 0; j < BoardSize; ++j) {
             Point p(i,j);
             NodeType winType = CheckNode(p);
-            if (winType == Black) 
+            if (winType == Black) {
+                winner = Black;
                 return Black;
-            else if (winType == White)
+            } else if (winType == White) {
+                winner = White;
                 return White;
+            }
         }
     }
     return Empty;
@@ -268,6 +275,11 @@ void Game::SetGamerAI(int gamer1ID, int gamer2ID)
     S_AI ai2;
     ai1 = aiMap[gamer1ID];
     ai2 = aiMap[gamer2ID];
+
+    if (gamer1ID == 10)
+        ai1.id = 10;
+    else if (gamer2ID == 10)
+        ai2.id = 10;
 
     if (!settings.isRandFirst) {
         blackAI = ai1;
@@ -394,7 +406,7 @@ void CheckStringArguments(char* arg, const char* c, char* dest)
     }
 }
 
-int main(int argc, char* argv[]) 
+/*int main(int argc, char* argv[]) 
 {
     Game game;
     game.Initialize();
@@ -433,11 +445,11 @@ int main(int argc, char* argv[])
             exit(1);
         } else {
             game.SetGamerAI(game.playerIDList[0], game.playerIDList[1]);
-            NodeType result = game.Play(game.blackAI, game.whiteAI);
+            NodeType result = game.Play(blackAI, whiteAI);
             if (result == Black) {
-                printf("%s Wins! AI: \"%s\" beat AI: \"%s\"\n", blackChar, game.blackAI.name, game.whiteAI.name);
+                printf("%s Wins! AI: \"%s\" beat AI: \"%s\"\n", blackChar, blackAI.name, whiteAI.name);
             } else if (result == White) {
-                printf("%s Wins! AI: \"%s\" beat AI: \"%s\"\n", whiteChar, game.whiteAI.name, game.blackAI.name);
+                printf("%s Wins! AI: \"%s\" beat AI: \"%s\"\n", whiteChar, whiteAI.name, blackAI.name);
             }
         }
     } else {
@@ -445,4 +457,4 @@ int main(int argc, char* argv[])
     }
 
     return 0;
-}
+}*/
