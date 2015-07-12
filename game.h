@@ -78,6 +78,9 @@ public:
     std::string boardChar[BoardSize*2][BoardSize*2];
     std::vector<int> playerIDList;
     AI_Map aiMap;
+    S_AI blackAI;
+    S_AI whiteAI;
+    NodeType winner;
 private:
     NodeType CheckNode(Point p);
 };
