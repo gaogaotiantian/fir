@@ -52,9 +52,10 @@ public:
     int  sleepTime;
     int  repeatTime;
     int  printLength;
+    int  seed;
     bool isNormal;
     bool isEval;
-
+    bool isKeepSeed;
     char savePath[256];
 };
 

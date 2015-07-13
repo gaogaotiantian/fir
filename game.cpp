@@ -25,6 +25,8 @@ GameSettings::GameSettings()
     isRandFirst  = true;
     sleepTime    = 1;
     repeatTime   = INT_MAX;
+    seed         = 0;
+    isKeepSeed   = false;
     printLength  = 1;
     isNormal     = true;
     isEval       = false;
@@ -406,10 +408,12 @@ int main(int argc, char* argv[])
             CheckIntArguments (argv[i], "sleep", game.settings.sleepTime);
             CheckIntArguments (argv[i], "eval_round", game.settings.repeatTime);
             CheckIntArguments (argv[i], "eval_print_length", game.settings.printLength);
+            CheckIntArguments (argv[i], "seed", game.settings.seed);
             CheckBoolArguments(argv[i], "print", game.settings.isPrint);
             CheckBoolArguments(argv[i], "rand_first", game.settings.isRandFirst);
             CheckBoolArguments(argv[i], "normal", game.settings.isNormal);
             CheckBoolArguments(argv[i], "eval_enable", game.settings.isEval);
+            CheckBoolArguments(argv[i], "keep_seed", game.settings.isKeepSeed);
             CheckStringArguments(argv[i], "file", game.settings.savePath);
             if (!argIsValid) {
                 printf("Error: Unknown argument %s\n", argv[i]);
@@ -427,6 +431,12 @@ int main(int argc, char* argv[])
         }
     }
 
+    if (game.settings.seed == 0) {
+        game.settings.seed = (int)time(NULL);
+    }
+
+    srand(game.settings.seed);
+
     if (!game.settings.isEval) {
         if (game.playerIDList.size() != 2) {
             printf("We need two IDs for a non-evaluation game!\n");
@@ -439,6 +449,9 @@ int main(int argc, char* argv[])
             } else if (result == White) {
                 printf("%s Wins! AI: \"%s\" beat AI: \"%s\"\n", whiteChar, game.whiteAI.name, game.blackAI.name);
             }
+        }
+        if (game.settings.isKeepSeed) {
+            printf("Seed is %d\n", game.settings.seed);
         }
     } else {
         game.Evaluate(); 
