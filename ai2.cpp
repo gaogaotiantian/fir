@@ -398,7 +398,7 @@ Point GT_FIRAI::Move()
             if (!isEmpty(p))
                 continue;
 
-            int thisptSelfWinStep = TestWinMove(p, type, std::min(4, selfWinStep - 1));
+            int thisptSelfWinStep = TestWinMove(p, type, std::min(5, selfWinStep - 1));
             int thisptOppWinStep  = TestWinMove(p, oppType, std::min(selfWinStep - 1, 5));
 
             if (thisptSelfWinStep != 0 && thisptSelfWinStep < selfWinStep) {
@@ -484,22 +484,42 @@ ReqCounts GT_FIRAI::EvaluateMove(const Point& p)
     pointContriMap::const_iterator selfit;
     pointContriMap::const_iterator oppit;
 
-    for (int i = 0; i < BoardSize; ++i) {
-        for (int j = 0; j < BoardSize; ++j) {
-            Point antip(i,j);
-            if (isEmpty(antip) && p != antip) {
+    // If opp has to deal with self move
+    if (selfCounts[1] > 0 || selfCounts[2] >= 2) {
+        for (selfit = selfInitContri.begin(); selfit != selfInitContri.end(); ++selfit) {
+            Point antip;
+            antip.Copy(selfit->first);
+            ReqCounts tempCounts = selfCounts - selfit->second;
+            if (tempCounts[1] == 0 && tempCounts[2] < 2) {
                 ReqCounts antiCounts = oppptInfo[antip.x][antip.y].rCount;
-                ReqCounts tempCounts = selfCounts - antiCounts;
-                if (isConnected(p, antip)) {
-                    selfit = selfInitContri.find(antip);
-                    oppit  = oppptInfo[antip.x][antip.y].pointContri.find(p);
-                    if (selfit != selfInitContri.end())
-                        tempCounts = tempCounts - selfit->second;
-                    if (oppit != oppptInfo[antip.x][antip.y].pointContri.end())
-                        tempCounts = tempCounts + oppit->second;
-                }
+                tempCounts = tempCounts - antiCounts;
+                oppit  = oppptInfo[antip.x][antip.y].pointContri.find(p);
+                if (oppit != oppptInfo[antip.x][antip.y].pointContri.end())
+                    tempCounts = tempCounts + oppit->second;
                 if (minTotalCounts > tempCounts) {
                     minTotalCounts = tempCounts;
+                }
+            }
+        }
+        return minTotalCounts;
+    } else {
+        for (int i = 0; i < BoardSize; ++i) {
+            for (int j = 0; j < BoardSize; ++j) {
+                Point antip(i,j);
+                if (isEmpty(antip) && p != antip) {
+                    ReqCounts antiCounts = oppptInfo[antip.x][antip.y].rCount;
+                    ReqCounts tempCounts = selfCounts - antiCounts;
+                    if (isConnected(p, antip)) {
+                        selfit = selfInitContri.find(antip);
+                        oppit  = oppptInfo[antip.x][antip.y].pointContri.find(p);
+                        if (selfit != selfInitContri.end())
+                            tempCounts = tempCounts - selfit->second;
+                        if (oppit != oppptInfo[antip.x][antip.y].pointContri.end())
+                            tempCounts = tempCounts + oppit->second;
+                    }
+                    if (minTotalCounts > tempCounts) {
+                        minTotalCounts = tempCounts;
+                    }
                 }
             }
         }
@@ -547,8 +567,8 @@ int GT_FIRAI::TestWinMove(const Point& p, const NodeType& t, int step)
         AssumeMove(p, t);
         for (; antiit != antipList.end(); ++antiit) {
             if ((step >= 2 && antiit->second[1] > 0) || 
-                    (step >= 3 && antiit->second[2] > 0) || 
-                    (step >= 4 && antiit->second[3] >= 3)) {
+                    (step >= 3 && antiit->second[2] > 0)) {//|| 
+                    //(step >= 4 && antiit->second[3] >= 3)) {
                 Point antip(antiit->first);
                 if (antip.Valid() && isEmpty(antip)) {
                     pointContriMap antipNextList = oppptInfo[antip.x][antip.y].pointContri;
@@ -568,7 +588,7 @@ int GT_FIRAI::TestWinMove(const Point& p, const NodeType& t, int step)
                         if ((nextit->first != antiit->first) && (
                                 (step >= 2 && nextit->second[1] > 0) || 
                                 (step >= 3 && nextit->second[2] > 0) ||
-                                (step >= 4 && nextit->second[3] >= 3))) {
+                                (step >= 4 && nextit->second[3] >= 1))) {
                             Point nextp(nextit->first);
                             if (nextp.Valid() && isEmpty(nextp)) {
                                 int s = TestWinMove(nextp, t, std::min(antiWinSteps, minStep-2));
