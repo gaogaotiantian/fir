@@ -353,7 +353,9 @@ void GT_FIRAI::GetTotalMove()
 Point GT_FIRAI::StartMove()
 {
     Point pinvalid(-1, -1);
-    if ((maxInitOppInfo.rCount[2] >= 3 || maxInitOppInfo.rCount[3] > 8) && maxInitSelfInfo.rCount[2] == 0)
+    if ((maxInitOppInfo.rCount[2] >= 3 || maxInitOppInfo.rCount[3] >= 8) && 
+            (maxInitSelfInfo.rCount[2] == 0 && maxInitSelfInfo.rCount[1] == 0 &&
+             maxInitSelfInfo.rCount[0] == 0))
         return maxInitOppInfo.pos;
     return pinvalid;
 }
@@ -380,7 +382,7 @@ Point GT_FIRAI::Move()
     }
     GetTotalCounts();
 
-    if (totalMove <= 11) {
+    if (totalMove <= 10) {
         Point pstart = StartMove();
         if (pstart.Valid())
             return pstart;
@@ -546,21 +548,30 @@ int GT_FIRAI::TestWinMove(const Point& p, const NodeType& t, int step)
         for (; antiit != antipList.end(); ++antiit) {
             if ((step >= 2 && antiit->second[1] > 0) || 
                     (step >= 3 && antiit->second[2] > 0) || 
-                    (step >= 4 && antiit->second[3] > 3)) {
+                    (step >= 4 && antiit->second[3] >= 3)) {
                 Point antip(antiit->first);
                 if (antip.Valid() && isEmpty(antip)) {
-                    int minStep = step + 1;
+                    pointContriMap antipNextList = oppptInfo[antip.x][antip.y].pointContri;
+                    pointContriMap::iterator antinextit = antipNextList.begin();
+                    int antiWinSteps = 100;
                     AssumeMove(antip, antit);
+                    // Check whether this anti move is a win move, if so, how many steps
+                    for (; antinextit != antipNextList.end(); ++antinextit) {
+                        int tempantiWinSteps = TestWinMove(antinextit->first, antit, std::min(antiWinSteps-1, step - 2));
+                        if (tempantiWinSteps != 0 && tempantiWinSteps < antiWinSteps)
+                            antiWinSteps = tempantiWinSteps;
+                    }
+                    int minStep = step + 1;
                     // after two moves, check the board for WinMove
                     // record minimum steps to win in minStep
                     for (nextit = nextpList.begin(); nextit != nextpList.end(); ++nextit) {
                         if ((nextit->first != antiit->first) && (
                                 (step >= 2 && nextit->second[1] > 0) || 
                                 (step >= 3 && nextit->second[2] > 0) ||
-                                (step >= 4 && nextit->second[3] > 3))) {
+                                (step >= 4 && nextit->second[3] >= 3))) {
                             Point nextp(nextit->first);
                             if (nextp.Valid() && isEmpty(nextp)) {
-                                int s = TestWinMove(nextp, t, minStep-2);
+                                int s = TestWinMove(nextp, t, std::min(antiWinSteps, minStep-2));
                                 if (s > 0 && s + 1 < minStep) {
                                     minStep = s + 1;
                                     if (minStep == 2)
@@ -730,6 +741,7 @@ void GT_FIRAI::EvalPoint(PointInfo &retPointInfo, const Point& p, const NodeType
         int y = p.y-4*botInc;
         int conti = 0;
         int empty = 0;
+        bool isCounted[5] = {false, false, false, false, false};
         for (int i = 0; i <= 8; ++i) {
             Point thisp(x+i*rightInc, y+i*botInc);
             if (!thisp.Valid() || board[thisp.x][thisp.y] == oppType) {
@@ -754,6 +766,7 @@ void GT_FIRAI::EvalPoint(PointInfo &retPointInfo, const Point& p, const NodeType
                             empty--;
                     }
                 }
+                isCounted[i-4] = true;
             } else if (conti > 5) {
                 Point throwp(thisp.x-5*rightInc, thisp.y-5*botInc);
                 // If the point we throw away is empty, the new five should be 
@@ -769,19 +782,28 @@ void GT_FIRAI::EvalPoint(PointInfo &retPointInfo, const Point& p, const NodeType
                                 retPointInfo.pointContri[lastp][empty] = retPointInfo.pointContri[lastp][empty] + 1;
                             }
                         }
+                        isCounted[i-4] = true;
                     } else {
                         retPointInfo.rCount[empty]   += 1;
-                        retPointInfo.rCount[empty+1] -= 1;
+                        
                         // we know thisp is not empty here!
                         // we also know throwp is empty!
                         for (int j = 1; j <= 4; ++j) {
                             Point lastp(thisp.x-j*rightInc, thisp.y-j*botInc);
                             if (board[lastp.x][lastp.y] == Empty) {
                                 retPointInfo.pointContri[lastp][empty] = retPointInfo.pointContri[lastp][empty] + 1;
-                                retPointInfo.pointContri[lastp][empty+1] = retPointInfo.pointContri[lastp][empty+1] - 1;
+                                // only subtract if we counted last one
+                                if (isCounted[i-5] == true)
+                                    retPointInfo.pointContri[lastp][empty+1] = retPointInfo.pointContri[lastp][empty+1] - 1;
                             }
                         }
-                        retPointInfo.pointContri[throwp][empty+1] = retPointInfo.pointContri[throwp][empty+1] - 1;
+                        // only subtract if we counted last one
+                        if (isCounted[i-5] == true) {
+                            retPointInfo.rCount[empty+1] -= 1;
+                            retPointInfo.pointContri[throwp][empty+1] = retPointInfo.pointContri[throwp][empty+1] - 1;
+                        }
+                        if (retPointInfo.pointContri[throwp][empty+1] < 0)
+                            printf("error!\n");
                     }
                 }
                 if (board[thisp.x-4*rightInc][thisp.y-4*botInc] == Empty)
