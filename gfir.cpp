@@ -1,6 +1,9 @@
 #include <gtk/gtk.h>
 #include <assert.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <math.h>
+#include <string.h>
 #include "game.h"
 #define BoardSize 19
 #define LineWidth 1
@@ -162,9 +165,21 @@ void InitializeGame()
 {
     game.Initialize();
     srand(time(NULL));
-    game.playerIDList.push_back(2);
+    //game.playerIDList.push_back(2);
     game.SetGamerAI(2, 10);
     DrawBoard();
+}
+void GetAllAIInComboBox(GtkWidget *widget)
+{
+    AI_Map::iterator it = game.aiMap.begin();
+    for (; it != game.aiMap.end(); ++it) {
+        int id = it->first;
+        char s_id[10];
+        if (id != 1 && id != 10) {
+            sprintf(s_id, "%d", id);
+            gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(widget), s_id, game.aiMap[id].name);
+        }
+    }
 }
 static void activate(GtkApplication* app, 
                      gpointer        user_data)
@@ -173,6 +188,7 @@ static void activate(GtkApplication* app,
     GtkWidget *button;
     GtkWidget *button_rs;
     GtkWidget *button_box;
+    GtkWidget *combo_box;
     GtkWidget *draw_area;
     GtkWidget *fixed_container;
 
@@ -203,8 +219,13 @@ static void activate(GtkApplication* app,
     g_signal_connect(button, "clicked", G_CALLBACK(init_cb), draw_area);
     button_rs = gtk_button_new_with_label("随机开局");
     g_signal_connect(button_rs, "clicked", G_CALLBACK(init_rs_cb), draw_area);
+
+    combo_box = gtk_combo_box_text_new();
+    GetAllAIInComboBox(combo_box);
+
     gtk_container_add(GTK_CONTAINER(button_box), button);
     gtk_container_add(GTK_CONTAINER(button_box), button_rs);
+    gtk_container_add(GTK_CONTAINER(button_box), combo_box);
     gtk_container_add(GTK_CONTAINER(window), fixed_container);
 
     gtk_widget_show_all(window);
