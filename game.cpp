@@ -5,6 +5,7 @@
 #include <time.h>
 #include <cstring>
 #include <iostream>
+#include <fstream>
 #include <vector>
 #include <limits.h>
 #include "game.h"
@@ -30,7 +31,10 @@ GameSettings::GameSettings()
     printLength  = 1;
     isNormal     = true;
     isEval       = false;
+    isTest       = false;
     savePath[0]  = '\0'; 
+    testFile[0]  = '\0';
+    testFolder[0] = '\0';
 }
 
 Game::Game()
@@ -83,7 +87,7 @@ Game::Game()
         if (ai.id > 0 && ai.id <= MAX_AI_NUM) {
             AI_Map::iterator it = aiMap.find(ai.id);
             if (it == aiMap.end()) {
-                printf("Loaded AI: %d. %s\n", ai.id, ai.name);
+                //printf("Loaded AI: %d. %s\n", ai.id, ai.name);
                 aiMap[ai.id] = AIList[i];
             } else {
                 printf("AI id conflicts at %d!\n", ai.id);
@@ -91,6 +95,8 @@ Game::Game()
             }
         }
     }
+    testTotalNumber = 0;
+    testFailNumber = 0;
 }
 void Game::Initialize()
 {
@@ -356,6 +362,103 @@ void Game::Evaluate()
     }
 
 }
+Point ReadInPoint(const char* s) {
+    Point p(-1, -1);
+    int x = 0;
+    int y = 0;
+    // read x
+    if (s[0] == '\0')
+        return p;
+    x = atoi(s);
+    if (x < 0 || x >= BoardSize)
+        return p;
+    if (x < 10)
+        y = atoi(s+2);
+    else
+        y = atoi(s+3);
+    if (y < 0 || y > BoardSize)
+        return p;
+    p.Set(y, x);
+    return p;
+
+}
+void Game::TestFromFolder(char* path)
+{
+    char filelist[256];
+    strcpy(filelist, path);
+    strcat(filelist, "/filelist");
+    ifstream ifs;
+    ifs.open(filelist);
+    char buffer[256];
+    char fullname[256];
+    if (!ifs.good()) {
+        printf("Can't find filelist \"%s\"\n", filelist);
+        return;
+    }
+    while (ifs.good()) {
+        ifs.getline(buffer, 256);
+        if (buffer[0] != '#' && buffer[0] != '\0') {
+            testTotalNumber++;
+            strcpy(fullname, path);
+            strcat(fullname, "/");
+            strcat(fullname, buffer);
+            if (!TestFromFile(fullname))
+                testFailNumber++;
+        }
+    }
+}
+bool Game::TestFromFile(char* path) 
+{
+    ifstream ifs;
+    ifs.open(path);
+    char buffer[256];
+    enum {unknown, blackInput, whiteInput, possibleOutput} state;
+    Point p;
+    Point result;
+    S_AI playerAI = aiMap[playerIDList[0]];
+    Initialize();
+    if (!ifs.good()) {
+        printf("Input file \"%s\" wrong!\n", path);
+        return false;
+    }
+    while (ifs.good()) {
+        ifs.getline(buffer, 256);
+        if (buffer[0] == '#') {
+            continue;
+        } else if (strcmp(buffer, "Black") == 0) {
+            state = blackInput;
+        } else if (strcmp(buffer, "White") == 0) {
+            state = whiteInput;
+        } else if (strcmp(buffer, "Correct") == 0) {
+            state = possibleOutput;
+            result = playerAI.func(board, Black);
+        } else if (state != unknown) {
+            p = ReadInPoint(buffer);
+            if (!p.Valid())
+                printf("Invalid input: %s\n", buffer); 
+            switch (state) {
+                case blackInput:
+                    board[p.x][p.y] = Black;
+                    break;
+                case whiteInput:
+                    board[p.x][p.y] = White;
+                    break;
+                case possibleOutput:
+                    if (result == p) {
+                        return true;
+                    }
+                    break;
+                default:
+                    assert(false);
+           }
+        }
+    }
+    // we did not get correct result
+    PrintBoard();
+    printf("Test File: \"%s\"\n", path);
+    printf("Validation Failure: the AI %s moved at(%d, %d)\n", playerAI.name, result.y, result.x);
+    return false;
+}
 void CheckBoolArguments(char* arg, const char* c, bool& dest)
 {
     int length = strlen(c);
@@ -400,7 +503,6 @@ int main(int argc, char* argv[])
 {
     Game game;
     game.Initialize();
-    srand(time(NULL));
 
     for (int i = 1; i < argc; ++i) {
         if (argv[i][0] == '-') {
@@ -414,7 +516,10 @@ int main(int argc, char* argv[])
             CheckBoolArguments(argv[i], "normal", game.settings.isNormal);
             CheckBoolArguments(argv[i], "eval_enable", game.settings.isEval);
             CheckBoolArguments(argv[i], "keep_seed", game.settings.isKeepSeed);
+            CheckBoolArguments(argv[i], "test_enable", game.settings.isTest);
             CheckStringArguments(argv[i], "file", game.settings.savePath);
+            CheckStringArguments(argv[i], "test_file", game.settings.testFile);
+            CheckStringArguments(argv[i], "test_folder", game.settings.testFolder);
             if (!argIsValid) {
                 printf("Error: Unknown argument %s\n", argv[i]);
                 exit(1);
@@ -437,7 +542,19 @@ int main(int argc, char* argv[])
 
     srand(game.settings.seed);
 
-    if (!game.settings.isEval) {
+    if (game.settings.isTest) {
+        if (game.playerIDList.size() != 1) {
+            printf("We need exactly 1 AI in test mode!\n");
+            exit(1);
+        }
+        game.SetGamerAI(game.playerIDList[0], 10);
+        if (game.settings.testFolder[0] != '\0') {
+            game.TestFromFolder(game.settings.testFolder);
+            printf("Total test: %d, failed: %d\n", game.testTotalNumber, game.testFailNumber);
+        }
+        else if (game.settings.testFile[0] != '\0')
+            game.TestFromFile(game.settings.testFile);
+    } else if (!game.settings.isEval) {
         if (game.playerIDList.size() != 2) {
             printf("We need two IDs for a non-evaluation game!\n");
             exit(1);
