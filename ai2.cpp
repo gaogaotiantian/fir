@@ -281,6 +281,7 @@ public:
     void GetTotalMove();
     Point StartMove();
     ReqCounts EvaluateMove(const Point& p); 
+    int GetConnectNumber(const Point& p, NodeType t);
     int TestWinMove(const Point& p, const NodeType& t, int step);
     inline bool isEmpty(const Point& p);
     inline NodeType GetType(const Point &p);
@@ -427,10 +428,23 @@ Point GT_FIRAI::Move()
                     }
                 } else if (selfptInfo[p.x][p.y].rCount > maxTotalCount || firstCount) {
                     tempTotalCount = EvaluateMove(p);
-                    if (tempTotalCount > maxTotalCount || firstCount) {
+                    if (firstCount) {
                         maxTotalCount = tempTotalCount;
                         maxTotalPoint = p;
                         firstCount = false;
+                    } else {
+                        // if they differ a lot, we use greater than checking
+                        if (tempTotalCount[1] != maxTotalCount[1] ||
+                                    tempTotalCount[2] != maxTotalCount[2] ||
+                                    tempTotalCount[3] != maxTotalCount[3]) {
+                            if (tempTotalCount > maxTotalCount) {
+                                maxTotalCount = tempTotalCount;
+                                maxTotalPoint = p;
+                            }
+                        } else if (GetConnectNumber(p,type) > GetConnectNumber(maxTotalPoint,type)) {
+                            maxTotalCount = tempTotalCount;
+                            maxTotalPoint = p;
+                        }
                     }
                 }
             }
@@ -474,6 +488,47 @@ Point GT_FIRAI::Move()
     } else {
         return maxTotalPoint;
     }
+}
+int GT_FIRAI::GetConnectNumber(const Point& p, NodeType t)
+{
+    int rightInc = 0;
+    int botInc = 0;
+    NodeType oppt = t == Black ? White : Black;
+    int retnum = 0;
+    assert(board[p.x][p.y] == Empty);
+    for (int dindex = 0; dindex <=3; ++dindex) {
+        Direction d = (Direction)dindex;
+        switch (d) {
+            case LeftRight:
+                rightInc = 1;
+                botInc   = 0;
+                break;
+            case TopBot:
+                rightInc = 0;
+                botInc   = 1;
+                break;
+            case LTRB:
+                rightInc = 1;
+                botInc   = 1;
+                break;
+            case RTLB:
+                rightInc = -1;
+                botInc   = 1;
+                break;
+            default:
+                assert(false);
+        }
+        int x = p.x-4*rightInc;
+        int y = p.y-4*botInc;
+        for (int i = 0; i <= 8; ++i) {
+            Point thisp(x+i*rightInc, y+i*botInc);
+            if (board[thisp.x][thisp.y] == t)
+                retnum += 5-abs(i-4);
+            else if (board[thisp.x][thisp.y] == oppt)
+                retnum -= 5-abs(i-4);
+        }
+    }
+    return retnum;
 }
 ReqCounts GT_FIRAI::EvaluateMove(const Point& p) 
 {
