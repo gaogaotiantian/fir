@@ -46,6 +46,9 @@ args (default)           | Description
 -eval_print_length:* (1) | rounds for each print in evaluation mode 
 -keep_seed:* (0)         | print seed at last for debug
 -seed:* (0)              | if used, program will use this seed instead of random
+-test_enable:* (0)       | enable validation
+-test_file:* ('\0')      | specify a file to validate
+-test_folder:* ('\0')    | specify a folder to validate
 
 Current ID assigning:
 example:1
