@@ -1,4 +1,4 @@
-FILES=gfir.cpp gamegui.cpp ai1.cpp ai2.cpp ai3.cpp ai5.cpp ai7.cpp ai10.cpp
+FILES=gfir.cpp gamegui.cpp ai1.cpp ai2.cpp ai3.cpp ai5.cpp ai7.cpp ai8.cpp ai10.cpp
 
 gfir: ${FILES}
 	g++ `pkg-config --cflags gtk+-3.0` -o gfir ${FILES} `pkg-config --libs gtk+-3.0`
