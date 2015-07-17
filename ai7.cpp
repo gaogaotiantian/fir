@@ -205,30 +205,42 @@ public:
     vPoint = vertical(search, xType, num, threshold);
     rPoint = rightDown(search, xType, num, threshold);
     lPoint = leftDown(search, xType, num, threshold);
-      
-    while(hPoint.Valid() && !isStepEmergent(hPoint, num, xType)){
-        hPoint = horizontal(getNextPoint(hPoint), xType, num, threshold);
-    }
-    if(isStepEmergent(hPoint, num, xType))
-        return hPoint;
-
-    while(vPoint.Valid() && !isStepEmergent(vPoint, num, xType)){
-        vPoint = vertical(getNextPoint(vPoint), xType, num, threshold);
-    }
-    if(isStepEmergent(vPoint, num, xType))
-        return vPoint;
-        
-    while(rPoint.Valid() && !isStepEmergent(rPoint, num, xType)){
-        rPoint = rightDown(getNextPoint(rPoint), xType, num, threshold);
-    }
-    if(isStepEmergent(rPoint, num, xType))
-        return rPoint;
     
-    while(lPoint.Valid() && !isStepEmergent(lPoint, num, xType)){
-        lPoint = leftDown(getNextPoint(lPoint), xType, num, threshold);
+    if(num == 5){
+      if(hPoint.Valid())
+	return hPoint;
+      if(vPoint.Valid())
+	return vPoint;
+      if(rPoint.Valid())
+	return rPoint;
+      if(lPoint.Valid())
+	return lPoint;
     }
-    if(isStepEmergent(lPoint, num, xType))
+    else{
+      while(hPoint.Valid() && !isStepEmergent(hPoint, num, xType)){
+        hPoint = horizontal(getNextPoint(hPoint), xType, num, threshold);
+      }
+      if(isStepEmergent(hPoint, num, xType))
+        return hPoint;
+      
+      while(vPoint.Valid() && !isStepEmergent(vPoint, num, xType)){
+        vPoint = vertical(getNextPoint(vPoint), xType, num, threshold);
+      }
+      if(isStepEmergent(vPoint, num, xType))
+        return vPoint;
+      
+      while(rPoint.Valid() && !isStepEmergent(rPoint, num, xType)){
+        rPoint = rightDown(getNextPoint(rPoint), xType, num, threshold);
+      }
+      if(isStepEmergent(rPoint, num, xType))
+        return rPoint;
+      
+      while(lPoint.Valid() && !isStepEmergent(lPoint, num, xType)){
+        lPoint = leftDown(getNextPoint(lPoint), xType, num, threshold);
+      }
+      if(isStepEmergent(lPoint, num, xType))
         return lPoint;
+    }
     Point invalid;
     return invalid;
   }
