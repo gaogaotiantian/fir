@@ -44,6 +44,11 @@ args (default)           | Description
 -eval_enable:* (0)       | whether to use evaluation mode
 -eval_round:* (INT_MAX)  | repeat times in evaluation mode
 -eval_print_length:* (1) | rounds for each print in evaluation mode 
+-keep_seed:* (0)         | print seed at last for debug
+-seed:* (0)              | if used, program will use this seed instead of random
+-test_enable:* (0)       | enable validation
+-test_file:* ('\0')      | specify a file to validate
+-test_folder:* ('\0')    | specify a folder to validate
 
 Current ID assigning:
 example:1
@@ -54,6 +59,7 @@ dummyindex:5
 ShaoyiZhang:6
 SeraphRoy:7
 MichaelGuoXY:8
+ChristinaXu1012:9
 ActualPlayer(Human Control):10
 
 Have Fun!

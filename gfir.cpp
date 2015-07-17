@@ -1,6 +1,9 @@
 #include <gtk/gtk.h>
 #include <assert.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <math.h>
+#include <string.h>
 #include "game.h"
 #define BoardSize 19
 #define LineWidth 1
@@ -8,9 +11,9 @@
 #define PieceGap 4
 #define PieceSize (PieceRadius*2+LineWidth)
 #define CanvasWidth ((PieceSize+PieceGap) * BoardSize + PieceGap)
-int test = 0;
-//enum NodeType {Black, White, Empty};
 Game game;
+
+GtkWidget *combo_box;
 
 typedef enum NodeType NodeType;
 struct PieceInfo {
@@ -162,9 +165,33 @@ void InitializeGame()
 {
     game.Initialize();
     srand(time(NULL));
-    game.playerIDList.push_back(2);
-    game.SetGamerAI(2, 10);
+    AI_Map::iterator it = game.aiMap.begin();
+    for (; it != game.aiMap.end(); ++it) {
+        const char* active_AI = (const char *)gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(combo_box));
+        if (active_AI == NULL) {
+            game.SetGamerAI(2, 10);
+            break;
+        }
+        if (strcmp(active_AI, it->second.name) == 0) {
+            game.SetGamerAI(it->first, 10);
+            break;
+        }
+    }
+    if (it == game.aiMap.end())
+        game.SetGamerAI(2, 10);
     DrawBoard();
+}
+void GetAllAIInComboBox(GtkWidget *widget)
+{
+    AI_Map::iterator it = game.aiMap.begin();
+    for (; it != game.aiMap.end(); ++it) {
+        int id = it->first;
+        char s_id[10];
+        if (id != 1 && id != 10) {
+            sprintf(s_id, "%d", id);
+            gtk_combo_box_text_append(GTK_COMBO_BOX_TEXT(widget), s_id, game.aiMap[id].name);
+        }
+    }
 }
 static void activate(GtkApplication* app, 
                      gpointer        user_data)
@@ -203,8 +230,13 @@ static void activate(GtkApplication* app,
     g_signal_connect(button, "clicked", G_CALLBACK(init_cb), draw_area);
     button_rs = gtk_button_new_with_label("随机开局");
     g_signal_connect(button_rs, "clicked", G_CALLBACK(init_rs_cb), draw_area);
+
+    combo_box = gtk_combo_box_text_new();
+    GetAllAIInComboBox(combo_box);
+
     gtk_container_add(GTK_CONTAINER(button_box), button);
     gtk_container_add(GTK_CONTAINER(button_box), button_rs);
+    gtk_container_add(GTK_CONTAINER(button_box), combo_box);
     gtk_container_add(GTK_CONTAINER(window), fixed_container);
 
     gtk_widget_show_all(window);
@@ -218,7 +250,7 @@ int main (int argc, char**argv)
     gtk_init(&argc, &argv);
     GtkApplication *app;
     int status;
-    app = gtk_application_new("gfir", G_APPLICATION_FLAGS_NONE);
+    app = gtk_application_new("org.gtk.example", G_APPLICATION_FLAGS_NONE);
     g_signal_connect(app, "activate", G_CALLBACK(activate), NULL);
     status = g_application_run(G_APPLICATION(app), argc, argv);
     g_object_unref(app);

@@ -52,10 +52,14 @@ public:
     int  sleepTime;
     int  repeatTime;
     int  printLength;
+    int  seed;
     bool isNormal;
     bool isEval;
-
+    bool isKeepSeed;
+    bool isTest;
     char savePath[256];
+    char testFile[256];
+    char testFolder[256];
 };
 
 class Game {
@@ -71,6 +75,8 @@ public:
     void SetGamerAI(int, int);
     void Evaluate();
     void PrintEval(int, const std::vector< std::vector<int> >&, const std::vector<double>&); 
+    void TestFromFolder(char*);
+    bool TestFromFile(char*);
     
     GameSettings settings;
     bool isBlackPlaying;
@@ -81,6 +87,8 @@ public:
     S_AI blackAI;
     S_AI whiteAI;
     NodeType winner;
+    int testTotalNumber;
+    int testFailNumber;
 private:
     NodeType CheckNode(Point p);
 };
