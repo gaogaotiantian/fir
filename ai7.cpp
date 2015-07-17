@@ -76,7 +76,6 @@ public:
       testR.Set(check.x, check.y+1);
       testL.Set(check.x, check.y-1);
         for(int vi = 1; (test.y+vi < BoardSize) && (curBoard[testR.x][testR.y] == xType); vi++){
-            cout << vi;
             testR.Set(testR.x, testR.y+1);}
         for(int vii = 1; (test.y-vii >= 0) && (curBoard[testL.x][testL.y] == xType); vii++){
             testL.Set(testL.x, testL.y-1);}
@@ -86,7 +85,7 @@ public:
                     return true;
       
       testR.Set(check.x+1, check.y+1);
-      testL.Set(check.x+1, check.y+1);
+      testL.Set(check.x-1, check.y-1);
       for(int ri = 1; (test.x+ri < BoardSize && test.y+ri < BoardSize) && (curBoard[testR.x][testR.y] == xType); ri++)//改到这，看前面的改
 	testR.Set(testR.x+1, testR.y+1);
       for(int rii = 1; (test.x-rii >= 0 && test.y-rii >= 0) && (curBoard[testL.x][testL.y] == xType); rii++)
@@ -195,7 +194,7 @@ public:
       return invalid;
   }
 
-  Point nextStep(NodeType xType, int num, int threshold, int startX, int startY){ //还是要另开一个function来搞双3因为单2的优先级很低要用一个special case把它提高，双3是致死级别的，在nextStep里面也可以用，就直接引用那个funciton就好了。啊啊啊啊找个高效点的方法写啊魂淡！
+  Point nextStep(NodeType xType, int num, int threshold, int startX, int startY){
     Point search(startX, startY);
     Point hPoint;
     Point vPoint;
@@ -313,12 +312,12 @@ public:
     int count = 0;
     Point solution;
     for(int ii = 0; ii < num; ii++){
-      if((pp.x+ii < BoardSize) &&
-	 (pp.y-ii >= 0) &&
-	 (curBoard[pp.x+ii][pp.y-ii] == xType))
+      if((pp.x-ii >= 0) &&
+	 (pp.y+ii < BoardSize) &&
+	 (curBoard[pp.x-ii][pp.y+ii] == xType))
 	count ++;
-      if(curBoard[pp.x+ii][pp.y-ii] == Empty)
-	solution.Set(pp.x+ii, pp.y-ii);
+      if(curBoard[pp.x-ii][pp.y+ii] == Empty)
+	solution.Set(pp.x-ii, pp.y+ii);
     }
     if(count >= threshold && solution.Valid())
       return solution;
@@ -377,8 +376,6 @@ Point SeraphTheGreat(const NodeType board[BoardSize][BoardSize], NodeType myType
     if(calibur.Valid())
         return calibur;
         
-
-
     calibur = omniknight.Foresight(omniknight.getOppoType(), 3, 2, 0, 0);
     if(calibur.Valid())
      return calibur;
