@@ -489,7 +489,11 @@ Point GT_FIRAI::Move()
                 for (; it != possiblePoints.end(); ++it) {
                     Point tryp = it->first;
                     ReqCounts leftCounts = oppCounts - it->second;
-                    if (leftCounts[0] == 0 && leftCounts[1] < 2 && leftCounts[2] < 4)
+                    ReqCounts tryCounts = selfptInfo[tryp.x][tryp.y].rCount;
+                    if (leftCounts[0] == 0 && 
+                            ((leftCounts[1] == 0 && leftCounts[2] < 4) || 
+                             (leftCounts[1] == 1 && leftCounts[2] < 2)) && 
+                            (tryCounts[1] > 0 || tryCounts[2] >= 1))
                         UpdateOppWinPoint(tryp, oppWinPointList, &checkedPoints, &oppWinPoint, &oppMaxCounts);
                 }
             }
@@ -888,6 +892,7 @@ void GT_FIRAI::EvalPoint(PointInfo &retPointInfo, const Point& p, const NodeType
                 // If current p is empty, we add this because either could 
                 // happen. If it's occupied, we remove the last info
                 if (isEmpty(throwp)) {
+		    isCounted[i-4] = true;
                     if (isEmpty(thisp)) {
                         retPointInfo.rCount[empty] += 1;
                         for (int j = 0; j <= 4; ++j) {
@@ -896,7 +901,6 @@ void GT_FIRAI::EvalPoint(PointInfo &retPointInfo, const Point& p, const NodeType
                                 retPointInfo.pointContri[lastp][empty] = retPointInfo.pointContri[lastp][empty] + 1;
                             }
                         }
-                        isCounted[i-4] = true;
                     } else {
                         retPointInfo.rCount[empty]   += 1;
                         
