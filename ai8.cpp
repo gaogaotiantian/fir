@@ -733,7 +733,6 @@ void GXY_AI::Attack_Level()
 
 Point GXY_AI::Random_Move()
 {
-    srand((unsigned)time(NULL));
     int random_number = (rand()%4+1);
     if(random_number == 1)
     {
