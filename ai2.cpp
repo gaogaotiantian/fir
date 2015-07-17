@@ -58,12 +58,14 @@ inline bool isConnected(const Point& p1, const Point& p2)
 class ReqCounts {
 public:
     ReqCounts();
+    void SetMin();
     friend ReqCounts operator + (const ReqCounts &l, const ReqCounts &r);
     friend ReqCounts operator - (const ReqCounts &l, const ReqCounts &r);
     friend ReqCounts operator - (const ReqCounts &l, int r);
     friend ReqCounts operator * (const ReqCounts &l, int r);
     friend ReqCounts operator / (const ReqCounts &l, int r);
     friend bool operator > (const ReqCounts &l, const ReqCounts &r);
+    friend bool operator < (const ReqCounts &l, const ReqCounts &r);
     void operator = (const ReqCounts &r);
     int& operator [](int i);
 
@@ -85,6 +87,10 @@ ReqCounts::ReqCounts()
     }
 }
 
+void ReqCounts::SetMin()
+{
+    counts[0] = -20;
+}
 ReqCounts operator + (const ReqCounts &l, const ReqCounts &r)
 {
     ReqCounts ret;
@@ -148,6 +154,11 @@ bool operator > (const ReqCounts &l, const ReqCounts &r)
             ((r.counts[1] * 2 + r.counts[2]) * 3 + r.counts[3]) * 5 + r.counts[4])
         return true;
     return false;
+}
+
+bool operator < (const ReqCounts &l, const ReqCounts &r)
+{
+    return (r > l);
 }
 
 void ReqCounts::operator = (const ReqCounts &r)
@@ -283,6 +294,12 @@ public:
     ReqCounts EvaluateMove(const Point& p); 
     int GetConnectNumber(const Point& p, NodeType t);
     int TestWinMove(const Point& p, const NodeType& t, int step);
+    void UpdateOppWinPoint(const Point& tryp,
+                           std::vector<Point> oppWinPointList, 
+                           std::set<Point, PointComparator>* checkedPointList,
+                           Point* oppWinPoint,
+                           ReqCounts* oppMaxCount); 
+    bool CanStopOppWin(const Point& p, std::vector<Point> oppWinPointList);
     inline bool isEmpty(const Point& p);
     inline NodeType GetType(const Point &p);
    
@@ -454,33 +471,26 @@ Point GT_FIRAI::Move()
         if (selfWinStep <= oppWinStep) {
             return selfWinPoint;
         } else {
-            bool firstValidPoint = false;
+            std::set<Point, PointComparator> checkedPoints;
+            ReqCounts oppMaxCounts;
+            oppMaxCounts.SetMin();
             for (int i = oppWinPointList.size() - 1; i >= 0; --i) {
                 Point opppt = oppWinPointList[i];
                 int   oppstep = oppWinStepList[i];
-                bool  canStopWin = true;
-                ReqCounts oppMaxCounts;
-                ReqCounts tempCounts;               
+                ReqCounts oppCounts = oppptInfo[opppt.x][opppt.y].rCount;
+                ReqCounts tempCounts;
                 if (oppstep < oppWinStep) {
                     continue;
                 }
-                if (firstValidPoint == true) {
-                    tempCounts = EvaluateMove(opppt);
-                    if (oppMaxCounts > tempCounts)
-                        continue;
-                }
-                AssumeMove(opppt, type);
-                for (int wi = oppWinPointList.size() - 1; wi >= 0; --wi) {
-                    if (wi != i && TestWinMove(oppWinPointList[wi], oppType, 5) > 0) {
-                        canStopWin = false;
-                        break;
-                    }
-                }
-                RemoveAssume(opppt);
-                if (canStopWin == true) {
-                    firstValidPoint = true;
-                    oppMaxCounts = tempCounts;
-                    oppWinPoint = opppt;
+                UpdateOppWinPoint(opppt, oppWinPointList, &checkedPoints, &oppWinPoint, &oppMaxCounts);
+
+                pointContriMap possiblePoints = oppptInfo[opppt.x][opppt.y].pointContri;
+                pointContriMap::iterator it = possiblePoints.begin();
+                for (; it != possiblePoints.end(); ++it) {
+                    Point tryp = it->first;
+                    ReqCounts leftCounts = oppCounts - it->second;
+                    if (leftCounts[0] == 0 && leftCounts[1] < 2 && leftCounts[2] < 4)
+                        UpdateOppWinPoint(tryp, oppWinPointList, &checkedPoints, &oppWinPoint, &oppMaxCounts);
                 }
             }
             return oppWinPoint;
@@ -488,6 +498,35 @@ Point GT_FIRAI::Move()
     } else {
         return maxTotalPoint;
     }
+}
+void GT_FIRAI::UpdateOppWinPoint(const Point& tryp,
+                                 std::vector<Point> oppWinPointList, 
+                                 std::set<Point, PointComparator>* checkedPointList,
+                                 Point* oppWinPoint,
+                                 ReqCounts* oppMaxCounts) {
+    if (checkedPointList->find(tryp) == checkedPointList->end()) {
+        ReqCounts tempCounts = EvaluateMove(tryp);
+        if (tempCounts > *oppMaxCounts) {
+            if (CanStopOppWin(tryp, oppWinPointList)) {
+                *oppWinPoint = tryp;
+                *oppMaxCounts = tempCounts;
+            }
+        }
+        checkedPointList->insert(tryp);
+    }
+}
+
+bool GT_FIRAI::CanStopOppWin(const Point& p, std::vector<Point> oppWinPointList) {
+    bool canStopWin = true;
+    AssumeMove(p, type);
+    for (int wi = oppWinPointList.size() - 1; wi >= 0; --wi) {
+        if (p != oppWinPointList[wi] && TestWinMove(oppWinPointList[wi], oppType, 5) > 0) {
+            canStopWin = false;
+            break;
+        }
+    }
+    RemoveAssume(p);
+    return canStopWin;
 }
 int GT_FIRAI::GetConnectNumber(const Point& p, NodeType t)
 {
