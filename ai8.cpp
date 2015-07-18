@@ -12,8 +12,13 @@ class GXY_AI
 public:
     GXY_AI();
     GXY_AI(const NodeType[BoardSize][BoardSize], NodeType);
+    void Attack_Final();
     void Defend_Level();
-    void Attack_Level();
+    float Attack_Level(int i);
+    int Df_Level_Check(Point p, int x1, int y1, float Lv);
+    int At_Level_Check(Point p, int x1, int y1, float Lv);
+    Point Df_Level_Check(Point p, int x1, int y1);
+    Point At_Level_Check(Point p, int x1, int y1);
     Point Defend();
     Point Attack();
     Point Move();
@@ -26,23 +31,25 @@ public:
     void Save_Board();
     void p_Board_Initial();
     float Defend_Lv;
-    float Attack_Lv;
+    float Attack_Lv[3];
+    float Attack_Lv_Final;
 
     NodeType myType;
     NodeType antiType;
     NodeType myBoard[BoardSize][BoardSize];  // board to save current board   
     NodeType Anti[BoardSize][BoardSize];
     NodeType Mine[BoardSize][BoardSize];
+    Point p_A;
+    Point p_M[3];
     Point Defender;
-    Point Attacker;
+    Point Attacker[3];
+    Point Attacker_Final;
 };
 
 GXY_AI::GXY_AI(const NodeType board[BoardSize][BoardSize], NodeType type)
 {
     myType = type;
     antiType = myType == Black ? White : Black;
-    Defend_Lv = 0;
-    Attack_Lv = 0;
     for (int i = 0; i < BoardSize; ++i) 
     {
         for (int j = 0; j < BoardSize; ++j) 
@@ -80,6 +87,8 @@ void GXY_AI::Save_Board()
             p_Mine[i][j] = Mine[i][j];
         }
     }
+    p_M[0] = p_M[1];
+    p_M[1] = p_M[2];
 }
 
 void GXY_AI::Locate_Anti()
@@ -152,187 +161,85 @@ Point GXY_AI::Compare_Mine()
     return p1;
 }
 
+int GXY_AI::Df_Level_Check(Point p, int x1, int y1, float Lv)
+{
+    int x = p.x;
+    int y = p.y;
+    for(int i = 0; i < BoardSize; i++) // check up
+    {
+        x += x1;
+        y += y1;
+        if(0 <= x && x < BoardSize && 0 <= y && y < BoardSize)
+        {
+            if(myBoard[x][y] == antiType)
+            {
+                Lv++;
+                continue;
+            }
+            else if(myBoard[x][y] == myType)
+                Lv -= 0.25;
+            break;
+        }
+        else
+             break;
+    }
+    return Lv;
+}
+
+Point GXY_AI::Df_Level_Check(Point p, int x1, int y1)
+{
+    int x = p.x;
+    int y = p.y;
+    Point pp;
+    for(int i = 0; i < BoardSize; i++) // check up
+    {
+        x += x1;
+        y += y1;
+        if(0 <= x && x < BoardSize && 0 <= y && y < BoardSize)
+        {
+            if(myBoard[x][y] == antiType)
+            {
+                continue;
+            }
+            else if(myBoard[x][y] == Empty)
+            {
+                pp.Set(x,y);
+                return pp;                
+            }   
+            break;
+        }
+        else
+             break;
+    }
+    return pp;
+}
+
 void GXY_AI::Defend_Level()
 {
     Locate_Anti();
-    Point p_A = Compare_Anti();
+    p_A = Compare_Anti();
     Point UU, RU, RR, RD, DD, LD, LL, LU;
     float Lv_UD = 0, Lv_LR = 0, Lv_RULD = 0, Lv_RDLU = 0;
-    int x = 9, y = 9;
+
     if (p_A.Valid() == true && myBoard[p_A.x][p_A.y] == antiType)
     {    
-        x = p_A.x;
-        y = p_A.y;
-        for(int i = 0; i < BoardSize; i++) // check up
-        {
-            y -= 1;
-            if(0 <= y && y < BoardSize)
-            {
-                if(myBoard[x][y] == antiType)
-                {
-                    Lv_UD++;
-                    continue;
-                }
-                else if(myBoard[x][y] == myType)
-                    Lv_UD -= 0.25;
-                else if(myBoard[x][y] == Empty)
-                    UU.Set(x,y);
-                break;
-            }
-            else
-                break;
-        }
-        x = p_A.x;
-        y = p_A.y;
-        for(int i = 0; i < BoardSize; i++) // check right-up
-        {
-            x += 1;
-            y -= 1;
-            if(0 <= x && x < BoardSize && 0 <= y && y < BoardSize)
-            {
-                if(myBoard[x][y] == antiType)
-                {
-                    Lv_RULD++;
-                    continue;
-                }
-                else if(myBoard[x][y] == myType)
-                    Lv_RULD -= 0.25;
-                else if(myBoard[x][y] == Empty)
-                    RU.Set(x,y);
-                break;
-            }
-            else
-                break;
-        }
-        x = p_A.x;
-        y = p_A.y;
-        for(int i = 0; i < BoardSize; i++) // check right
-        {
-            x += 1;
-            if(0 <= x && x < BoardSize)
-            {
-                if(myBoard[x][y] == antiType)
-                {
-                    Lv_LR++;
-                    continue;
-                }
-                else if(myBoard[x][y] == myType)
-                    Lv_LR -= 0.25;
-                else if(myBoard[x][y] == Empty)
-                    RR.Set(x,y);
-                break;
-            }
-            else
-                break;
-        }
-        x = p_A.x;
-        y = p_A.y;
-        for(int i = 0; i < BoardSize; i++) // check right-down
-        {
-            x += 1;
-            y += 1;
-            if(0 <= x && x < BoardSize && 0 <= y && y < BoardSize)
-            {
-                if(myBoard[x][y] == antiType)
-                {
-                    Lv_RDLU++;
-                    continue;
-                }
-                else if(myBoard[x][y] == myType)
-                    Lv_RDLU -= 0.25;
-                else if(myBoard[x][y] == Empty)
-                    RD.Set(x,y);
-                break;
-            }
-            else
-                break;
-        }
-        x = p_A.x;
-        y = p_A.y;
-        for(int i = 0; i < BoardSize; i++) // check down
-        {
-            y += 1;
-            if(0 <= y && y < BoardSize)
-            {
-                if(myBoard[x][y] == antiType)
-                {
-                    Lv_UD++;
-                    continue;
-                }
-                else if(myBoard[x][y] == myType)
-                    Lv_UD -= 0.25;
-                else if(myBoard[x][y] == Empty)
-                    DD.Set(x,y);
-                break;
-            }
-            else
-                break;
-        }
-        x = p_A.x;
-        y = p_A.y;
-        for(int i = 0; i < BoardSize; i++) // check left-down
-        {
-            x -= 1;
-            y += 1;
-            if(0 <= x && x < BoardSize && 0 <= y && y < BoardSize)
-            {
-                if(myBoard[x][y] == antiType)
-                {
-                    Lv_RULD++;
-                    continue;
-                }
-                else if(myBoard[x][y] == myType)
-                    Lv_RULD -= 0.25;
-                else if(myBoard[x][y] == Empty)
-                    LD.Set(x,y);
-                break;
-            }
-            else 
-                break;
-        }
-        x = p_A.x;
-        y = p_A.y;
-        for(int i = 0; i < BoardSize; i++) // check left
-        {
-            x -= 1;
-            if(0 <= x && x < BoardSize)
-            {
-                if(myBoard[x][y] == antiType)
-                {
-                    Lv_LR++;
-                    continue;
-                }
-                else if(myBoard[x][y] == myType)
-                    Lv_LR -= 0.25;
-                else if(myBoard[x][y] == Empty)
-                    LL.Set(x,y);
-                break;
-            }
-            else 
-                break;
-        }
-        x = p_A.x;
-        y = p_A.y;
-        for(int i = 0; i < BoardSize; i++) // check left-up
-        {
-            x -= 1;
-            y -= 1;
-            if(0 <= x && x < BoardSize && 0 <= y && y < BoardSize)
-            {
-                if(myBoard[x][y] == antiType)
-                {
-                    Lv_RDLU++;
-                    continue;
-                }
-                else if(myBoard[x][y] == myType)
-                    Lv_RDLU -= 0.25;
-                else if(myBoard[x][y] == Empty)
-                    LU.Set(x,y);
-                break;
-            }
-            else
-                break;
-        }
+        int tpLv_UD    =    Df_Level_Check(p_A,  0, -1, 0 );
+        int tpLv_RULD  =    Df_Level_Check(p_A,  1, -1, 0 );
+        int tpLv_LR    =    Df_Level_Check(p_A,  1,  0, 0 );
+        int tpLv_RDLU  =    Df_Level_Check(p_A,  1,  1, 0 );
+        Lv_UD    =    Df_Level_Check(p_A,  0,  1, tpLv_UD   );
+        Lv_RULD  =    Df_Level_Check(p_A, -1,  1, tpLv_RULD );      
+        Lv_LR    =    Df_Level_Check(p_A, -1,  0, tpLv_LR   );     
+        Lv_RDLU  =    Df_Level_Check(p_A, -1, -1, tpLv_RDLU );
+
+        UU  =    Df_Level_Check(p_A,  0, -1 );
+        RU  =    Df_Level_Check(p_A,  1, -1 );
+        RR  =    Df_Level_Check(p_A,  1,  0 );
+        RD  =    Df_Level_Check(p_A,  1,  1 );
+        DD  =    Df_Level_Check(p_A,  0,  1 );
+        LD  =    Df_Level_Check(p_A, -1,  1 );      
+        LL  =    Df_Level_Check(p_A, -1,  0 );     
+        LU  =    Df_Level_Check(p_A, -1, -1 );
 
         // find out max in Lv_UD , Lv_LR , Lv_RULD , Lv_RDLU 
         int max = Lv_UD;
@@ -373,6 +280,7 @@ void GXY_AI::Defend_Level()
             max = Lv_RDLU; 
             flag = 3; 
         }
+
 
         Defend_Lv = max;
         switch(flag)
@@ -441,187 +349,121 @@ void GXY_AI::Defend_Level()
         Defend_Lv = 0;
 }
 
-void GXY_AI::Attack_Level()
+int GXY_AI::At_Level_Check(Point p, int x1, int y1, float Lv)
 {
+    int x = p.x;
+    int y = p.y;
+    for(int i = 0; i < BoardSize; i++) // check up
+    {
+        x += x1;
+        y += y1;
+        if(0 <= x && x < BoardSize && 0 <= y && y < BoardSize)
+        {
+            if(myBoard[x][y] == myType)
+            {
+                Lv++;
+                continue;
+            }
+            else if(myBoard[x][y] == antiType)
+                Lv -= 0.25;
+            break;
+        }
+        else
+             break;
+    }
+    return Lv;
+}
+
+Point GXY_AI::At_Level_Check(Point p, int x1, int y1)
+{
+    int x = p.x;
+    int y = p.y;
+    Point pp;
+    for(int i = 0; i < BoardSize; i++) // check up
+    {
+        x += x1;
+        y += y1;
+        if(0 <= x && x < BoardSize && 0 <= y && y < BoardSize)
+        {
+            if(myBoard[x][y] == myType)
+            {
+                continue;
+            }
+            else if(myBoard[x][y] == Empty)
+            {
+                pp.Set(x,y);
+                return pp;                
+            }   
+            break;
+        }
+        else
+             break;
+    }
+    return pp;
+}
+
+void GXY_AI::Attack_Final()
+{
+    for(int i = 0; i < 3; i++)
+    {
+        Attack_Lv[i] = 0;
+    }
     Locate_Mine();
-    Point p_A = Compare_Mine();
+    p_M[2] = Compare_Mine();
+    for(int i =2; i > 0; i--)
+    {
+        Attack_Lv[i] = Attack_Level(i);
+    }
+    
+    int Attack_Lv_Final = Attack_Lv[2];
+    Attacker_Final = Attacker[2];
+    
+    if(Attack_Lv[1] > Attack_Lv_Final)
+    {
+        Attack_Lv_Final = Attack_Lv[1];
+        Attacker_Final = Attacker[1];
+    }
+    if(Attack_Lv[0] > Attack_Lv_Final)
+    {
+        Attack_Lv_Final = Attack_Lv[0];
+        Attacker_Final = Attacker[0];
+    }
+    
+    for(int i = 0; i < 3; i++)
+    {
+        if(Attack_Lv[i] == 2 || Attack_Lv[i] == 2.75 || Attack_Lv[i] == 3)   
+        {
+            Attack_Lv_Final = Attack_Lv[i];
+            Attacker_Final = Attacker[i];   
+        }
+    }    
+
+}
+
+float GXY_AI::Attack_Level(int i)
+{
     Point UU, RU, RR, RD, DD, LD, LL, LU;
     float Lv_UD = 0, Lv_LR = 0, Lv_RULD = 0, Lv_RDLU = 0;
     int x = 9, y = 9;
-    if (p_A.Valid() == true && myBoard[p_A.x][p_A.y] == myType)
+    if (p_M[i].Valid() == true && myBoard[p_M[i].x][p_M[i].y] == myType)
     {    
-        x = p_A.x;
-        y = p_A.y;
-        for(int i = 0; i < BoardSize; i++) // check up
-        {
-            y -= 1;
-            if(0 <= y && y < BoardSize)
-            {
-                if(myBoard[x][y] == myType)
-                {
-                    Lv_UD++;
-                    continue;
-                }
-                else if(myBoard[x][y] == antiType)
-                    Lv_UD -= 0.25;
-                else if(myBoard[x][y] == Empty)
-                    UU.Set(x,y);
-                break;
-            }
-            else
-                break;
-        }
-        x = p_A.x;
-        y = p_A.y;
-        for(int i = 0; i < BoardSize; i++) // check right-up
-        {
-            x += 1;
-            y -= 1;
-            if(0 <= x && x < BoardSize && 0 <= y && y < BoardSize)
-            {
-                if(myBoard[x][y] == myType)
-                {
-                    Lv_RULD++;
-                    continue;
-                }
-                else if(myBoard[x][y] == antiType)
-                    Lv_RULD -= 0.25;
-                else if(myBoard[x][y] == Empty)
-                    RU.Set(x,y);
-                break;
-            }
-            else
-                break;
-        }
-        x = p_A.x;
-        y = p_A.y;
-        for(int i = 0; i < BoardSize; i++) // check right
-        {
-            x += 1;
-            if(0 <= x && x < BoardSize)
-            {
-                if(myBoard[x][y] == myType)
-                {
-                    Lv_LR++;
-                    continue;
-                }
-                else if(myBoard[x][y] == antiType)
-                    Lv_LR -= 0.25;
-                else if(myBoard[x][y] == Empty)
-                    RR.Set(x,y);
-                break;
-            }
-            else
-                break;
-        }
-        x = p_A.x;
-        y = p_A.y;
-        for(int i = 0; i < BoardSize; i++) // check right-down
-        {
-            x += 1;
-            y += 1;
-            if(0 <= x && x < BoardSize && 0 <= y && y < BoardSize)
-            {
-                if(myBoard[x][y] == myType)
-                {
-                    Lv_RDLU++;
-                    continue;
-                }
-                else if(myBoard[x][y] == antiType)
-                    Lv_RDLU -= 0.25;
-                else if(myBoard[x][y] == Empty)
-                    RD.Set(x,y);
-                break;
-            }
-            else
-                break;
-        }
-        x = p_A.x;
-        y = p_A.y;
-        for(int i = 0; i < BoardSize; i++) // check down
-        {
-            y += 1;
-            if(0 <= y && y < BoardSize)
-            {
-                if(myBoard[x][y] == myType)
-                {
-                    Lv_UD++;
-                    continue;
-                }
-                else if(myBoard[x][y] == antiType)
-                    Lv_UD -= 0.25;
-                else if(myBoard[x][y] == Empty)
-                    DD.Set(x,y);
-                break;
-            }
-            else
-                break;
-        }
-        x = p_A.x;
-        y = p_A.y;
-        for(int i = 0; i < BoardSize; i++) // check left-down
-        {
-            x -= 1;
-            y += 1;
-            if(0 <= x && x < BoardSize && 0 <= y && y < BoardSize)
-            {
-                if(myBoard[x][y] == myType)
-                {
-                    Lv_RULD++;
-                    continue;
-                }
-                else if(myBoard[x][y] == antiType)
-                    Lv_RULD -= 0.25;
-                else if(myBoard[x][y] == Empty)
-                    LD.Set(x,y);
-                break;
-            }
-            else 
-                break;
-        }
-        x = p_A.x;
-        y = p_A.y;
-        for(int i = 0; i < BoardSize; i++) // check left
-        {
-            x -= 1;
-            if(0 <= x && x < BoardSize)
-            {
-                if(myBoard[x][y] == myType)
-                {
-                    Lv_LR++;
-                    continue;
-                }
-                else if(myBoard[x][y] == antiType)
-                    Lv_LR -= 0.25;
-                else if(myBoard[x][y] == Empty)
-                    LL.Set(x,y);
-                break;
-            }
-            else 
-                break;
-        }
-        x = p_A.x;
-        y = p_A.y;
-        for(int i = 0; i < BoardSize; i++) // check left-up
-        {
-            x -= 1;
-            y -= 1;
-            if(0 <= x && x < BoardSize && 0 <= y && y < BoardSize)
-            {
-                if(myBoard[x][y] == myType)
-                {
-                    Lv_RDLU++;
-                    continue;
-                }
-                else if(myBoard[x][y] == antiType)
-                    Lv_RDLU -= 0.25;
-                else if(myBoard[x][y] == Empty)
-                    LU.Set(x,y);
-                break;
-            }
-            else
-                break;
-        }
+        int tpLv_UD    =    At_Level_Check(p_M[i],  0, -1, 0 );
+        int tpLv_RULD  =    At_Level_Check(p_M[i],  1, -1, 0 );
+        int tpLv_LR    =    At_Level_Check(p_M[i],  1,  0, 0 );
+        int tpLv_RDLU  =    At_Level_Check(p_M[i],  1,  1, 0 );
+        Lv_UD    =    At_Level_Check(p_M[i],  0,  1, tpLv_UD   );
+        Lv_RULD  =    At_Level_Check(p_M[i], -1,  1, tpLv_RULD );      
+        Lv_LR    =    At_Level_Check(p_M[i], -1,  0, tpLv_LR   );     
+        Lv_RDLU  =    At_Level_Check(p_M[i], -1, -1, tpLv_RDLU );
+
+        UU  =    At_Level_Check(p_M[i],  0, -1 );
+        RU  =    At_Level_Check(p_M[i],  1, -1 );
+        RR  =    At_Level_Check(p_M[i],  1,  0 );
+        RD  =    At_Level_Check(p_M[i],  1,  1 );
+        DD  =    At_Level_Check(p_M[i],  0,  1 );
+        LD  =    At_Level_Check(p_M[i], -1,  1 );      
+        LL  =    At_Level_Check(p_M[i], -1,  0 );     
+        LU  =    At_Level_Check(p_M[i], -1, -1 );
 
         // find out max in Lv_UD , Lv_LR , Lv_RULD , Lv_RDLU 
         int max = Lv_UD;
@@ -663,64 +505,64 @@ void GXY_AI::Attack_Level()
             flag = 3; 
         }
 
-        Attack_Lv = max;
+        Attack_Lv[i] = max;
 
         switch(flag)
         {
             case 0:
             if(UU.Valid() == true)
             {
-                Attacker.Set(UU.x,UU.y);
+                Attacker[i].Set(UU.x,UU.y);
             } 
             else if(DD.Valid() == true)
             {
-                Attacker.Set(DD.x,DD.y);
+                Attacker[i].Set(DD.x,DD.y);
             }
             else
             {
-                Attack_Lv = 0;
+                Attack_Lv[i] = 0;
             }
             break;
             case 1:
             if(LL.Valid() == true)
             {
-                Attacker.Set(LL.x,LL.y);
+                Attacker[i].Set(LL.x,LL.y);
             } 
             else if(RR.Valid() == true)
             {
-                Attacker.Set(RR.x,RR.y);
+                Attacker[i].Set(RR.x,RR.y);
             }
             else
             {
-                Attack_Lv = 0;
+                Attack_Lv[i] = 0;
             }
             break;
             case 2:
             if(RU.Valid() == true)
             {
-                Attacker.Set(RU.x,RU.y);
+                Attacker[i].Set(RU.x,RU.y);
             } 
             else if(LD.Valid() == true)
             {
-                Attacker.Set(LD.x,LD.y);
+                Attacker[i].Set(LD.x,LD.y);
             }
             else
             {
-                Attack_Lv = 0;
+                Attack_Lv[i] = 0;
             }
             break;
             case 3:
             if(RD.Valid() == true)
             {
-                Attacker.Set(RD.x,RD.y);
+                Attacker[i].Set(RD.x,RD.y);
             } 
             else if(LU.Valid() == true)
             {
-                Attacker.Set(LU.x,LU.y);
+                Attacker[i].Set(LU.x,LU.y);
             }
             else
             {
-                Attack_Lv = 0;
+                Attack_Lv[i] = 0;
             }
             break;
             default:
@@ -728,7 +570,8 @@ void GXY_AI::Attack_Level()
         }
     }
     else
-        Attack_Lv = 0;
+        Attack_Lv[i] = 0;
+    return Attack_Lv[i];
 }
 
 Point GXY_AI::Random_Move()
@@ -799,14 +642,14 @@ Point GXY_AI::Move()
 {
     p_Board_Initial();
     Defend_Level();
-    Attack_Level();
+    Attack_Final();
     Save_Board();
     if(Defend_Lv == 2 || Defend_Lv == 2.75 || Defend_Lv == 3)
     {
-        if(Attack_Lv >= Defend_Lv)
+        if(Attack_Lv_Final >= Defend_Lv)
         {
-            if(Attacker.Valid() == true)
-                return Attacker;
+            if(Attacker_Final.Valid() == true)
+                return Attacker_Final;
             else if(Defender.Valid() == true)
                 return Defender;
             else
@@ -816,8 +659,8 @@ Point GXY_AI::Move()
         {
             if(Defender.Valid() == true)
                 return Defender;
-            else if(Attacker.Valid() == true)
-                return Attacker;
+            else if(Attacker_Final.Valid() == true)
+                return Attacker_Final;
             else
                 return Random_Move();
         }
@@ -825,8 +668,8 @@ Point GXY_AI::Move()
     }
     else
     {
-        if(Attacker.Valid() == true)
-            return Attacker;
+        if(Attacker_Final.Valid() == true)
+            return Attacker_Final;
         else
             return Random_Move();
     }       
