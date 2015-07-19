@@ -70,6 +70,40 @@ static void init_rs_cb(GtkWidget *widget,
     gtk_widget_queue_draw_area(draw_area, 0, 0, CanvasWidth, CanvasWidth);
 
 }
+static void export_cb(GtkWidget *widget,
+                      gpointer   data)
+{
+    FILE *fp;
+    int i;
+    for (i = 0; i <= 10000; ++i) {
+        char filename[30];
+        sprintf(filename, "export_test%d.tfir", i);
+        fp = fopen(filename, "r");
+        if (fp == NULL) {
+            fp = fopen(filename, "w");
+            break;
+        } else {
+            fclose(fp);
+        }
+    }
+    if (i == 10000)
+        return;
+    fprintf(fp, "Black\n");
+    for (int i = 0; i < BoardSize; ++i) {
+        for (int j = 0; j < BoardSize; ++j) {
+            if (game.board[i][j] == Black) 
+                fprintf(fp, "%d %d\n", i, j);
+        }
+    }
+    fprintf(fp, "White\n");
+    for (i = 0; i < BoardSize; ++i) {
+        for (int j = 0; j < BoardSize; ++j) {
+            if (game.board[i][j] == White) 
+                fprintf(fp, "%d %d\n", i, j);
+        }
+    }
+    fclose(fp);
+}
 static void DrawBoard()
 {
     cairo_t *cr;
@@ -200,6 +234,7 @@ static void activate(GtkApplication* app,
     GtkWidget *button;
     GtkWidget *button_rs;
     GtkWidget *button_box;
+    GtkWidget *button_export;
     GtkWidget *draw_area;
     GtkWidget *fixed_container;
 
@@ -230,12 +265,15 @@ static void activate(GtkApplication* app,
     g_signal_connect(button, "clicked", G_CALLBACK(init_cb), draw_area);
     button_rs = gtk_button_new_with_label("随机开局");
     g_signal_connect(button_rs, "clicked", G_CALLBACK(init_rs_cb), draw_area);
+    button_export = gtk_button_new_with_label("输出棋局");
+    g_signal_connect(button_export, "clicked", G_CALLBACK(export_cb), NULL);
 
     combo_box = gtk_combo_box_text_new();
     GetAllAIInComboBox(combo_box);
 
     gtk_container_add(GTK_CONTAINER(button_box), button);
     gtk_container_add(GTK_CONTAINER(button_box), button_rs);
+    gtk_container_add(GTK_CONTAINER(button_box), button_export);
     gtk_container_add(GTK_CONTAINER(button_box), combo_box);
     gtk_container_add(GTK_CONTAINER(window), fixed_container);
 
