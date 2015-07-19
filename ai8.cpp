@@ -3,10 +3,12 @@
 #include <stdio.h>
 
 #define ATTACKRECORD 20
+#define DEFENDRECORD 20
 //enum Direction {};
 NodeType p_Anti[BoardSize][BoardSize]; // board to save previous anti board
 NodeType p_Mine[BoardSize][BoardSize];
 Point p_M[ATTACKRECORD];
+Point p_A[DEFENDRECORD];
 bool Is_FirstStep = true;
 
 class GXY_AI
@@ -15,7 +17,8 @@ public:
     GXY_AI();
     GXY_AI(const NodeType[BoardSize][BoardSize], NodeType);
     void Attack_Final();
-    void Defend_Level();
+    void Defend_Final();
+    float Defend_Level(int i);
     float Attack_Level(int i);
     float Df_Level_Check(Point p, int x1, int y1, float Lv);
     float At_Level_Check(Point p, int x1, int y1, float Lv);
@@ -32,19 +35,21 @@ public:
     Point Compare_Mine();
     void Save_Board();
     void p_Board_Initial();
-    float Defend_Lv;
+    float Defend_Lv[DEFENDRECORD];
     float Attack_Lv[ATTACKRECORD];
     float Attack_Lv_Final;
+    float Defend_Lv_Final;
 
     NodeType myType;
     NodeType antiType;
     NodeType myBoard[BoardSize][BoardSize];  // board to save current board   
     NodeType Anti[BoardSize][BoardSize];
     NodeType Mine[BoardSize][BoardSize];
-    Point p_A;
-    Point Defender;
+    
+    Point Defender[DEFENDRECORD];
     Point Attacker[ATTACKRECORD];
     Point Attacker_Final;
+    Point Defender_Final;
 };
 
 GXY_AI::GXY_AI(const NodeType board[BoardSize][BoardSize], NodeType type)
@@ -91,6 +96,10 @@ void GXY_AI::Save_Board()
     for (int i = 0; i < ATTACKRECORD-1; i++)
     {
         p_M[i] = p_M[i+1];
+    }
+    for (int i = 0; i < DEFENDRECORD-1; i++)
+    {
+        p_A[i] = p_A[i+1];
     }
 }
 
@@ -217,32 +226,69 @@ Point GXY_AI::Df_Level_Check(Point p, int x1, int y1)
     return pp;
 }
 
-void GXY_AI::Defend_Level()
+void GXY_AI::Defend_Final()
+{
+    for(int i = 0; i < DEFENDRECORD; i++)
+    {
+        Defend_Lv[i] = 0;
+    }
+    Locate_Anti();
+    p_M[DEFENDRECORD-1] = Compare_Anti();
+    for(int i = DEFENDRECORD-1; i >= 0; i--)
+    {
+        Defend_Lv[i] = Defend_Level(i);
+    }
+
+
+    Defend_Lv_Final = Defend_Lv[DEFENDRECORD-1];
+    Defender_Final = Defender[DEFENDRECORD-1];
+
+    for(int i = DEFENDRECORD-2; i >= 0; i--)
+    {
+        if(Defend_Lv[i] > Defend_Lv_Final)
+        {
+            Defend_Lv_Final = Defend_Lv[i];
+            Defender_Final = Defender[i];
+        }     
+    }
+    
+    for(int i = 0; i < DEFENDRECORD; i++)
+    {
+        if(Defend_Lv[i] == 2 || Defend_Lv[i] == 2.75 || Defend_Lv[i] == 3)   
+        {
+            Defend_Lv_Final = Defend_Lv[i];
+            Defender_Final = Defender[i];   
+        }
+    }    
+
+}
+
+float GXY_AI::Defend_Level(int i)
 {
     Locate_Anti();
-    p_A = Compare_Anti();
+    p_A[i] = Compare_Anti();
     Point UU, RU, RR, RD, DD, LD, LL, LU;
     float Lv_UD = 0, Lv_LR = 0, Lv_RULD = 0, Lv_RDLU = 0;
 
-    if (p_A.Valid() == true && myBoard[p_A.x][p_A.y] == antiType)
+    if (p_A[i].Valid() == true && myBoard[p_A[i].x][p_A[i].y] == antiType)
     {    
-        float tpLv_UD    =    Df_Level_Check(p_A,  0, -1, 0 );
-        float tpLv_RULD  =    Df_Level_Check(p_A,  1, -1, 0 );
-        float tpLv_LR    =    Df_Level_Check(p_A,  1,  0, 0 );
-        float tpLv_RDLU  =    Df_Level_Check(p_A,  1,  1, 0 );
-        Lv_UD    =    Df_Level_Check(p_A,  0,  1, tpLv_UD   );
-        Lv_RULD  =    Df_Level_Check(p_A, -1,  1, tpLv_RULD );      
-        Lv_LR    =    Df_Level_Check(p_A, -1,  0, tpLv_LR   );     
-        Lv_RDLU  =    Df_Level_Check(p_A, -1, -1, tpLv_RDLU );
+        float tpLv_UD    =    Df_Level_Check(p_A[i],  0, -1, 0 );
+        float tpLv_RULD  =    Df_Level_Check(p_A[i],  1, -1, 0 );
+        float tpLv_LR    =    Df_Level_Check(p_A[i],  1,  0, 0 );
+        float tpLv_RDLU  =    Df_Level_Check(p_A[i],  1,  1, 0 );
+        Lv_UD    =    Df_Level_Check(p_A[i],  0,  1, tpLv_UD   );
+        Lv_RULD  =    Df_Level_Check(p_A[i], -1,  1, tpLv_RULD );      
+        Lv_LR    =    Df_Level_Check(p_A[i], -1,  0, tpLv_LR   );     
+        Lv_RDLU  =    Df_Level_Check(p_A[i], -1, -1, tpLv_RDLU );
 
-        UU  =    Df_Level_Check(p_A,  0, -1 );
-        RU  =    Df_Level_Check(p_A,  1, -1 );
-        RR  =    Df_Level_Check(p_A,  1,  0 );
-        RD  =    Df_Level_Check(p_A,  1,  1 );
-        DD  =    Df_Level_Check(p_A,  0,  1 );
-        LD  =    Df_Level_Check(p_A, -1,  1 );      
-        LL  =    Df_Level_Check(p_A, -1,  0 );     
-        LU  =    Df_Level_Check(p_A, -1, -1 );
+        UU  =    Df_Level_Check(p_A[i],  0, -1 );
+        RU  =    Df_Level_Check(p_A[i],  1, -1 );
+        RR  =    Df_Level_Check(p_A[i],  1,  0 );
+        RD  =    Df_Level_Check(p_A[i],  1,  1 );
+        DD  =    Df_Level_Check(p_A[i],  0,  1 );
+        LD  =    Df_Level_Check(p_A[i], -1,  1 );      
+        LL  =    Df_Level_Check(p_A[i], -1,  0 );     
+        LU  =    Df_Level_Check(p_A[i], -1, -1 );
 
         // find out max in Lv_UD , Lv_LR , Lv_RULD , Lv_RDLU 
         float max = Lv_UD;
@@ -285,63 +331,63 @@ void GXY_AI::Defend_Level()
         }
 
 
-        Defend_Lv = max;
+        Defend_Lv[i] = max;
         switch(flag)
         {
             case 0:
             if(UU.Valid() == true)
             {
-                Defender.Set(UU.x,UU.y);
+                Defender[i].Set(UU.x,UU.y);
             } 
             else if(DD.Valid() == true)
             {
-                Defender.Set(DD.x,DD.y);
+                Defender[i].Set(DD.x,DD.y);
             }
             else
             {
-                Defend_Lv = -1;
+                Defend_Lv[i] = 0;
             }
             break;
             case 1:
             if(LL.Valid() == true)
             {
-                Defender.Set(LL.x,LL.y);
+                Defender[i].Set(LL.x,LL.y);
             } 
             else if(RR.Valid() == true)
             {
-                Defender.Set(RR.x,RR.y);
+                Defender[i].Set(RR.x,RR.y);
             }
             else
             {
-                Defend_Lv = -1;
+                Defend_Lv[i] = 0;
             }
             break;
             case 2:
             if(RU.Valid() == true)
             {
-                Defender.Set(RU.x,RU.y);
+                Defender[i].Set(RU.x,RU.y);
             } 
             else if(LD.Valid() == true)
             {
-                Defender.Set(LD.x,LD.y);
+                Defender[i].Set(LD.x,LD.y);
             }
             else
             {
-                Defend_Lv = -1;
+                Defend_Lv[i] = 0;
             }
             break;
             case 3:
             if(RD.Valid() == true)
             {
-                Defender.Set(RD.x,RD.y);
+                Defender[i].Set(RD.x,RD.y);
             } 
             else if(LU.Valid() == true)
             {
-                Defender.Set(LU.x,LU.y);
+                Defender[i].Set(LU.x,LU.y);
             }
             else
             {
-                Defend_Lv = -1;
+                Defend_Lv[i] = 0;
             }
             break;
             default:
@@ -349,7 +395,8 @@ void GXY_AI::Defend_Level()
         }
     }
     else
-        Defend_Lv = 0;
+        Defend_Lv[i] = 0;
+    return Defend_Lv[i];
 }
 
 float GXY_AI::At_Level_Check(Point p, int x1, int y1, float Lv)
@@ -655,21 +702,21 @@ Point GXY_AI::Random_Move()
 Point GXY_AI::Move()
 {
     p_Board_Initial();
-    Defend_Level();
+    Defend_Final();
     Attack_Final();
     Save_Board();
-    if(Defend_Lv == 2 || Defend_Lv == 2.75 || Defend_Lv == 3)
+    if(Defend_Lv_Final == 2 || Defend_Lv_Final == 2.75 || Defend_Lv_Final == 3)
     {
-        if(Attack_Lv_Final >= Defend_Lv)
+        if(Attack_Lv_Final >= Defend_Lv_Final)
         {
             if(Attacker_Final.Valid() == true)
             {
                 return Attacker_Final;
             }
                 
-            else if(Defender.Valid() == true)
+            else if(Defender_Final.Valid() == true)
             {
-                return Defender;
+                return Defender_Final;
             }
                 
             else
@@ -680,9 +727,9 @@ Point GXY_AI::Move()
         }
         else
         {
-            if(Defender.Valid() == true)
+            if(Defender_Final.Valid() == true)
             {
-                return Defender;
+                return Defender_Final;
             }
                 
             else if(Attacker_Final.Valid() == true)
