@@ -3,8 +3,8 @@
 #include <stdio.h>
 #include <math.h>
 
-#define ATTACKRECORD 10
-#define DEFENDRECORD 10
+#define ATTACKRECORD 50
+#define DEFENDRECORD 50
 //enum Direction {};
 NodeType p_Anti[BoardSize][BoardSize]; // board to save previous anti board
 NodeType p_Mine[BoardSize][BoardSize];
