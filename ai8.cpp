@@ -1,9 +1,10 @@
 #include "game.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
 
-#define ATTACKRECORD 20
-#define DEFENDRECORD 20
+#define ATTACKRECORD 10
+#define DEFENDRECORD 10
 //enum Direction {};
 NodeType p_Anti[BoardSize][BoardSize]; // board to save previous anti board
 NodeType p_Mine[BoardSize][BoardSize];
@@ -50,6 +51,7 @@ public:
     Point Attacker[ATTACKRECORD];
     Point Attacker_Final;
     Point Defender_Final;
+    Point Defender_Final_Temp;
 };
 
 GXY_AI::GXY_AI(const NodeType board[BoardSize][BoardSize], NodeType type)
@@ -177,6 +179,7 @@ float GXY_AI::Df_Level_Check(Point p, int x1, int y1, float Lv)
 {
     int x = p.x;
     int y = p.y;
+
     for(int i = 0; i < BoardSize; i++) // check up
     {
         x += x1;
@@ -190,6 +193,21 @@ float GXY_AI::Df_Level_Check(Point p, int x1, int y1, float Lv)
             }
             else if(myBoard[x][y] == myType)
                 Lv -= 0.25;
+            else if(myBoard[x][y] == Empty)
+            {
+                if(fabs(Lv - 1)<0.000001 || fabs(Lv - 1.75)<0.000001 || fabs(Lv - 2)<0.000001)
+                {
+                    if(0 <= (x+x1) && (x+x1) < BoardSize && 0 <= (y+y1) && (y+y1) < BoardSize)
+                    {
+                        if(myBoard[x+x1][y+y1] == antiType)
+                        {
+                            Lv += 0.1;
+                            Defender_Final_Temp.Set(x,y);
+                            printf("Lv = %f, Empty is %d, %d, Point is %d, %d\n", Lv, x, y, p.x, p.y);
+                        }
+                    }
+                }
+            }   
             break;
         }
         else
@@ -233,12 +251,21 @@ void GXY_AI::Defend_Final()
         Defend_Lv[i] = 0;
     }
     Locate_Anti();
-    p_M[DEFENDRECORD-1] = Compare_Anti();
+    p_A[DEFENDRECORD-1] = Compare_Anti();
     for(int i = DEFENDRECORD-1; i >= 0; i--)
     {
-        Defend_Lv[i] = Defend_Level(i);
+        Defend_Lv[i] = Defend_Level(i);  
     }
 
+    for(int i = DEFENDRECORD-1; i >= 0; i--)
+    {
+        if(fabs(Defend_Lv[i] - 1.1)<0.000001 || fabs(Defend_Lv[i] - 1.85)<0.000001 || fabs(Defend_Lv[i] - 2.1)<0.000001)
+        {
+            Defend_Lv_Final = Defend_Lv[i];
+            Defender_Final = Defender_Final_Temp;
+            return;
+        }
+    }
 
     Defend_Lv_Final = Defend_Lv[DEFENDRECORD-1];
     Defender_Final = Defender[DEFENDRECORD-1];
@@ -254,7 +281,7 @@ void GXY_AI::Defend_Final()
     
     for(int i = 0; i < DEFENDRECORD; i++)
     {
-        if(Defend_Lv[i] == 2 || Defend_Lv[i] == 2.75 || Defend_Lv[i] == 3)   
+        if(fabs(Defend_Lv[i] - 2)<0.000001 || fabs(Defend_Lv[i] - 2.75)<0.000001 || fabs(Defend_Lv[i] - 3)<0.000001)   
         {
             Defend_Lv_Final = Defend_Lv[i];
             Defender_Final = Defender[i];   
@@ -265,8 +292,6 @@ void GXY_AI::Defend_Final()
 
 float GXY_AI::Defend_Level(int i)
 {
-    Locate_Anti();
-    p_A[i] = Compare_Anti();
     Point UU, RU, RR, RD, DD, LD, LL, LU;
     float Lv_UD = 0, Lv_LR = 0, Lv_RULD = 0, Lv_RDLU = 0;
 
@@ -289,8 +314,33 @@ float GXY_AI::Defend_Level(int i)
         LD  =    Df_Level_Check(p_A[i], -1,  1 );      
         LL  =    Df_Level_Check(p_A[i], -1,  0 );     
         LU  =    Df_Level_Check(p_A[i], -1, -1 );
-
+        printf("Lv_UD %f, Lv_LR %f, Lv_RULD %f, Lv_RDLU %f\n", Lv_UD, Lv_LR, Lv_RULD, Lv_RDLU);
+        if(fabs(Lv_UD - 1.1)<0.000001 || fabs(Lv_UD - 1.85)<0.000001 || fabs(Lv_UD - 2.1)<0.000001)   
+        {
+            Defend_Lv[i] = Lv_UD;
+            printf("Empty found\n"); 
+            return Defend_Lv[i]; 
+        }
+        if(fabs(Lv_LR - 1.1)<0.000001 || fabs(Lv_LR - 1.85)<0.000001 || fabs(Lv_LR - 2.1)<0.000001)   
+        {
+            Defend_Lv[i] = Lv_LR;
+            printf("Empty found\n");
+            return Defend_Lv[i]; 
+        }
+        if(fabs(Lv_RULD - 1.1)<0.000001 || fabs(Lv_RULD - 1.85)<0.000001 || fabs(Lv_RULD - 2.1)<0.000001)   
+        {
+            Defend_Lv[i] = Lv_RULD;
+            printf("Empty found\n");
+            return Defend_Lv[i]; 
+        }
+        if(fabs(Lv_RDLU - 1.1)<0.000001 || fabs(Lv_RDLU - 1.85)<0.000001 || fabs(Lv_RDLU - 2.1)<0.000001)   
+        {
+            Defend_Lv[i] = Lv_RDLU;
+            printf("Empty found\n");
+            return Defend_Lv[i]; 
+        }
         // find out max in Lv_UD , Lv_LR , Lv_RULD , Lv_RDLU 
+        printf("if pass !!!\n");
         float max = Lv_UD;
         int flag = 0;
         if(Lv_LR > max)
@@ -309,22 +359,22 @@ float GXY_AI::Defend_Level(int i)
            flag = 3;   // flag == 3
         }
 
-        if(Lv_UD == 2 || Lv_UD == 2.75 || Lv_UD == 3)   
+        if(fabs(Lv_UD - 2)<0.000001 || fabs(Lv_UD - 2.75)<0.000001 || fabs(Lv_UD - 3)<0.000001)   
         {
             max = Lv_UD;   
             flag = 0; 
         }
-        else if(Lv_LR == 2 || Lv_LR == 2.75 || Lv_LR == 3)
+        else if(fabs(Lv_LR - 2)<0.000001 || fabs(Lv_LR - 2.75)<0.000001 || fabs(Lv_LR - 3)<0.000001)  
         {
             max = Lv_LR;   
             flag = 1; 
         }
-        else if(Lv_RULD == 2 || Lv_RULD == 2.75 || Lv_RULD == 3)
+        else if(fabs(Lv_RULD - 2)<0.000001 || fabs(Lv_RULD - 2.75)<0.000001 || fabs(Lv_RULD - 3)<0.000001)  
         {
             max = Lv_RULD;
             flag = 2;
         }
-        else if(Lv_RDLU == 2 || Lv_RDLU == 2.75 || Lv_RDLU == 3)
+        else if(fabs(Lv_RDLU - 2)<0.000001 || fabs(Lv_RDLU - 2.75)<0.000001 || fabs(Lv_RDLU - 3)<0.000001)  
         {
             max = Lv_RDLU; 
             flag = 3; 
@@ -483,7 +533,7 @@ void GXY_AI::Attack_Final()
     
     for(int i = 0; i < ATTACKRECORD; i++)
     {
-        if(Attack_Lv[i] == 2 || Attack_Lv[i] == 2.75 || Attack_Lv[i] == 3)   
+        if(fabs(Attack_Lv[i] - 2)<0.000001 || fabs(Attack_Lv[i] - 2.75)<0.000001 || fabs(Attack_Lv[i] - 3)<0.000001)   
         {
             Attack_Lv_Final = Attack_Lv[i];
             Attacker_Final = Attacker[i];   
@@ -517,13 +567,13 @@ float GXY_AI::Attack_Level(int i)
         LL  =    At_Level_Check(p_M[i], -1,  0 );     
         LU  =    At_Level_Check(p_M[i], -1, -1 );
         // find out max in Lv_UD , Lv_LR , Lv_RULD , Lv_RDLU 
-        if(Lv_UD == -0.5 || Lv_UD == 0.5 || Lv_UD == 1.5 || Lv_UD == 2.5)
+        if(fabs(Lv_UD - -0.5)<0.000001 || fabs(Lv_UD - 0.5)<0.000001 || fabs(Lv_UD - 1.5)<0.000001 || fabs(Lv_UD - 2.5)<0.000001)
             Lv_UD = -0.9;
-        if(Lv_LR == -0.5 || Lv_LR == 0.5 || Lv_LR == 1.5 || Lv_LR == 2.5)
+        if(fabs(Lv_LR - -0.5)<0.000001 || fabs(Lv_LR - 0.5)<0.000001 || fabs(Lv_LR - 1.5)<0.000001 || fabs(Lv_LR - 2.5)<0.000001)
             Lv_LR = -0.9;
-        if(Lv_RULD == -0.5 || Lv_RULD == 0.5 || Lv_RULD == 1.5 || Lv_RULD == 2.5)
+        if(fabs(Lv_RULD - -0.5)<0.000001 || fabs(Lv_RULD - 0.5)<0.000001 || fabs(Lv_RULD - 1.5)<0.000001 || fabs(Lv_RULD - 2.5)<0.000001)
             Lv_RULD = -0.9;
-        if(Lv_RDLU == -0.5 || Lv_RDLU == 0.5 || Lv_RDLU == 1.5 || Lv_RDLU == 2.5)
+        if(fabs(Lv_RDLU - -0.5)<0.000001 || fabs(Lv_RDLU - 0.5)<0.000001 || fabs(Lv_RDLU - 1.5)<0.000001 || fabs(Lv_RDLU - 2.5)<0.000001)
             Lv_RDLU = -0.9;
         float max = Lv_UD;
         int flag = 0;
@@ -543,22 +593,22 @@ float GXY_AI::Attack_Level(int i)
            flag = 3;   // flag == 3
         }
 
-        if(Lv_UD == 2 || Lv_UD == 2.75 || Lv_UD == 3)   
+        if(fabs(Lv_UD - 2)<0.000001 || fabs(Lv_UD - 2.75)<0.000001 || fabs(Lv_UD - 3)<0.000001)   
         {
             max = Lv_UD;   
             flag = 0; 
         }
-        else if(Lv_LR == 2 || Lv_LR == 2.75 || Lv_LR == 3)
+        else if(fabs(Lv_LR - 2)<0.000001 || fabs(Lv_LR - 2.75)<0.000001 || fabs(Lv_LR - 3)<0.000001)
         {
             max = Lv_LR;   
             flag = 1; 
         }
-        else if(Lv_RULD == 2 || Lv_RULD == 2.75 || Lv_RULD == 3)
+        else if(fabs(Lv_RULD - 2)<0.000001 || fabs(Lv_RULD - 2.75)<0.000001 || fabs(Lv_RULD - 3)<0.000001)
         {
             max = Lv_RULD;
             flag = 2;
         }
-        else if(Lv_RDLU == 2 || Lv_RDLU == 2.75 || Lv_RDLU == 3)
+        else if(fabs(Lv_RDLU - 2)<0.000001 || fabs(Lv_RDLU - 2.75)<0.000001 || fabs(Lv_RDLU - 3)<0.000001)
         {
             max = Lv_RDLU; 
             flag = 3; 
@@ -694,7 +744,6 @@ Point GXY_AI::Random_Move()
             }
         }
     }
-
     Point p;
     return p;
 }
@@ -705,7 +754,16 @@ Point GXY_AI::Move()
     Defend_Final();
     Attack_Final();
     Save_Board();
-    if(Defend_Lv_Final == 2 || Defend_Lv_Final == 2.75 || Defend_Lv_Final == 3)
+    if(fabs(Defend_Lv_Final - 1.1)<0.000001 || fabs(Defend_Lv_Final - 1.85)<0.000001 || fabs(Defend_Lv_Final - 2.1)<0.000001)
+    {
+        if(Defender_Final.Valid() == true)
+        {
+            return Defender_Final;
+        }
+        else
+            return Random_Move();
+    }
+    else if(fabs(Defend_Lv_Final - 2)<0.000001 || fabs(Defend_Lv_Final - 2.75)<0.000001 || fabs(Defend_Lv_Final - 3)<0.000001)
     {
         if(Attack_Lv_Final >= Defend_Lv_Final)
         {
