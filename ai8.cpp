@@ -203,7 +203,6 @@ float GXY_AI::Df_Level_Check(Point p, int x1, int y1, float Lv)
                         {
                             Lv += 0.1;
                             Defender_Final_Temp.Set(x,y);
-                            printf("Lv = %f, Empty is %d, %d, Point is %d, %d\n", Lv, x, y, p.x, p.y);
                         }
                     }
                 }
@@ -314,33 +313,27 @@ float GXY_AI::Defend_Level(int i)
         LD  =    Df_Level_Check(p_A[i], -1,  1 );      
         LL  =    Df_Level_Check(p_A[i], -1,  0 );     
         LU  =    Df_Level_Check(p_A[i], -1, -1 );
-        printf("Lv_UD %f, Lv_LR %f, Lv_RULD %f, Lv_RDLU %f\n", Lv_UD, Lv_LR, Lv_RULD, Lv_RDLU);
         if(fabs(Lv_UD - 1.1)<0.000001 || fabs(Lv_UD - 1.85)<0.000001 || fabs(Lv_UD - 2.1)<0.000001)   
         {
             Defend_Lv[i] = Lv_UD;
-            printf("Empty found\n"); 
             return Defend_Lv[i]; 
         }
         if(fabs(Lv_LR - 1.1)<0.000001 || fabs(Lv_LR - 1.85)<0.000001 || fabs(Lv_LR - 2.1)<0.000001)   
         {
             Defend_Lv[i] = Lv_LR;
-            printf("Empty found\n");
             return Defend_Lv[i]; 
         }
         if(fabs(Lv_RULD - 1.1)<0.000001 || fabs(Lv_RULD - 1.85)<0.000001 || fabs(Lv_RULD - 2.1)<0.000001)   
         {
             Defend_Lv[i] = Lv_RULD;
-            printf("Empty found\n");
             return Defend_Lv[i]; 
         }
         if(fabs(Lv_RDLU - 1.1)<0.000001 || fabs(Lv_RDLU - 1.85)<0.000001 || fabs(Lv_RDLU - 2.1)<0.000001)   
         {
             Defend_Lv[i] = Lv_RDLU;
-            printf("Empty found\n");
             return Defend_Lv[i]; 
         }
         // find out max in Lv_UD , Lv_LR , Lv_RULD , Lv_RDLU 
-        printf("if pass !!!\n");
         float max = Lv_UD;
         int flag = 0;
         if(Lv_LR > max)
