@@ -2,9 +2,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#define ATTACKRECORD 20
 //enum Direction {};
 NodeType p_Anti[BoardSize][BoardSize]; // board to save previous anti board
 NodeType p_Mine[BoardSize][BoardSize];
+Point p_M[ATTACKRECORD];
 bool Is_FirstStep = true;
 
 class GXY_AI
@@ -15,8 +17,8 @@ public:
     void Attack_Final();
     void Defend_Level();
     float Attack_Level(int i);
-    int Df_Level_Check(Point p, int x1, int y1, float Lv);
-    int At_Level_Check(Point p, int x1, int y1, float Lv);
+    float Df_Level_Check(Point p, int x1, int y1, float Lv);
+    float At_Level_Check(Point p, int x1, int y1, float Lv);
     Point Df_Level_Check(Point p, int x1, int y1);
     Point At_Level_Check(Point p, int x1, int y1);
     Point Defend();
@@ -31,7 +33,7 @@ public:
     void Save_Board();
     void p_Board_Initial();
     float Defend_Lv;
-    float Attack_Lv[3];
+    float Attack_Lv[ATTACKRECORD];
     float Attack_Lv_Final;
 
     NodeType myType;
@@ -40,9 +42,8 @@ public:
     NodeType Anti[BoardSize][BoardSize];
     NodeType Mine[BoardSize][BoardSize];
     Point p_A;
-    Point p_M[3];
     Point Defender;
-    Point Attacker[3];
+    Point Attacker[ATTACKRECORD];
     Point Attacker_Final;
 };
 
@@ -87,8 +88,10 @@ void GXY_AI::Save_Board()
             p_Mine[i][j] = Mine[i][j];
         }
     }
-    p_M[0] = p_M[1];
-    p_M[1] = p_M[2];
+    for (int i = 0; i < ATTACKRECORD-1; i++)
+    {
+        p_M[i] = p_M[i+1];
+    }
 }
 
 void GXY_AI::Locate_Anti()
@@ -161,7 +164,7 @@ Point GXY_AI::Compare_Mine()
     return p1;
 }
 
-int GXY_AI::Df_Level_Check(Point p, int x1, int y1, float Lv)
+float GXY_AI::Df_Level_Check(Point p, int x1, int y1, float Lv)
 {
     int x = p.x;
     int y = p.y;
@@ -223,10 +226,10 @@ void GXY_AI::Defend_Level()
 
     if (p_A.Valid() == true && myBoard[p_A.x][p_A.y] == antiType)
     {    
-        int tpLv_UD    =    Df_Level_Check(p_A,  0, -1, 0 );
-        int tpLv_RULD  =    Df_Level_Check(p_A,  1, -1, 0 );
-        int tpLv_LR    =    Df_Level_Check(p_A,  1,  0, 0 );
-        int tpLv_RDLU  =    Df_Level_Check(p_A,  1,  1, 0 );
+        float tpLv_UD    =    Df_Level_Check(p_A,  0, -1, 0 );
+        float tpLv_RULD  =    Df_Level_Check(p_A,  1, -1, 0 );
+        float tpLv_LR    =    Df_Level_Check(p_A,  1,  0, 0 );
+        float tpLv_RDLU  =    Df_Level_Check(p_A,  1,  1, 0 );
         Lv_UD    =    Df_Level_Check(p_A,  0,  1, tpLv_UD   );
         Lv_RULD  =    Df_Level_Check(p_A, -1,  1, tpLv_RULD );      
         Lv_LR    =    Df_Level_Check(p_A, -1,  0, tpLv_LR   );     
@@ -242,7 +245,7 @@ void GXY_AI::Defend_Level()
         LU  =    Df_Level_Check(p_A, -1, -1 );
 
         // find out max in Lv_UD , Lv_LR , Lv_RULD , Lv_RDLU 
-        int max = Lv_UD;
+        float max = Lv_UD;
         int flag = 0;
         if(Lv_LR > max)
         {
@@ -349,7 +352,7 @@ void GXY_AI::Defend_Level()
         Defend_Lv = 0;
 }
 
-int GXY_AI::At_Level_Check(Point p, int x1, int y1, float Lv)
+float GXY_AI::At_Level_Check(Point p, int x1, int y1, float Lv)
 {
     int x = p.x;
     int y = p.y;
@@ -365,7 +368,10 @@ int GXY_AI::At_Level_Check(Point p, int x1, int y1, float Lv)
                 continue;
             }
             else if(myBoard[x][y] == antiType)
+            {
                 Lv -= 0.25;
+            }
+                
             break;
         }
         else
@@ -404,32 +410,31 @@ Point GXY_AI::At_Level_Check(Point p, int x1, int y1)
 
 void GXY_AI::Attack_Final()
 {
-    for(int i = 0; i < 3; i++)
+    for(int i = 0; i < ATTACKRECORD; i++)
     {
         Attack_Lv[i] = 0;
     }
     Locate_Mine();
-    p_M[2] = Compare_Mine();
-    for(int i =2; i > 0; i--)
+    p_M[ATTACKRECORD-1] = Compare_Mine();
+    for(int i = ATTACKRECORD-1; i >= 0; i--)
     {
         Attack_Lv[i] = Attack_Level(i);
     }
-    
-    int Attack_Lv_Final = Attack_Lv[2];
-    Attacker_Final = Attacker[2];
-    
-    if(Attack_Lv[1] > Attack_Lv_Final)
+
+
+    Attack_Lv_Final = Attack_Lv[ATTACKRECORD-1];
+    Attacker_Final = Attacker[ATTACKRECORD-1];
+
+    for(int i = ATTACKRECORD-2; i >= 0; i--)
     {
-        Attack_Lv_Final = Attack_Lv[1];
-        Attacker_Final = Attacker[1];
-    }
-    if(Attack_Lv[0] > Attack_Lv_Final)
-    {
-        Attack_Lv_Final = Attack_Lv[0];
-        Attacker_Final = Attacker[0];
+        if(Attack_Lv[i] > Attack_Lv_Final)
+        {
+            Attack_Lv_Final = Attack_Lv[i];
+            Attacker_Final = Attacker[i];
+        }     
     }
     
-    for(int i = 0; i < 3; i++)
+    for(int i = 0; i < ATTACKRECORD; i++)
     {
         if(Attack_Lv[i] == 2 || Attack_Lv[i] == 2.75 || Attack_Lv[i] == 3)   
         {
@@ -444,13 +449,13 @@ float GXY_AI::Attack_Level(int i)
 {
     Point UU, RU, RR, RD, DD, LD, LL, LU;
     float Lv_UD = 0, Lv_LR = 0, Lv_RULD = 0, Lv_RDLU = 0;
-    int x = 9, y = 9;
+
     if (p_M[i].Valid() == true && myBoard[p_M[i].x][p_M[i].y] == myType)
     {    
-        int tpLv_UD    =    At_Level_Check(p_M[i],  0, -1, 0 );
-        int tpLv_RULD  =    At_Level_Check(p_M[i],  1, -1, 0 );
-        int tpLv_LR    =    At_Level_Check(p_M[i],  1,  0, 0 );
-        int tpLv_RDLU  =    At_Level_Check(p_M[i],  1,  1, 0 );
+        float tpLv_UD    =    At_Level_Check(p_M[i],  0, -1, 0 );
+        float tpLv_RULD  =    At_Level_Check(p_M[i],  1, -1, 0 );
+        float tpLv_LR    =    At_Level_Check(p_M[i],  1,  0, 0 );
+        float tpLv_RDLU  =    At_Level_Check(p_M[i],  1,  1, 0 );
         Lv_UD    =    At_Level_Check(p_M[i],  0,  1, tpLv_UD   );
         Lv_RULD  =    At_Level_Check(p_M[i], -1,  1, tpLv_RULD );      
         Lv_LR    =    At_Level_Check(p_M[i], -1,  0, tpLv_LR   );     
@@ -464,9 +469,16 @@ float GXY_AI::Attack_Level(int i)
         LD  =    At_Level_Check(p_M[i], -1,  1 );      
         LL  =    At_Level_Check(p_M[i], -1,  0 );     
         LU  =    At_Level_Check(p_M[i], -1, -1 );
-
         // find out max in Lv_UD , Lv_LR , Lv_RULD , Lv_RDLU 
-        int max = Lv_UD;
+        if(Lv_UD == -0.5 || Lv_UD == 0.5 || Lv_UD == 1.5 || Lv_UD == 2.5)
+            Lv_UD = -0.9;
+        if(Lv_LR == -0.5 || Lv_LR == 0.5 || Lv_LR == 1.5 || Lv_LR == 2.5)
+            Lv_LR = -0.9;
+        if(Lv_RULD == -0.5 || Lv_RULD == 0.5 || Lv_RULD == 1.5 || Lv_RULD == 2.5)
+            Lv_RULD = -0.9;
+        if(Lv_RDLU == -0.5 || Lv_RDLU == 0.5 || Lv_RDLU == 1.5 || Lv_RDLU == 2.5)
+            Lv_RDLU = -0.9;
+        float max = Lv_UD;
         int flag = 0;
         if(Lv_LR > max)
         {
@@ -506,7 +518,6 @@ float GXY_AI::Attack_Level(int i)
         }
 
         Attack_Lv[i] = max;
-
         switch(flag)
         {
             case 0:
@@ -652,29 +663,53 @@ Point GXY_AI::Move()
         if(Attack_Lv_Final >= Defend_Lv)
         {
             if(Attacker_Final.Valid() == true)
+            {
                 return Attacker_Final;
+            }
+                
             else if(Defender.Valid() == true)
+            {
                 return Defender;
+            }
+                
             else
+            {
                 return Random_Move();
+            }
+                
         }
         else
         {
             if(Defender.Valid() == true)
+            {
                 return Defender;
+            }
+                
             else if(Attacker_Final.Valid() == true)
+            {
                 return Attacker_Final;
+            }
+                
             else
+            {
                 return Random_Move();
+            }
+                
         }
                  
     }
     else
     {
         if(Attacker_Final.Valid() == true)
+        {
             return Attacker_Final;
+        }
+            
         else
+        {
             return Random_Move();
+        }
+            
     }       
 }
 
