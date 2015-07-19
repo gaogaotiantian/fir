@@ -298,7 +298,9 @@ public:
                            std::vector<Point> oppWinPointList, 
                            std::set<Point, PointComparator>* checkedPointList,
                            Point* oppWinPoint,
-                           ReqCounts* oppMaxCount); 
+                           ReqCounts* oppMaxCount,
+                           bool* canStopWin,
+                           int* selfBestMove); 
     bool CanStopOppWin(const Point& p, std::vector<Point> oppWinPointList);
     inline bool isEmpty(const Point& p);
     inline NodeType GetType(const Point &p);
@@ -313,6 +315,8 @@ public:
     ReqCounts totalOppCounts;
     PointInfo maxInitSelfInfo;
     PointInfo maxInitOppInfo;
+    std::vector<PointInfo> FourPoints;
+    std::vector<PointInfo> ThreePoints;
     assumeNodeMap assumeNodes;
 
 private:
@@ -384,7 +388,7 @@ Point GT_FIRAI::Move()
     PointInfo maxOppInfo;
     PointInfo maxTotalInfo;
     ReqCounts maxTotalCount;
-    bool firstCount = true;
+    //bool firstCount = true;
     Point maxTotalPoint;
     int selfWinStep = 100;
     Point selfWinPoint;
@@ -410,6 +414,8 @@ Point GT_FIRAI::Move()
         return maxInitSelfInfo.pos;
     if (maxInitOppInfo.rCount[0] > 0)
         return maxInitOppInfo.pos;
+
+    maxTotalCount.SetMin();
     for (int i = 0; i < BoardSize; ++i) {
         for (int j = 0; j < BoardSize; ++j) {
             Point p(i, j);
@@ -438,30 +444,23 @@ Point GT_FIRAI::Move()
                 ReqCounts tempTotalCount;
                 if (totalMove < 3) {
     	            tempTotalCount = selfptInfo[p.x][p.y].rCount + oppptInfo[p.x][p.y].rCount;
-            	    if (tempTotalCount > maxTotalCount || firstCount) {
+            	    if (tempTotalCount > maxTotalCount) {
                         maxTotalCount = tempTotalCount;
                         maxTotalPoint = p;
-                        firstCount = false;
                     }
-                } else if (selfptInfo[p.x][p.y].rCount > maxTotalCount || firstCount) {
+                } else if (selfptInfo[p.x][p.y].rCount > maxTotalCount) {
                     tempTotalCount = EvaluateMove(p);
-                    if (firstCount) {
-                        maxTotalCount = tempTotalCount;
-                        maxTotalPoint = p;
-                        firstCount = false;
-                    } else {
-                        // if they differ a lot, we use greater than checking
-                        if (tempTotalCount[1] != maxTotalCount[1] ||
-                                    tempTotalCount[2] != maxTotalCount[2] ||
-                                    tempTotalCount[3] != maxTotalCount[3]) {
-                            if (tempTotalCount > maxTotalCount) {
-                                maxTotalCount = tempTotalCount;
-                                maxTotalPoint = p;
-                            }
-                        } else if (GetConnectNumber(p,type) > GetConnectNumber(maxTotalPoint,type)) {
+                    // if they differ a lot, we use greater than checking
+                    if (tempTotalCount[1] != maxTotalCount[1] ||
+                                tempTotalCount[2] != maxTotalCount[2] ||
+                                tempTotalCount[3] != maxTotalCount[3]) {
+                        if (tempTotalCount > maxTotalCount) {
                             maxTotalCount = tempTotalCount;
                             maxTotalPoint = p;
                         }
+                    } else if (GetConnectNumber(p,type) > GetConnectNumber(maxTotalPoint,type)) {
+                        maxTotalCount = tempTotalCount;
+                        maxTotalPoint = p;
                     }
                 }
             }
@@ -473,16 +472,20 @@ Point GT_FIRAI::Move()
         } else {
             std::set<Point, PointComparator> checkedPoints;
             ReqCounts oppMaxCounts;
+            bool canStopWin = false;
+            int selfBestMove = 5;
             oppMaxCounts.SetMin();
             for (int i = oppWinPointList.size() - 1; i >= 0; --i) {
                 Point opppt = oppWinPointList[i];
                 int   oppstep = oppWinStepList[i];
                 ReqCounts oppCounts = oppptInfo[opppt.x][opppt.y].rCount;
                 ReqCounts tempCounts;
-                if (oppstep < oppWinStep) {
-                    continue;
-                }
-                UpdateOppWinPoint(opppt, oppWinPointList, &checkedPoints, &oppWinPoint, &oppMaxCounts);
+
+                // If opp has four, we only need our four to try
+                if (oppCounts[1] > 0)
+                    selfBestMove = 2;
+
+                UpdateOppWinPoint(opppt, oppWinPointList, &checkedPoints, &oppWinPoint, &oppMaxCounts, &canStopWin, &selfBestMove);
 
                 pointContriMap possiblePoints = oppptInfo[opppt.x][opppt.y].pointContri;
                 pointContriMap::iterator it = possiblePoints.begin();
@@ -493,8 +496,28 @@ Point GT_FIRAI::Move()
                     if (leftCounts[0] == 0 && 
                             ((leftCounts[1] == 0 && leftCounts[2] < 4) || 
                              (leftCounts[1] == 1 && leftCounts[2] < 2)) && 
-                            (tryCounts[1] > 0 || tryCounts[2] >= 1))
-                        UpdateOppWinPoint(tryp, oppWinPointList, &checkedPoints, &oppWinPoint, &oppMaxCounts);
+                            (tryCounts[1] > 0 || tryCounts[2] > 1))
+                        UpdateOppWinPoint(tryp, oppWinPointList, &checkedPoints, &oppWinPoint, &oppMaxCounts, &canStopWin, &selfBestMove);
+                }
+
+            }
+            if (!canStopWin) {
+                ReqCounts maxTryCounts;
+                maxTryCounts.SetMin();
+                if (FourPoints.size() > 0 && selfBestMove >= 2) {
+                    for (int i = 0; i < FourPoints.size(); ++i) {
+                        if (FourPoints[i].rCount > maxTryCounts) {
+                            oppWinPoint  = FourPoints[i].pos;
+                            maxTryCounts = FourPoints[i].rCount;
+                        }
+                    }
+                } else if (ThreePoints.size() > 0 && selfBestMove > 2) {
+                    for (int i = 0; i < ThreePoints.size(); ++i) {
+                        if (ThreePoints[i].rCount > maxTryCounts) {
+                            oppWinPoint  = ThreePoints[i].pos;
+                            maxTryCounts = ThreePoints[i].rCount;
+                        }
+                    }
                 }
             }
             return oppWinPoint;
@@ -507,13 +530,47 @@ void GT_FIRAI::UpdateOppWinPoint(const Point& tryp,
                                  std::vector<Point> oppWinPointList, 
                                  std::set<Point, PointComparator>* checkedPointList,
                                  Point* oppWinPoint,
-                                 ReqCounts* oppMaxCounts) {
+                                 ReqCounts* oppMaxCounts,
+                                 bool* canStopWin, 
+                                 int* selfBestMove) {
     if (checkedPointList->find(tryp) == checkedPointList->end()) {
         ReqCounts tempCounts = EvaluateMove(tryp);
-        if (tempCounts > *oppMaxCounts) {
+        ReqCounts selfCounts = selfptInfo[tryp.x][tryp.y].rCount;
+        ReqCounts oppCounts  = oppptInfo[tryp.x][tryp.y].rCount;
+        if (tempCounts > *oppMaxCounts || !canStopWin) {
             if (CanStopOppWin(tryp, oppWinPointList)) {
-                *oppWinPoint = tryp;
+                *oppWinPoint  = tryp;
                 *oppMaxCounts = tempCounts;
+                *canStopWin   = true;
+            }
+        }
+        if (!canStopWin) {
+            if (*selfBestMove == 1) {
+                if (selfCounts[1] > 0 && tempCounts > *oppMaxCounts) {
+                    *oppWinPoint  = tryp;
+                    *oppMaxCounts = tempCounts;
+                    *selfBestMove  = 1;
+                }
+            } else if (*selfBestMove == 2) {
+                if (selfCounts[1] > 0) {
+                    *oppWinPoint  = tryp;
+                    *oppMaxCounts = tempCounts;
+                    *selfBestMove  = 1;
+                } else if (selfCounts[2] > 1 && tempCounts > *oppMaxCounts) {
+                    *oppWinPoint  = tryp;
+                    *oppMaxCounts = tempCounts;
+                    *selfBestMove  = 2;
+                }
+            } else {
+                if (selfCounts[1] > 0) {
+                    *oppWinPoint  = tryp;
+                    *oppMaxCounts = tempCounts;
+                    *selfBestMove  = 1;
+                } else if (selfCounts[2] > 1) {
+                    *oppWinPoint  = tryp;
+                    *oppMaxCounts = tempCounts;
+                    *selfBestMove  = 2;
+                }
             }
         }
         checkedPointList->insert(tryp);
@@ -810,6 +867,10 @@ void GT_FIRAI::EvalBoard()
                     maxInitSelfInfo = selfptInfo[i][j];
                 if (oppptInfo[i][j] > maxInitOppInfo)
                     maxInitOppInfo = oppptInfo[i][j];
+                if (selfptInfo[i][j].rCount[1] > 0)
+                    FourPoints.push_back(selfptInfo[i][j]);
+                else if (selfptInfo[i][j].rCount[2] > 1) 
+                    ThreePoints.push_back(selfptInfo[i][j]);
             } else {
                 selfptInfo[i][j].valid = false;
                 oppptInfo[i][j].valid  = false;
