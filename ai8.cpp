@@ -636,6 +636,9 @@ Point GXY_AI::Random_Move()
             }
         }
     }
+
+    Point p;
+    return p;
 }
 
 Point GXY_AI::Move()
