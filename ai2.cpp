@@ -537,14 +537,19 @@ void GT_FIRAI::UpdateOppWinPoint(const Point& tryp,
         ReqCounts tempCounts = EvaluateMove(tryp);
         ReqCounts selfCounts = selfptInfo[tryp.x][tryp.y].rCount;
         ReqCounts oppCounts  = oppptInfo[tryp.x][tryp.y].rCount;
-        if (tempCounts > *oppMaxCounts || !canStopWin) {
+        if (tempCounts > *oppMaxCounts || !(*canStopWin)) {
             if (CanStopOppWin(tryp, oppWinPointList)) {
                 *oppWinPoint  = tryp;
                 *oppMaxCounts = tempCounts;
                 *canStopWin   = true;
             }
         }
-        if (!canStopWin) {
+	// if we can't stop opp to win, check below:
+	// 1. selfBestMove == 1, we already has a four to try
+	// 2. selfBestMove == 2, opp has three, we need four or three with block
+	// 3. selfBestMove == 3, opp has two, we already have three
+	// 4. selfBestMove >  3, opp has two, we do not have three
+        if (!(*canStopWin)) {
             if (*selfBestMove == 1) {
                 if (selfCounts[1] > 0 && tempCounts > *oppMaxCounts) {
                     *oppWinPoint  = tryp;
@@ -556,20 +561,38 @@ void GT_FIRAI::UpdateOppWinPoint(const Point& tryp,
                     *oppWinPoint  = tryp;
                     *oppMaxCounts = tempCounts;
                     *selfBestMove  = 1;
-                } else if (selfCounts[2] > 1 && tempCounts > *oppMaxCounts) {
+                } else if (selfCounts[2] > 1 && oppCounts[1] >= 2 && tempCounts > *oppMaxCounts) {
                     *oppWinPoint  = tryp;
                     *oppMaxCounts = tempCounts;
                     *selfBestMove  = 2;
                 }
-            } else {
+            } else if (*selfBestMove == 3) {
+		 if (selfCounts[1] > 0) {
+                    *oppWinPoint  = tryp;
+                    *oppMaxCounts = tempCounts;
+                    *selfBestMove  = 1;
+		} else if (selfCounts[2] > 1 && oppCounts[1] >= 2) {
+		    *oppWinPoint  = tryp;
+                    *oppMaxCounts = tempCounts;
+                    *selfBestMove  = 2;
+                } else if (selfCounts[2] > 1 && tempCounts > *oppMaxCounts) {
+                    *oppWinPoint  = tryp;
+                    *oppMaxCounts = tempCounts;
+                    *selfBestMove  = 3;
+                }
+	    } else {
                 if (selfCounts[1] > 0) {
                     *oppWinPoint  = tryp;
                     *oppMaxCounts = tempCounts;
                     *selfBestMove  = 1;
+		} else if (selfCounts[2] > 1 && oppCounts[1] >= 2) {
+		    *oppWinPoint  = tryp;
+                    *oppMaxCounts = tempCounts;
+                    *selfBestMove  = 2;
                 } else if (selfCounts[2] > 1) {
                     *oppWinPoint  = tryp;
                     *oppMaxCounts = tempCounts;
-                    *selfBestMove  = 2;
+                    *selfBestMove  = 3;
                 }
             }
         }
