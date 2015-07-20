@@ -90,6 +90,7 @@ ReqCounts::ReqCounts()
 void ReqCounts::SetMin()
 {
     counts[0] = -20;
+    counts[1] = -20;
 }
 ReqCounts operator + (const ReqCounts &l, const ReqCounts &r)
 {
@@ -485,7 +486,7 @@ Point GT_FIRAI::Move()
                 ReqCounts tempCounts;
 
                 // If opp has four, we only need our four to try
-                if (oppCounts[1] > 1 && selfBestMove > 2 && !canStopWin) {
+                if ((oppCounts[1] > 1 || (oppCounts[1] == 1 && oppCounts[2] > 1)) && selfBestMove > 2 && !canStopWin) {
                     selfBestMove = 2;
                     oppMaxCounts.SetMin();
                 }
@@ -566,7 +567,8 @@ void GT_FIRAI::UpdateOppWinPoint(const Point& tryp,
                     *oppWinPoint  = tryp;
                     *oppMaxCounts = tempCounts;
                     *selfBestMove  = 1;
-                } else if (oppCounts[1] >= 2 && tempCounts > *oppMaxCounts) {
+                } else if ((oppCounts[1] >= 2 || (oppCounts[1] == 1 && oppCounts[2] > 1)) && 
+                        tempCounts > *oppMaxCounts) {
                     *oppWinPoint  = tryp;
                     *oppMaxCounts = tempCounts;
                     *selfBestMove  = 2;
@@ -576,7 +578,7 @@ void GT_FIRAI::UpdateOppWinPoint(const Point& tryp,
                     *oppWinPoint  = tryp;
                     *oppMaxCounts = tempCounts;
                     *selfBestMove  = 1;
-                } else if (oppCounts[1] >= 2) {
+                } else if (oppCounts[1] >= 2 || (oppCounts[1] == 1 && oppCounts[2] > 1)) {
                     *oppWinPoint  = tryp;
                     *oppMaxCounts = tempCounts;
                     *selfBestMove  = 2;
@@ -590,11 +592,11 @@ void GT_FIRAI::UpdateOppWinPoint(const Point& tryp,
                     *oppWinPoint  = tryp;
                     *oppMaxCounts = tempCounts;
                     *selfBestMove  = 1;
-                } else if (oppCounts[1] >= 2) {
+                } else if (oppCounts[1] >= 2 || (oppCounts[1] == 1 && oppCounts[2] > 1)) {
                     *oppWinPoint  = tryp;
                     *oppMaxCounts = tempCounts;
                     *selfBestMove  = 2;
-                } else if (selfCounts[2] > 1) {
+                } else if (selfCounts[2] > 1 ) {
                     *oppWinPoint  = tryp;
                     *oppMaxCounts = tempCounts;
                     *selfBestMove  = 3;
@@ -686,6 +688,9 @@ ReqCounts GT_FIRAI::EvaluateMove(const Point& p)
         }
         return minTotalCounts;
     } else {
+        // If opp does not have to deal with self move, they will tend to make
+        // three/four first
+        bool hasThreeFour = false;
         for (int i = 0; i < BoardSize; ++i) {
             for (int j = 0; j < BoardSize; ++j) {
                 Point antip(i,j);
@@ -695,13 +700,23 @@ ReqCounts GT_FIRAI::EvaluateMove(const Point& p)
                     if (isConnected(p, antip)) {
                         selfit = selfInitContri.find(antip);
                         oppit  = oppptInfo[antip.x][antip.y].pointContri.find(p);
-                        if (selfit != selfInitContri.end())
+                        if (selfit != selfInitContri.end()) {
                             tempCounts = tempCounts - selfit->second;
-                        if (oppit != oppptInfo[antip.x][antip.y].pointContri.end())
+                        }
+                        if (oppit != oppptInfo[antip.x][antip.y].pointContri.end()) {
                             tempCounts = tempCounts + oppit->second;
+                            antiCounts = antiCounts - oppit->second;
+                        }
                     }
-                    if (minTotalCounts > tempCounts) {
-                        minTotalCounts = tempCounts;
+                    if (hasThreeFour == false) {
+                        if (tempCounts < minTotalCounts || (antiCounts[1] > 0 || antiCounts[2] > 1)) {
+                            hasThreeFour = true;
+                            minTotalCounts = tempCounts;
+                        }
+                    } else {
+                        if (minTotalCounts > tempCounts && (antiCounts[1] > 0 || antiCounts[2] > 1)) {
+                            minTotalCounts = tempCounts;
+                        }
                     }
                 }
             }
