@@ -195,14 +195,27 @@ float GXY_AI::Df_Level_Check(Point p, int x1, int y1, float Lv)
                 Lv -= 0.25;
             else if(myBoard[x][y] == Empty)
             {
-                if(fabs(Lv - 1)<0.000001 || fabs(Lv - 1.75)<0.000001 || fabs(Lv - 2)<0.000001)
+                if(fabs(Lv - 0.75)<0.000001 || fabs(Lv - 1)<0.000001 || fabs(Lv - 1.75)<0.000001 || fabs(Lv - 2)<0.000001)
                 {
-                    if(0 <= (x+x1) && (x+x1) < BoardSize && 0 <= (y+y1) && (y+y1) < BoardSize)
-                    {
-                        if(myBoard[x+x1][y+y1] == antiType)
+                    if(0 <= (x+x1) && (x+x1) < BoardSize && 0 <= (y+y1) && (y+y1) < BoardSize && myBoard[x+x1][y+y1] == antiType)
+                    {     
+                        Lv += 0.1;
+                        Defender_Final_Temp.Set(x,y);      
+                        if(0 <= (x+2*x1) && (x+2*x1) < BoardSize && 0 <= (y+2*y1) && (y+2*y1) < BoardSize && myBoard[x+2*x1][y+2*y1] == antiType)
                         {
-                            Lv += 0.1;
-                            Defender_Final_Temp.Set(x,y);
+                            Lv += 0.5;
+                        }
+                        else if(0 <= (x+2*x1) && (x+2*x1) < BoardSize && 0 <= (y+2*y1) && (y+2*y1) < BoardSize && myBoard[x+2*x1][y+2*y1] == myType)
+                        {
+                            Lv -= 0.25;
+                        }
+                        else if(0 <= (x+2*x1) && (x+2*x1) < BoardSize && 0 <= (y+2*y1) && (y+2*y1) < BoardSize && myBoard[x+2*x1][y+2*y1] == Empty)
+                        {
+                            Lv = Lv;
+                        }    
+                        else // outside of the board;
+                        {
+                            Lv -= 0.5;
                         }
                     }
                 }
@@ -258,7 +271,7 @@ void GXY_AI::Defend_Final()
 
     for(int i = DEFENDRECORD-1; i >= 0; i--)
     {
-        if(fabs(Defend_Lv[i] - 1.1)<0.000001 || fabs(Defend_Lv[i] - 1.85)<0.000001 || fabs(Defend_Lv[i] - 2.1)<0.000001)
+        if(fabs(Defend_Lv[i] - 1.1)<0.000001 || fabs(Defend_Lv[i] - 1.35)<0.000001 || fabs(Defend_Lv[i] - 1.6)<0.000001 || fabs(Defend_Lv[i] - 1.85)<0.000001 || fabs(Defend_Lv[i] - 2.1)<0.000001 || fabs(Defend_Lv[i] - 2.35)<0.000001 || fabs(Defend_Lv[i] - 2.6)<0.000001)   
         {
             Defend_Lv_Final = Defend_Lv[i];
             Defender_Final = Defender_Final_Temp;
@@ -313,22 +326,22 @@ float GXY_AI::Defend_Level(int i)
         LD  =    Df_Level_Check(p_A[i], -1,  1 );      
         LL  =    Df_Level_Check(p_A[i], -1,  0 );     
         LU  =    Df_Level_Check(p_A[i], -1, -1 );
-        if(fabs(Lv_UD - 1.1)<0.000001 || fabs(Lv_UD - 1.85)<0.000001 || fabs(Lv_UD - 2.1)<0.000001)   
+        if(fabs(Lv_UD - 1.1)<0.000001 || fabs(Lv_UD - 1.35)<0.000001 || fabs(Lv_UD - 1.6)<0.000001 || fabs(Lv_UD - 1.85)<0.000001 || fabs(Lv_UD - 2.1)<0.000001 || fabs(Lv_UD - 2.35)<0.000001 || fabs(Lv_UD - 2.6)<0.000001)   
         {
             Defend_Lv[i] = Lv_UD;
             return Defend_Lv[i]; 
         }
-        if(fabs(Lv_LR - 1.1)<0.000001 || fabs(Lv_LR - 1.85)<0.000001 || fabs(Lv_LR - 2.1)<0.000001)   
+        if(fabs(Lv_LR - 1.1)<0.000001 || fabs(Lv_LR - 1.35)<0.000001 || fabs(Lv_LR - 1.6)<0.000001 || fabs(Lv_LR - 1.85)<0.000001 || fabs(Lv_LR - 2.1)<0.000001 || fabs(Lv_LR - 2.35)<0.000001 || fabs(Lv_LR - 2.6)<0.000001)   
         {
             Defend_Lv[i] = Lv_LR;
             return Defend_Lv[i]; 
         }
-        if(fabs(Lv_RULD - 1.1)<0.000001 || fabs(Lv_RULD - 1.85)<0.000001 || fabs(Lv_RULD - 2.1)<0.000001)   
+        if(fabs(Lv_RULD - 1.1)<0.000001 || fabs(Lv_RULD - 1.35)<0.000001 || fabs(Lv_RULD - 1.6)<0.000001 || fabs(Lv_RULD - 1.85)<0.000001 || fabs(Lv_RULD - 2.1)<0.000001 || fabs(Lv_RULD - 2.35)<0.000001 || fabs(Lv_RULD - 2.6)<0.000001)   
         {
             Defend_Lv[i] = Lv_RULD;
             return Defend_Lv[i]; 
         }
-        if(fabs(Lv_RDLU - 1.1)<0.000001 || fabs(Lv_RDLU - 1.85)<0.000001 || fabs(Lv_RDLU - 2.1)<0.000001)   
+        if(fabs(Lv_RDLU - 1.1)<0.000001 || fabs(Lv_RDLU - 1.35)<0.000001 || fabs(Lv_RDLU - 1.6)<0.000001 || fabs(Lv_RDLU - 1.85)<0.000001 || fabs(Lv_RDLU - 2.1)<0.000001 || fabs(Lv_RDLU - 2.35)<0.000001 || fabs(Lv_RDLU - 2.6)<0.000001)   
         {
             Defend_Lv[i] = Lv_RDLU;
             return Defend_Lv[i]; 
@@ -532,7 +545,6 @@ void GXY_AI::Attack_Final()
             Attacker_Final = Attacker[i];   
         }
     }    
-
 }
 
 float GXY_AI::Attack_Level(int i)
@@ -747,14 +759,50 @@ Point GXY_AI::Move()
     Defend_Final();
     Attack_Final();
     Save_Board();
-    if(fabs(Defend_Lv_Final - 1.1)<0.000001 || fabs(Defend_Lv_Final - 1.85)<0.000001 || fabs(Defend_Lv_Final - 2.1)<0.000001)
+    if(fabs(Defend_Lv_Final - 1.1)<0.000001 || fabs(Defend_Lv_Final - 1.35)<0.000001 || fabs(Defend_Lv_Final - 1.6)<0.000001 || fabs(Defend_Lv_Final - 1.85)<0.000001 || fabs(Defend_Lv_Final - 2.1)<0.000001 || fabs(Defend_Lv_Final - 2.35)<0.000001 || fabs(Defend_Lv_Final - 2.6)<0.000001)   
     {
-        if(Defender_Final.Valid() == true)
+        if(fabs(Defend_Lv_Final - 1.1)<0.000001)
         {
-            return Defender_Final;
+            if((fabs(Attack_Lv_Final - 2)<0.000001) || (fabs(Attack_Lv_Final - 2.75)<0.000001) || (fabs(Attack_Lv_Final - 3)<0.000001))
+            {
+                if(Attacker_Final.Valid() == true)
+                    return Attacker_Final;
+                else if(Defender_Final.Valid() == true)
+                    return Defender_Final;
+                else
+                    return Random_Move();
+            }
+            else
+            {
+                if(Defender_Final.Valid() == true)
+                    return Defender_Final;
+                else if(Attacker_Final.Valid() == true)
+                    return Attacker_Final;
+                else 
+                    return Random_Move();
+            }       
         }
         else
-            return Random_Move();
+        {
+            if((fabs(Attack_Lv_Final - 2.75)<0.000001) || (fabs(Attack_Lv_Final - 3)<0.000001))
+            {
+                if(Attacker_Final.Valid() == true)
+                    return Attacker_Final;
+                else if(Defender_Final.Valid() == true)
+                    return Defender_Final;
+                else
+                    return Random_Move();
+            }
+            else
+            {
+                if(Defender_Final.Valid() == true)
+                    return Defender_Final;
+                else if(Attacker_Final.Valid() == true)
+                    return Attacker_Final;
+                else 
+                    return Random_Move();
+            }       
+        }
     }
     else if(fabs(Defend_Lv_Final - 2)<0.000001 || fabs(Defend_Lv_Final - 2.75)<0.000001 || fabs(Defend_Lv_Final - 3)<0.000001)
     {
