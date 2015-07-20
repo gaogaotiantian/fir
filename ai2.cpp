@@ -453,7 +453,7 @@ Point GT_FIRAI::Move()
                     // if they differ a lot, we use greater than checking
                     if (tempTotalCount[1] != maxTotalCount[1] ||
                                 tempTotalCount[2] != maxTotalCount[2] ||
-                                tempTotalCount[3] != maxTotalCount[3]) {
+                                abs(tempTotalCount[3] - maxTotalCount[3]) > 2) {
                         if (tempTotalCount > maxTotalCount) {
                             maxTotalCount = tempTotalCount;
                             maxTotalPoint = p;
@@ -474,7 +474,10 @@ Point GT_FIRAI::Move()
             ReqCounts oppMaxCounts;
             bool canStopWin = false;
             int selfBestMove = 5;
+            int oppWinStep = 5;
             oppMaxCounts.SetMin();
+            // Try all oppWinPoints first, see if there's a way to stop opp
+            // to win. Also record the minimum step opp needs to win.
             for (int i = oppWinPointList.size() - 1; i >= 0; --i) {
                 Point opppt = oppWinPointList[i];
                 int   oppstep = oppWinStepList[i];
@@ -482,8 +485,10 @@ Point GT_FIRAI::Move()
                 ReqCounts tempCounts;
 
                 // If opp has four, we only need our four to try
-                if (oppCounts[1] > 0)
+                if (oppCounts[1] > 1 && selfBestMove > 2 && !canStopWin) {
                     selfBestMove = 2;
+                    oppMaxCounts.SetMin();
+                }
 
                 UpdateOppWinPoint(opppt, oppWinPointList, &checkedPoints, &oppWinPoint, &oppMaxCounts, &canStopWin, &selfBestMove);
 
@@ -499,8 +504,8 @@ Point GT_FIRAI::Move()
                             (tryCounts[1] > 0 || tryCounts[2] > 1))
                         UpdateOppWinPoint(tryp, oppWinPointList, &checkedPoints, &oppWinPoint, &oppMaxCounts, &canStopWin, &selfBestMove);
                 }
-
             }
+
             if (!canStopWin) {
                 ReqCounts maxTryCounts;
                 maxTryCounts.SetMin();
@@ -544,11 +549,11 @@ void GT_FIRAI::UpdateOppWinPoint(const Point& tryp,
                 *canStopWin   = true;
             }
         }
-	// if we can't stop opp to win, check below:
-	// 1. selfBestMove == 1, we already has a four to try
-	// 2. selfBestMove == 2, opp has three, we need four or three with block
-	// 3. selfBestMove == 3, opp has two, we already have three
-	// 4. selfBestMove >  3, opp has two, we do not have three
+        // if we can't stop opp to win, check below:
+        // 1. selfBestMove == 1, we already has a four to try
+        // 2. selfBestMove == 2, opp has three, we need four or three with block
+        // 3. selfBestMove == 3, opp has two, we already have three
+        // 4. selfBestMove >  3, opp has two, we do not have three
         if (!(*canStopWin)) {
             if (*selfBestMove == 1) {
                 if (selfCounts[1] > 0 && tempCounts > *oppMaxCounts) {
@@ -561,18 +566,18 @@ void GT_FIRAI::UpdateOppWinPoint(const Point& tryp,
                     *oppWinPoint  = tryp;
                     *oppMaxCounts = tempCounts;
                     *selfBestMove  = 1;
-                } else if (selfCounts[2] > 1 && oppCounts[1] >= 2 && tempCounts > *oppMaxCounts) {
+                } else if (oppCounts[1] >= 2 && tempCounts > *oppMaxCounts) {
                     *oppWinPoint  = tryp;
                     *oppMaxCounts = tempCounts;
                     *selfBestMove  = 2;
                 }
             } else if (*selfBestMove == 3) {
-		 if (selfCounts[1] > 0) {
+    	        if (selfCounts[1] > 0) {
                     *oppWinPoint  = tryp;
                     *oppMaxCounts = tempCounts;
                     *selfBestMove  = 1;
-		} else if (selfCounts[2] > 1 && oppCounts[1] >= 2) {
-		    *oppWinPoint  = tryp;
+                } else if (oppCounts[1] >= 2) {
+                    *oppWinPoint  = tryp;
                     *oppMaxCounts = tempCounts;
                     *selfBestMove  = 2;
                 } else if (selfCounts[2] > 1 && tempCounts > *oppMaxCounts) {
@@ -580,13 +585,13 @@ void GT_FIRAI::UpdateOppWinPoint(const Point& tryp,
                     *oppMaxCounts = tempCounts;
                     *selfBestMove  = 3;
                 }
-	    } else {
+            } else {
                 if (selfCounts[1] > 0) {
                     *oppWinPoint  = tryp;
                     *oppMaxCounts = tempCounts;
                     *selfBestMove  = 1;
-		} else if (selfCounts[2] > 1 && oppCounts[1] >= 2) {
-		    *oppWinPoint  = tryp;
+                } else if (oppCounts[1] >= 2) {
+                    *oppWinPoint  = tryp;
                     *oppMaxCounts = tempCounts;
                     *selfBestMove  = 2;
                 } else if (selfCounts[2] > 1) {
@@ -645,10 +650,10 @@ int GT_FIRAI::GetConnectNumber(const Point& p, NodeType t)
         int y = p.y-4*botInc;
         for (int i = 0; i <= 8; ++i) {
             Point thisp(x+i*rightInc, y+i*botInc);
-            if (board[thisp.x][thisp.y] == t)
+	    if (!thisp.Valid() || board[thisp.x][thisp.y] == oppt)
+		retnum -= 5-abs(i-4);
+            else if (board[thisp.x][thisp.y] == t)
                 retnum += 5-abs(i-4);
-            else if (board[thisp.x][thisp.y] == oppt)
-                retnum -= 5-abs(i-4);
         }
     }
     return retnum;
