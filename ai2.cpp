@@ -481,7 +481,6 @@ Point GT_FIRAI::Move()
             // to win. Also record the minimum step opp needs to win.
             for (int i = oppWinPointList.size() - 1; i >= 0; --i) {
                 Point opppt = oppWinPointList[i];
-                int   oppstep = oppWinStepList[i];
                 ReqCounts oppCounts = oppptInfo[opppt.x][opppt.y].rCount;
                 ReqCounts tempCounts;
 
@@ -512,16 +511,18 @@ Point GT_FIRAI::Move()
                 maxTryCounts.SetMin();
                 if (FourPoints.size() > 0 && selfBestMove >= 2) {
                     for (int i = 0; i < FourPoints.size(); ++i) {
-                        if (FourPoints[i].rCount > maxTryCounts) {
+                        ReqCounts tempCounts = EvaluateMove(FourPoints[i].pos);
+                        if (tempCounts > maxTryCounts) {
                             oppWinPoint  = FourPoints[i].pos;
-                            maxTryCounts = FourPoints[i].rCount;
+                            maxTryCounts = tempCounts;
                         }
                     }
                 } else if (ThreePoints.size() > 0 && selfBestMove > 2) {
                     for (int i = 0; i < ThreePoints.size(); ++i) {
-                        if (ThreePoints[i].rCount > maxTryCounts) {
+                        ReqCounts tempCounts = EvaluateMove(ThreePoints[i].pos);
+                        if (tempCounts > maxTryCounts) {
                             oppWinPoint  = ThreePoints[i].pos;
-                            maxTryCounts = ThreePoints[i].rCount;
+                            maxTryCounts = tempCounts;
                         }
                     }
                 }
@@ -652,8 +653,8 @@ int GT_FIRAI::GetConnectNumber(const Point& p, NodeType t)
         int y = p.y-4*botInc;
         for (int i = 0; i <= 8; ++i) {
             Point thisp(x+i*rightInc, y+i*botInc);
-	    if (!thisp.Valid() || board[thisp.x][thisp.y] == oppt)
-		retnum -= 5-abs(i-4);
+            if (!thisp.Valid() || board[thisp.x][thisp.y] == oppt)
+                retnum -= 5-abs(i-4);
             else if (board[thisp.x][thisp.y] == t)
                 retnum += 5-abs(i-4);
         }
@@ -709,8 +710,10 @@ ReqCounts GT_FIRAI::EvaluateMove(const Point& p)
                         }
                     }
                     if (hasThreeFour == false) {
-                        if (tempCounts < minTotalCounts || (antiCounts[1] > 0 || antiCounts[2] > 1)) {
+                        if (antiCounts[1] > 0 || antiCounts[2] > 1) {
                             hasThreeFour = true;
+                            minTotalCounts = tempCounts;
+                        } else if (minTotalCounts > tempCounts) {
                             minTotalCounts = tempCounts;
                         }
                     } else {
