@@ -3,20 +3,15 @@
 #include <stdio.h>
 #include <math.h>
 
-#define ATTACKRECORD 50
-#define DEFENDRECORD 50
-//enum Direction {};
-NodeType p_Anti[BoardSize][BoardSize]; // board to save previous anti board
-NodeType p_Mine[BoardSize][BoardSize];
-Point p_M[ATTACKRECORD];
-Point p_A[DEFENDRECORD];
-bool Is_FirstStep = true;
+#define ATTACKRECORD 190
+#define DEFENDRECORD 190
 
 class GXY_AI
 {
 public:
     GXY_AI();
     GXY_AI(const NodeType[BoardSize][BoardSize], NodeType);
+    void Locate_Point();
     void Attack_Final();
     void Defend_Final();
     float Defend_Level(int i);
@@ -25,17 +20,9 @@ public:
     float At_Level_Check(Point p, int x1, int y1, float Lv);
     Point Df_Level_Check(Point p, int x1, int y1);
     Point At_Level_Check(Point p, int x1, int y1);
-    Point Defend();
-    Point Attack();
     Point Move();
     Point Random_Move();
-    bool Defend_Attack();
-    void Locate_Anti();
-    void Locate_Mine();
-    Point Compare_Anti();
-    Point Compare_Mine();
-    void Save_Board();
-    void p_Board_Initial();
+
     float Defend_Lv[DEFENDRECORD];
     float Attack_Lv[ATTACKRECORD];
     float Attack_Lv_Final;
@@ -44,9 +31,9 @@ public:
     NodeType myType;
     NodeType antiType;
     NodeType myBoard[BoardSize][BoardSize];  // board to save current board   
-    NodeType Anti[BoardSize][BoardSize];
-    NodeType Mine[BoardSize][BoardSize];
     
+    Point p_M[ATTACKRECORD];
+    Point p_A[DEFENDRECORD];
     Point Defender[DEFENDRECORD];
     Point Attacker[ATTACKRECORD];
     Point Attacker_Final;
@@ -70,112 +57,26 @@ GXY_AI::GXY_AI(const NodeType board[BoardSize][BoardSize], NodeType type)
     }
 }
 
-void GXY_AI::p_Board_Initial()
+void GXY_AI::Locate_Point()
 {
-    if(Is_FirstStep == true)
-    {
-        for(int i = 0; i < BoardSize; i++)
-        {
-            for (int j = 0; j < BoardSize; j++)
-            {
-                p_Anti[i][j] = Empty;
-                p_Mine[i][j] = Empty;
-                Anti[i][j] = Empty;
-                Mine[i][j] = Empty;
-            }
-        }
-        Is_FirstStep = false;      
-    }
-}
-
-void GXY_AI::Save_Board()
-{
-    for (int i = 0; i < BoardSize; ++i) 
-    {
-        for (int j = 0; j < BoardSize; ++j) 
-        {
-            p_Anti[i][j] = Anti[i][j];
-            p_Mine[i][j] = Mine[i][j];
-        }
-    }
-    for (int i = 0; i < ATTACKRECORD-1; i++)
-    {
-        p_M[i] = p_M[i+1];
-    }
-    for (int i = 0; i < DEFENDRECORD-1; i++)
-    {
-        p_A[i] = p_A[i+1];
-    }
-}
-
-void GXY_AI::Locate_Anti()
-{
+    int a = 0;
+    int b = 0;
     for(int i = 0; i < BoardSize; i++) // draw out Anti Board
     {
         for(int j = 0; j < BoardSize; j++)
         {
             if(myBoard[i][j] == antiType)
             {
-                Anti[i][j] = antiType;
+                p_A[a].Set(i,j);
+                a++; 
             }
-            else
+            else if(myBoard[i][j] == myType)
             {
-                Anti[i][j] = Empty;
+                p_M[b].Set(i,j);
+                b++;
             }
         }
     }
-}
-
-void GXY_AI::Locate_Mine()
-{
-    for(int i = 0; i < BoardSize; i++) // draw out Anti Board
-    {
-        for(int j = 0; j < BoardSize; j++)
-        {
-            if(myBoard[i][j] == myType)
-            {
-                Mine[i][j] = myType;
-            }
-            else 
-            {
-                Mine[i][j] = Empty;
-            }
-        }
-    }
-}
-
-Point GXY_AI::Compare_Anti()
-{
-    for(int i = 0; i < BoardSize; i++) // compare Anti with p_Anti
-    {
-        for(int j = 0; j < BoardSize; j++)
-        {
-            if(Anti[i][j] != p_Anti[i][j])
-            {
-                Point p(i,j);
-                return p;
-            }
-        }
-    }
-    Point p1(-1,-1);
-    return p1;
-}
-
-Point GXY_AI::Compare_Mine()
-{
-    for(int i = 0; i < BoardSize; i++) // compare Anti with p_Anti
-    {
-        for(int j = 0; j < BoardSize; j++)
-        {
-            if(Mine[i][j] != p_Mine[i][j])
-            {
-                Point p(i,j);
-                return p;
-            }
-        }
-    }
-    Point p1(-1,-1);
-    return p1;
 }
 
 float GXY_AI::Df_Level_Check(Point p, int x1, int y1, float Lv)
@@ -195,7 +96,9 @@ float GXY_AI::Df_Level_Check(Point p, int x1, int y1, float Lv)
                 continue;
             }
             else if(myBoard[x][y] == myType)
+            {
                 Lv -= 0.25;
+            }          
             else if(myBoard[x][y] == Empty)
             {
                 if(fabs(Lv - 0.75)<0.000001 || fabs(Lv - 1)<0.000001 || fabs(Lv - 1.75)<0.000001 || fabs(Lv - 2)<0.000001)
@@ -203,7 +106,7 @@ float GXY_AI::Df_Level_Check(Point p, int x1, int y1, float Lv)
                     if(0 <= (x+x1) && (x+x1) < BoardSize && 0 <= (y+y1) && (y+y1) < BoardSize && myBoard[x+x1][y+y1] == antiType)
                     {     
                         Lv += 0.1;
-                        Defender_Final_Temp.Set(x,y);      
+                             
                         if(0 <= (x+2*x1) && (x+2*x1) < BoardSize && 0 <= (y+2*y1) && (y+2*y1) < BoardSize && myBoard[x+2*x1][y+2*y1] == antiType)
                         {
                             Lv += 0.5;
@@ -220,6 +123,9 @@ float GXY_AI::Df_Level_Check(Point p, int x1, int y1, float Lv)
                         {
                             Lv -= 0.5;
                         }
+
+                        if(fabs(Lv - 1.1)<0.000001 || fabs(Lv - 1.35)<0.000001 || fabs(Lv - 1.6)<0.000001 || fabs(Lv - 1.85)<0.000001 || fabs(Lv - 2.1)<0.000001 || fabs(Lv - 2.35)<0.000001 || fabs(Lv - 2.6)<0.000001)
+                            Defender_Final_Temp.Set(x,y); 
                     }
                 }
             }   
@@ -265,14 +171,13 @@ void GXY_AI::Defend_Final()
     {
         Defend_Lv[i] = 0;
     }
-    Locate_Anti();
-    p_A[DEFENDRECORD-1] = Compare_Anti();
-    for(int i = DEFENDRECORD-1; i >= 0; i--)
+
+    for(int i = 0; i < DEFENDRECORD; i++)
     {
-        Defend_Lv[i] = Defend_Level(i);  
+        Defend_Lv[i] = Defend_Level(i);
     }
 
-    for(int i = DEFENDRECORD-1; i >= 0; i--)
+    for(int i = 0; i < DEFENDRECORD; i++)
     {
         if(fabs(Defend_Lv[i] - 1.1)<0.000001 || fabs(Defend_Lv[i] - 1.35)<0.000001 || fabs(Defend_Lv[i] - 1.6)<0.000001 || fabs(Defend_Lv[i] - 1.85)<0.000001 || fabs(Defend_Lv[i] - 2.1)<0.000001 || fabs(Defend_Lv[i] - 2.35)<0.000001 || fabs(Defend_Lv[i] - 2.6)<0.000001)   
         {
@@ -282,10 +187,10 @@ void GXY_AI::Defend_Final()
         }
     }
 
-    Defend_Lv_Final = Defend_Lv[DEFENDRECORD-1];
-    Defender_Final = Defender[DEFENDRECORD-1];
+    Defend_Lv_Final = Defend_Lv[0];
+    Defender_Final = Defender[0];
 
-    for(int i = DEFENDRECORD-2; i >= 0; i--)
+    for(int i = 1; i < DEFENDRECORD; i++)
     {
         if(Defend_Lv[i] > Defend_Lv_Final)
         {
@@ -482,15 +387,15 @@ float GXY_AI::At_Level_Check(Point p, int x1, int y1, float Lv)
                 if(fabs(Lv - 0.75)<0.000001 || fabs(Lv - 1)<0.000001 || fabs(Lv - 1.75)<0.000001 || fabs(Lv - 2)<0.000001)
                 {
                     if(0 <= (x+x1) && (x+x1) < BoardSize && 0 <= (y+y1) && (y+y1) < BoardSize && myBoard[x+x1][y+y1] == myType)
-                    {     
+                    {          
                         Lv += 0.1;
                         Attacker_Final_Temp.Set(x,y);      
                         if(0 <= (x+2*x1) && (x+2*x1) < BoardSize && 0 <= (y+2*y1) && (y+2*y1) < BoardSize && myBoard[x+2*x1][y+2*y1] == myType)
-                        {
+                        {                    
                             Lv += 0.5;
                         }
                         else if(0 <= (x+2*x1) && (x+2*x1) < BoardSize && 0 <= (y+2*y1) && (y+2*y1) < BoardSize && myBoard[x+2*x1][y+2*y1] == antiType)
-                        {
+                        {   
                             Lv -= 0.25;
                         }
                         else if(0 <= (x+2*x1) && (x+2*x1) < BoardSize && 0 <= (y+2*y1) && (y+2*y1) < BoardSize && myBoard[x+2*x1][y+2*y1] == Empty)
@@ -546,14 +451,13 @@ void GXY_AI::Attack_Final()
     {
         Attack_Lv[i] = 0;
     }
-    Locate_Mine();
-    p_M[ATTACKRECORD-1] = Compare_Mine();
-    for(int i = ATTACKRECORD-1; i >= 0; i--)
+
+    for(int i = 0; i < ATTACKRECORD; i++)
     {
         Attack_Lv[i] = Attack_Level(i);
     }
 
-    for(int i = ATTACKRECORD-1; i >= 0; i--)
+    for(int i = 0; i < ATTACKRECORD; i++)
     {
         if(fabs(Attack_Lv[i] - 1.1)<0.000001 || fabs(Attack_Lv[i] - 1.35)<0.000001 || fabs(Attack_Lv[i] - 1.6)<0.000001 || fabs(Attack_Lv[i] - 1.85)<0.000001 || fabs(Attack_Lv[i] - 2.1)<0.000001 || fabs(Attack_Lv[i] - 2.35)<0.000001 || fabs(Attack_Lv[i] - 2.6)<0.000001)   
         {
@@ -563,10 +467,10 @@ void GXY_AI::Attack_Final()
         }
     }
 
-    Attack_Lv_Final = Attack_Lv[ATTACKRECORD-1];
-    Attacker_Final = Attacker[ATTACKRECORD-1];
+    Attack_Lv_Final = Attack_Lv[0];
+    Attacker_Final = Attacker[0];
 
-    for(int i = ATTACKRECORD-2; i >= 0; i--)
+    for(int i = 1; i < ATTACKRECORD; i++)
     {
         if(Attack_Lv[i] > Attack_Lv_Final)
         {
@@ -815,62 +719,92 @@ Point GXY_AI::Random_Move()
 
 Point GXY_AI::Move()
 {
-    p_Board_Initial();
+    Locate_Point();
     Defend_Final();
     Attack_Final();
-    Save_Board();
+
     if(fabs(Defend_Lv_Final - 1.35)<0.000001 || fabs(Defend_Lv_Final - 1.6)<0.000001 || fabs(Defend_Lv_Final - 1.85)<0.000001 || fabs(Defend_Lv_Final - 2.1)<0.000001 || fabs(Defend_Lv_Final - 2.35)<0.000001 || fabs(Defend_Lv_Final - 2.6)<0.000001 || fabs(Defend_Lv_Final - 2.75)<0.000001 || fabs(Defend_Lv_Final - 3)<0.000001)   
     {
         if(fabs(Attack_Lv_Final - 1.35)<0.000001 || fabs(Attack_Lv_Final - 1.6)<0.000001 || fabs(Attack_Lv_Final - 1.85)<0.000001 || fabs(Attack_Lv_Final - 2.1)<0.000001 || fabs(Attack_Lv_Final - 2.35)<0.000001 || fabs(Attack_Lv_Final - 2.6)<0.000001 || fabs(Attack_Lv_Final - 2.75)<0.000001 || fabs(Attack_Lv_Final - 3)<0.000001)
         {
             if(Attacker_Final.Valid() == true)
+            {
                 return Attacker_Final;
+            }    
             else if(Defender_Final.Valid() == true)
+            {
                 return Defender_Final;
+            }             
             else
+            {
                 return Random_Move();
+            }     
         }
         else
         {
             if(Defender_Final.Valid() == true)
+            {
                 return Defender_Final;
+            }   
             else if(Attacker_Final.Valid() == true)
+            {
                 return Attacker_Final;
+            } 
             else 
+            {
                 return Random_Move();
+            }    
         }  
     }     
         
     else if(fabs(Defend_Lv_Final - 1.1)<0.000001 || fabs(Defend_Lv_Final - 2)<0.000001)
     {
-        if(fabs(Attack_Lv_Final - 1.1)<0.000001 || fabs(Attack_Lv_Final - 1.35)<0.000001 || fabs(Attack_Lv_Final - 1.6)<0.000001 || fabs(Attack_Lv_Final - 1.85)<0.000001 || fabs(Attack_Lv_Final - 2.1)<0.000001 || fabs(Attack_Lv_Final - 2.35)<0.000001 || fabs(Attack_Lv_Final - 2.6)<0.000001 || fabs(Attack_Lv_Final - 2.75)<0.000001 || fabs(Attack_Lv_Final - 3)<0.000001)
+        if(fabs(Attack_Lv_Final - 1.1)<0.000001 || fabs(Attack_Lv_Final - 1.35)<0.000001 || fabs(Attack_Lv_Final - 1.6)<0.000001 || fabs(Attack_Lv_Final - 1.85)<0.000001 || fabs(Attack_Lv_Final - 2)<0.000001 || fabs(Attack_Lv_Final - 2.1)<0.000001 || fabs(Attack_Lv_Final - 2.35)<0.000001 || fabs(Attack_Lv_Final - 2.6)<0.000001 || fabs(Attack_Lv_Final - 2.75)<0.000001 || fabs(Attack_Lv_Final - 3)<0.000001)
         {
             if(Attacker_Final.Valid() == true)
+            {
                 return Attacker_Final;
+            }    
             else if(Defender_Final.Valid() == true)
+            {
                 return Defender_Final;
+            }             
             else
+            {
                 return Random_Move();
+            } 
         }
         else
         {
             if(Defender_Final.Valid() == true)
+            {
                 return Defender_Final;
+            }   
             else if(Attacker_Final.Valid() == true)
+            {
                 return Attacker_Final;
-            else
+            } 
+            else 
+            {
                 return Random_Move();
+            }   
         }
     }             
 
     else
     {
         if(Attacker_Final.Valid() == true)
+        {
             return Attacker_Final;
+        }    
         else if(Defender_Final.Valid() == true)
+        {
             return Defender_Final;
+        }             
         else
+        {
             return Random_Move();
+        } 
             
     }       
 }
