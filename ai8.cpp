@@ -52,12 +52,15 @@ public:
     Point Attacker_Final;
     Point Defender_Final;
     Point Defender_Final_Temp;
+    Point Attacker_Final_Temp;
 };
 
 GXY_AI::GXY_AI(const NodeType board[BoardSize][BoardSize], NodeType type)
 {
     myType = type;
     antiType = myType == Black ? White : Black;
+    Attack_Lv_Final = 0;
+    Defend_Lv_Final = 0;
     for (int i = 0; i < BoardSize; ++i) 
     {
         for (int j = 0; j < BoardSize; ++j) 
@@ -211,7 +214,7 @@ float GXY_AI::Df_Level_Check(Point p, int x1, int y1, float Lv)
                         }
                         else if(0 <= (x+2*x1) && (x+2*x1) < BoardSize && 0 <= (y+2*y1) && (y+2*y1) < BoardSize && myBoard[x+2*x1][y+2*y1] == Empty)
                         {
-                            Lv = Lv;
+                            Lv += 0;
                         }    
                         else // outside of the board;
                         {
@@ -474,7 +477,33 @@ float GXY_AI::At_Level_Check(Point p, int x1, int y1, float Lv)
             {
                 Lv -= 0.25;
             }
-                
+            else if(myBoard[x][y] == Empty)
+            {
+                if(fabs(Lv - 0.75)<0.000001 || fabs(Lv - 1)<0.000001 || fabs(Lv - 1.75)<0.000001 || fabs(Lv - 2)<0.000001)
+                {
+                    if(0 <= (x+x1) && (x+x1) < BoardSize && 0 <= (y+y1) && (y+y1) < BoardSize && myBoard[x+x1][y+y1] == myType)
+                    {     
+                        Lv += 0.1;
+                        Attacker_Final_Temp.Set(x,y);      
+                        if(0 <= (x+2*x1) && (x+2*x1) < BoardSize && 0 <= (y+2*y1) && (y+2*y1) < BoardSize && myBoard[x+2*x1][y+2*y1] == myType)
+                        {
+                            Lv += 0.5;
+                        }
+                        else if(0 <= (x+2*x1) && (x+2*x1) < BoardSize && 0 <= (y+2*y1) && (y+2*y1) < BoardSize && myBoard[x+2*x1][y+2*y1] == antiType)
+                        {
+                            Lv -= 0.25;
+                        }
+                        else if(0 <= (x+2*x1) && (x+2*x1) < BoardSize && 0 <= (y+2*y1) && (y+2*y1) < BoardSize && myBoard[x+2*x1][y+2*y1] == Empty)
+                        {
+                            Lv += 0;
+                        }    
+                        else // outside of the board;
+                        {
+                            Lv -= 0.5;
+                        }
+                    }
+                }
+            } 
             break;
         }
         else
@@ -524,6 +553,15 @@ void GXY_AI::Attack_Final()
         Attack_Lv[i] = Attack_Level(i);
     }
 
+    for(int i = ATTACKRECORD-1; i >= 0; i--)
+    {
+        if(fabs(Attack_Lv[i] - 1.1)<0.000001 || fabs(Attack_Lv[i] - 1.35)<0.000001 || fabs(Attack_Lv[i] - 1.6)<0.000001 || fabs(Attack_Lv[i] - 1.85)<0.000001 || fabs(Attack_Lv[i] - 2.1)<0.000001 || fabs(Attack_Lv[i] - 2.35)<0.000001 || fabs(Attack_Lv[i] - 2.6)<0.000001)   
+        {
+            Attack_Lv_Final = Attack_Lv[i];
+            Attacker_Final = Attacker_Final_Temp;
+            return;
+        }
+    }
 
     Attack_Lv_Final = Attack_Lv[ATTACKRECORD-1];
     Attacker_Final = Attacker[ATTACKRECORD-1];
@@ -571,7 +609,28 @@ float GXY_AI::Attack_Level(int i)
         LD  =    At_Level_Check(p_M[i], -1,  1 );      
         LL  =    At_Level_Check(p_M[i], -1,  0 );     
         LU  =    At_Level_Check(p_M[i], -1, -1 );
-        // find out max in Lv_UD , Lv_LR , Lv_RULD , Lv_RDLU 
+
+        if(fabs(Lv_UD - 1.1)<0.000001 || fabs(Lv_UD - 1.35)<0.000001 || fabs(Lv_UD - 1.6)<0.000001 || fabs(Lv_UD - 1.85)<0.000001 || fabs(Lv_UD - 2.1)<0.000001 || fabs(Lv_UD - 2.35)<0.000001 || fabs(Lv_UD - 2.6)<0.000001)   
+        {
+            Attack_Lv[i] = Lv_UD;
+            return Attack_Lv[i]; 
+        }
+        if(fabs(Lv_LR - 1.1)<0.000001 || fabs(Lv_LR - 1.35)<0.000001 || fabs(Lv_LR - 1.6)<0.000001 || fabs(Lv_LR - 1.85)<0.000001 || fabs(Lv_LR - 2.1)<0.000001 || fabs(Lv_LR - 2.35)<0.000001 || fabs(Lv_LR - 2.6)<0.000001)   
+        {
+            Attack_Lv[i] = Lv_LR;
+            return Attack_Lv[i]; 
+        }
+        if(fabs(Lv_RULD - 1.1)<0.000001 || fabs(Lv_RULD - 1.35)<0.000001 || fabs(Lv_RULD - 1.6)<0.000001 || fabs(Lv_RULD - 1.85)<0.000001 || fabs(Lv_RULD - 2.1)<0.000001 || fabs(Lv_RULD - 2.35)<0.000001 || fabs(Lv_RULD - 2.6)<0.000001)   
+        {
+            Attack_Lv[i] = Lv_RULD;
+            return Attack_Lv[i]; 
+        }
+        if(fabs(Lv_RDLU - 1.1)<0.000001 || fabs(Lv_RDLU - 1.35)<0.000001 || fabs(Lv_RDLU - 1.6)<0.000001 || fabs(Lv_RDLU - 1.85)<0.000001 || fabs(Lv_RDLU - 2.1)<0.000001 || fabs(Lv_RDLU - 2.35)<0.000001 || fabs(Lv_RDLU - 2.6)<0.000001)   
+        {
+            Attack_Lv[i] = Lv_RDLU;
+            return Attack_Lv[i]; 
+        }
+
         if(fabs(Lv_UD - -0.5)<0.000001 || fabs(Lv_UD - 0.5)<0.000001 || fabs(Lv_UD - 1.5)<0.000001 || fabs(Lv_UD - 2.5)<0.000001)
             Lv_UD = -0.9;
         if(fabs(Lv_LR - -0.5)<0.000001 || fabs(Lv_LR - 0.5)<0.000001 || fabs(Lv_LR - 1.5)<0.000001 || fabs(Lv_LR - 2.5)<0.000001)
@@ -580,6 +639,7 @@ float GXY_AI::Attack_Level(int i)
             Lv_RULD = -0.9;
         if(fabs(Lv_RDLU - -0.5)<0.000001 || fabs(Lv_RDLU - 0.5)<0.000001 || fabs(Lv_RDLU - 1.5)<0.000001 || fabs(Lv_RDLU - 2.5)<0.000001)
             Lv_RDLU = -0.9;
+
         float max = Lv_UD;
         int flag = 0;
         if(Lv_LR > max)
@@ -759,102 +819,58 @@ Point GXY_AI::Move()
     Defend_Final();
     Attack_Final();
     Save_Board();
-    if(fabs(Defend_Lv_Final - 1.1)<0.000001 || fabs(Defend_Lv_Final - 1.35)<0.000001 || fabs(Defend_Lv_Final - 1.6)<0.000001 || fabs(Defend_Lv_Final - 1.85)<0.000001 || fabs(Defend_Lv_Final - 2.1)<0.000001 || fabs(Defend_Lv_Final - 2.35)<0.000001 || fabs(Defend_Lv_Final - 2.6)<0.000001)   
+    if(fabs(Defend_Lv_Final - 1.35)<0.000001 || fabs(Defend_Lv_Final - 1.6)<0.000001 || fabs(Defend_Lv_Final - 1.85)<0.000001 || fabs(Defend_Lv_Final - 2.1)<0.000001 || fabs(Defend_Lv_Final - 2.35)<0.000001 || fabs(Defend_Lv_Final - 2.6)<0.000001 || fabs(Defend_Lv_Final - 2.75)<0.000001 || fabs(Defend_Lv_Final - 3)<0.000001)   
     {
-        if(fabs(Defend_Lv_Final - 1.1)<0.000001)
-        {
-            if((fabs(Attack_Lv_Final - 2)<0.000001) || (fabs(Attack_Lv_Final - 2.75)<0.000001) || (fabs(Attack_Lv_Final - 3)<0.000001))
-            {
-                if(Attacker_Final.Valid() == true)
-                    return Attacker_Final;
-                else if(Defender_Final.Valid() == true)
-                    return Defender_Final;
-                else
-                    return Random_Move();
-            }
-            else
-            {
-                if(Defender_Final.Valid() == true)
-                    return Defender_Final;
-                else if(Attacker_Final.Valid() == true)
-                    return Attacker_Final;
-                else 
-                    return Random_Move();
-            }       
-        }
-        else
-        {
-            if((fabs(Attack_Lv_Final - 2.75)<0.000001) || (fabs(Attack_Lv_Final - 3)<0.000001))
-            {
-                if(Attacker_Final.Valid() == true)
-                    return Attacker_Final;
-                else if(Defender_Final.Valid() == true)
-                    return Defender_Final;
-                else
-                    return Random_Move();
-            }
-            else
-            {
-                if(Defender_Final.Valid() == true)
-                    return Defender_Final;
-                else if(Attacker_Final.Valid() == true)
-                    return Attacker_Final;
-                else 
-                    return Random_Move();
-            }       
-        }
-    }
-    else if(fabs(Defend_Lv_Final - 2)<0.000001 || fabs(Defend_Lv_Final - 2.75)<0.000001 || fabs(Defend_Lv_Final - 3)<0.000001)
-    {
-        if(Attack_Lv_Final >= Defend_Lv_Final)
+        if(fabs(Attack_Lv_Final - 1.35)<0.000001 || fabs(Attack_Lv_Final - 1.6)<0.000001 || fabs(Attack_Lv_Final - 1.85)<0.000001 || fabs(Attack_Lv_Final - 2.1)<0.000001 || fabs(Attack_Lv_Final - 2.35)<0.000001 || fabs(Attack_Lv_Final - 2.6)<0.000001 || fabs(Attack_Lv_Final - 2.75)<0.000001 || fabs(Attack_Lv_Final - 3)<0.000001)
         {
             if(Attacker_Final.Valid() == true)
-            {
                 return Attacker_Final;
-            }
-                
             else if(Defender_Final.Valid() == true)
-            {
                 return Defender_Final;
-            }
-                
             else
-            {
                 return Random_Move();
-            }
-                
         }
         else
         {
             if(Defender_Final.Valid() == true)
-            {
                 return Defender_Final;
-            }
-                
             else if(Attacker_Final.Valid() == true)
-            {
                 return Attacker_Final;
-            }
-                
-            else
-            {
+            else 
                 return Random_Move();
-            }
-                
+        }  
+    }     
+        
+    else if(fabs(Defend_Lv_Final - 1.1)<0.000001 || fabs(Defend_Lv_Final - 2)<0.000001)
+    {
+        if(fabs(Attack_Lv_Final - 1.1)<0.000001 || fabs(Attack_Lv_Final - 1.35)<0.000001 || fabs(Attack_Lv_Final - 1.6)<0.000001 || fabs(Attack_Lv_Final - 1.85)<0.000001 || fabs(Attack_Lv_Final - 2.1)<0.000001 || fabs(Attack_Lv_Final - 2.35)<0.000001 || fabs(Attack_Lv_Final - 2.6)<0.000001 || fabs(Attack_Lv_Final - 2.75)<0.000001 || fabs(Attack_Lv_Final - 3)<0.000001)
+        {
+            if(Attacker_Final.Valid() == true)
+                return Attacker_Final;
+            else if(Defender_Final.Valid() == true)
+                return Defender_Final;
+            else
+                return Random_Move();
         }
-                 
-    }
+        else
+        {
+            if(Defender_Final.Valid() == true)
+                return Defender_Final;
+            else if(Attacker_Final.Valid() == true)
+                return Attacker_Final;
+            else
+                return Random_Move();
+        }
+    }             
+
     else
     {
         if(Attacker_Final.Valid() == true)
-        {
             return Attacker_Final;
-        }
-            
+        else if(Defender_Final.Valid() == true)
+            return Defender_Final;
         else
-        {
             return Random_Move();
-        }
             
     }       
 }
