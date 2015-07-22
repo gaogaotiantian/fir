@@ -567,7 +567,7 @@ Point GT_FIRAI::Move()
 
             if (!hasWinPoint) {
                 MoveEval me = EvaluateMove(p);
-                if (totalSelfCounts < totalOppCounts)
+                if (BetterForStart(totalOppCounts, totalSelfCounts))
                     maxTotalEval.UpdateBetter(me, Defend);
                 else
                     maxTotalEval.UpdateBetter(me, Attack);
@@ -785,6 +785,7 @@ MoveEval GT_FIRAI::EvaluateMove(const Point& p)
     ReqCounts oppCounts  = oppptInfo[p.x][p.y].rCount;
     ReqCounts minTotalCounts = selfCounts;
     const pointContriMap& selfInitContri = selfptInfo[p.x][p.y].pointContri;
+    bool oppFirst = false;
 
     pointContriMap::const_iterator selfit;
     pointContriMap::const_iterator oppit;
@@ -794,7 +795,7 @@ MoveEval GT_FIRAI::EvaluateMove(const Point& p)
     retme.selfBestStep = selfCounts.minStep();
 
     if (oppCounts[1] > 0 || oppCounts[2] >= 2)
-        retme.blockOpp = true;
+        oppFirst = true;
 
     // If opp has to deal with self move
     if (selfCounts[1] > 0 || selfCounts[2] >= 2) {
@@ -858,11 +859,15 @@ MoveEval GT_FIRAI::EvaluateMove(const Point& p)
                     }
                     if (hasThreeFour == false) {
                         if (antiCounts[1] > 0 || antiCounts[2] > 1) {
+                            if (oppFirst == true)
+                                retme.blockOpp = false;
                             hasThreeFour = true;
                             minTotalCounts = tempCounts;
                             retme.antiPos = antip;
                             retme.oppBestStep = antiCounts.minStep();
                         } else if (minTotalCounts > tempCounts) {
+                            if (oppFirst == true)
+                                retme.blockOpp = true;
                             minTotalCounts = tempCounts;
                             retme.antiPos = antip;
                             retme.oppBestStep = antiCounts.minStep();
@@ -892,6 +897,7 @@ MoveEval GT_FIRAI::EvaluateMove(const Point& p)
 int GT_FIRAI::TestWinMove(const Point& p, const NodeType& t, int step, bool mustFour)
 {
     PointInfo ptinfo = (t == type) ? selfptInfo[p.x][p.y] : oppptInfo[p.x][p.y];
+    ReqCounts selfCounts = ptinfo.rCount;
     NodeType antit = t == Black ? White: Black;
     bool isPossible = false;
     int  totalUpCount = 0;
@@ -901,7 +907,7 @@ int GT_FIRAI::TestWinMove(const Point& p, const NodeType& t, int step, bool must
     }
  
     for (int s = 0; s < std::min(3, step); ++s) {
-        totalUpCount += ptinfo.rCount[s];
+        totalUpCount += selfCounts[s];
         if (totalUpCount > s) {
             isPossible = true;
             break;
@@ -912,7 +918,7 @@ int GT_FIRAI::TestWinMove(const Point& p, const NodeType& t, int step, bool must
         return 0;
 
     if (mustFour) {
-        if (ptinfo.rCount[0] == 0 && ptinfo.rCount[1] == 0)
+        if (selfCounts[0] == 0 && selfCounts[1] == 0)
             return 0;
     }
 
@@ -940,11 +946,11 @@ int GT_FIRAI::TestWinMove(const Point& p, const NodeType& t, int step, bool must
                     pointContriMap::iterator antinextit = antipNextList.begin();
                     int antiWinSteps = 100;
                     AssumeMove(antip, antit);
-                    if (antipCounts[1] > 1) {
+                    if (antipCounts[1] > 1 && selfCounts[1] == 0) {
                         RemoveAssume(antip);
                         RemoveAssume(p);
                         return 0;
-                    } else if (antipCounts[1] == 1) {
+                    } else if (antipCounts[1] == 1 && selfCounts[1] == 0) {
                         for (; antinextit != antipNextList.end(); ++antinextit) {
                             if (antinextit->second[1] == 1) {
                                 int winStep = TestWinMove(antinextit->first, t, step-1, mustFour);
