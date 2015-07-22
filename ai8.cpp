@@ -131,8 +131,11 @@ float GXY_AI::Df_Level_Check(Point p, int x1, int y1, float Lv)
             }   
             break;
         }
-        else
-             break;
+        else // outside of the board
+        {
+            Lv -= 0.25; // just like blocked up by myType chess.
+            break;
+        }     
     }
     return Lv;
 }
@@ -389,7 +392,7 @@ float GXY_AI::At_Level_Check(Point p, int x1, int y1, float Lv)
                     if(0 <= (x+x1) && (x+x1) < BoardSize && 0 <= (y+y1) && (y+y1) < BoardSize && myBoard[x+x1][y+y1] == myType)
                     {          
                         Lv += 0.1;
-                        Attacker_Final_Temp.Set(x,y);      
+                            
                         if(0 <= (x+2*x1) && (x+2*x1) < BoardSize && 0 <= (y+2*y1) && (y+2*y1) < BoardSize && myBoard[x+2*x1][y+2*y1] == myType)
                         {                    
                             Lv += 0.5;
@@ -406,13 +409,60 @@ float GXY_AI::At_Level_Check(Point p, int x1, int y1, float Lv)
                         {
                             Lv -= 0.5;
                         }
+                        if(fabs(Lv - 1.1)<0.000001 || fabs(Lv - 1.35)<0.000001 || fabs(Lv - 1.6)<0.000001 || fabs(Lv - 1.85)<0.000001 || fabs(Lv - 2.1)<0.000001 || fabs(Lv - 2.35)<0.000001 || fabs(Lv - 2.6)<0.000001)
+                            Attacker_Final_Temp.Set(x,y); 
+                    }
+                }
+                if(fabs(Lv - -0.25)<0.000001 || fabs(Lv - 0.75)<0.000001 || fabs(Lv - 1.75)<0.000001)
+                {
+                    if(0 <= (x+x1) && (x+x1) < BoardSize && 0 <= (y+y1) && (y+y1) < BoardSize)
+                    {
+                        if(myBoard[x+x1][y+y1] == antiType)
+                        {
+                            Lv -= 0.1;
+                        }          
+                        else
+                        {
+                            if(0 <= (x+2*x1) && (x+2*x1) < BoardSize && 0 <= (y+2*y1) && (y+2*y1) < BoardSize)
+                            {
+                                if(myBoard[x+2*x1][y+2*y1] == antiType)
+                                {
+                                    Lv -= 0.1;
+                                }
+                                else
+                                {
+                                    if(0 <= (x+3*x1) && (x+3*x1) < BoardSize && 0 <= (y+3*y1) && (y+3*y1) < BoardSize)
+                                    {
+                                        if(myBoard[x+3*x1][y+3*y1] == antiType)
+                                        {
+                                            Lv -= 0.1;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        Lv -= 0.1;
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                Lv -= 0.1;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        Lv -= 0.1;
                     }
                 }
             } 
             break;
         }
-        else
-             break;
+        else // outside of the board
+        {
+            Lv -= 0.25; // the same as blocked by antiType chess
+            break;
+        }
     }
     return Lv;
 }
@@ -495,16 +545,16 @@ float GXY_AI::Attack_Level(int i)
     float Lv_UD = 0, Lv_LR = 0, Lv_RULD = 0, Lv_RDLU = 0;
 
     if (p_M[i].Valid() == true && myBoard[p_M[i].x][p_M[i].y] == myType)
-    {    
+    {   
         float tpLv_UD    =    At_Level_Check(p_M[i],  0, -1, 0 );
-        float tpLv_RULD  =    At_Level_Check(p_M[i],  1, -1, 0 );
-        float tpLv_LR    =    At_Level_Check(p_M[i],  1,  0, 0 );
-        float tpLv_RDLU  =    At_Level_Check(p_M[i],  1,  1, 0 );
         Lv_UD    =    At_Level_Check(p_M[i],  0,  1, tpLv_UD   );
-        Lv_RULD  =    At_Level_Check(p_M[i], -1,  1, tpLv_RULD );      
-        Lv_LR    =    At_Level_Check(p_M[i], -1,  0, tpLv_LR   );     
+        float tpLv_RULD  =    At_Level_Check(p_M[i],  1, -1, 0 );
+        Lv_RULD  =    At_Level_Check(p_M[i], -1,  1, tpLv_RULD );
+        float tpLv_LR    =    At_Level_Check(p_M[i],  1,  0, 0 );
+        Lv_LR    =    At_Level_Check(p_M[i], -1,  0, tpLv_LR   );
+        float tpLv_RDLU  =    At_Level_Check(p_M[i],  1,  1, 0 );
         Lv_RDLU  =    At_Level_Check(p_M[i], -1, -1, tpLv_RDLU );
-
+        
         UU  =    At_Level_Check(p_M[i],  0, -1 );
         RU  =    At_Level_Check(p_M[i],  1, -1 );
         RR  =    At_Level_Check(p_M[i],  1,  0 );
@@ -534,14 +584,14 @@ float GXY_AI::Attack_Level(int i)
             Attack_Lv[i] = Lv_RDLU;
             return Attack_Lv[i]; 
         }
-
-        if(fabs(Lv_UD - -0.5)<0.000001 || fabs(Lv_UD - 0.5)<0.000001 || fabs(Lv_UD - 1.5)<0.000001 || fabs(Lv_UD - 2.5)<0.000001)
+        // some situations with high lv but could not make contributions to 5 connect!
+        if(fabs(Lv_UD - -0.35)<0.000001 || fabs(Lv_UD - 0.65)<0.000001 || fabs(Lv_UD - 1.65)<0.000001 || fabs(Lv_UD - -0.5)<0.000001 || fabs(Lv_UD - 0.5)<0.000001 || fabs(Lv_UD - 1.5)<0.000001 || fabs(Lv_UD - 2.5)<0.000001)
             Lv_UD = -0.9;
-        if(fabs(Lv_LR - -0.5)<0.000001 || fabs(Lv_LR - 0.5)<0.000001 || fabs(Lv_LR - 1.5)<0.000001 || fabs(Lv_LR - 2.5)<0.000001)
+        if(fabs(Lv_LR - -0.35)<0.000001 || fabs(Lv_LR - 0.65)<0.000001 || fabs(Lv_LR - 1.65)<0.000001 || fabs(Lv_LR - -0.5)<0.000001 || fabs(Lv_LR - 0.5)<0.000001 || fabs(Lv_LR - 1.5)<0.000001 || fabs(Lv_LR - 2.5)<0.000001)
             Lv_LR = -0.9;
-        if(fabs(Lv_RULD - -0.5)<0.000001 || fabs(Lv_RULD - 0.5)<0.000001 || fabs(Lv_RULD - 1.5)<0.000001 || fabs(Lv_RULD - 2.5)<0.000001)
+        if(fabs(Lv_RULD - -0.35)<0.000001 || fabs(Lv_RULD - 0.65)<0.000001 || fabs(Lv_RULD - 1.65)<0.000001 || fabs(Lv_RULD - -0.5)<0.000001 || fabs(Lv_RULD - 0.5)<0.000001 || fabs(Lv_RULD - 1.5)<0.000001 || fabs(Lv_RULD - 2.5)<0.000001)
             Lv_RULD = -0.9;
-        if(fabs(Lv_RDLU - -0.5)<0.000001 || fabs(Lv_RDLU - 0.5)<0.000001 || fabs(Lv_RDLU - 1.5)<0.000001 || fabs(Lv_RDLU - 2.5)<0.000001)
+        if(fabs(Lv_RDLU - -0.35)<0.000001 || fabs(Lv_RDLU - 0.65)<0.000001 || fabs(Lv_RDLU - 1.65)<0.000001 || fabs(Lv_RDLU - -0.5)<0.000001 || fabs(Lv_RDLU - 0.5)<0.000001 || fabs(Lv_RDLU - 1.5)<0.000001 || fabs(Lv_RDLU - 2.5)<0.000001)
             Lv_RDLU = -0.9;
 
         float max = Lv_UD;
