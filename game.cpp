@@ -267,6 +267,8 @@ void Game::PreSetBoard()
         y = (BoardSize - 9) / 2 + rand() % 9;
         if (board[x][y] == Empty)
             board[x][y] = t;
+        else
+            i--;
     }
 }
 // We assume both IDs exist
