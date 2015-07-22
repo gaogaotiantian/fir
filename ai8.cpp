@@ -18,6 +18,7 @@ public:
     float Attack_Level(int i);
     float Df_Level_Check(Point p, int x1, int y1, float Lv);
     float At_Level_Check(Point p, int x1, int y1, float Lv);
+    float Find_Out_Special(float Lv1, float Lv2);
     Point Df_Level_Check(Point p, int x1, int y1);
     Point At_Level_Check(Point p, int x1, int y1);
     Point Move();
@@ -542,19 +543,36 @@ void GXY_AI::Attack_Final()
 float GXY_AI::Attack_Level(int i)
 {
     Point UU, RU, RR, RD, DD, LD, LL, LU;
+    float Lv_UD1 = 0, Lv_LR1 = 0, Lv_RULD1 = 0, Lv_RDLU1 = 0;
+    float Lv_UD2 = 0, Lv_LR2 = 0, Lv_RULD2 = 0, Lv_RDLU2 = 0;
     float Lv_UD = 0, Lv_LR = 0, Lv_RULD = 0, Lv_RDLU = 0;
 
     if (p_M[i].Valid() == true && myBoard[p_M[i].x][p_M[i].y] == myType)
     {   
-        float tpLv_UD    =    At_Level_Check(p_M[i],  0, -1, 0 );
-        Lv_UD    =    At_Level_Check(p_M[i],  0,  1, tpLv_UD   );
-        float tpLv_RULD  =    At_Level_Check(p_M[i],  1, -1, 0 );
-        Lv_RULD  =    At_Level_Check(p_M[i], -1,  1, tpLv_RULD );
-        float tpLv_LR    =    At_Level_Check(p_M[i],  1,  0, 0 );
-        Lv_LR    =    At_Level_Check(p_M[i], -1,  0, tpLv_LR   );
-        float tpLv_RDLU  =    At_Level_Check(p_M[i],  1,  1, 0 );
-        Lv_RDLU  =    At_Level_Check(p_M[i], -1, -1, tpLv_RDLU );
-        
+        // first up then down, first ru then ld, so on
+        float tpLv_UD1    =    At_Level_Check(p_M[i],  0, -1, 0 );
+        Lv_UD1    =    At_Level_Check(p_M[i],  0,  1, tpLv_UD1   );
+        float tpLv_RULD1  =    At_Level_Check(p_M[i],  1, -1, 0 );
+        Lv_RULD1  =    At_Level_Check(p_M[i], -1,  1, tpLv_RULD1 );
+        float tpLv_LR1    =    At_Level_Check(p_M[i],  1,  0, 0 );
+        Lv_LR1    =    At_Level_Check(p_M[i], -1,  0, tpLv_LR1   );
+        float tpLv_RDLU1  =    At_Level_Check(p_M[i],  1,  1, 0 );
+        Lv_RDLU1  =    At_Level_Check(p_M[i], -1, -1, tpLv_RDLU1 );
+        // first down then up, first ld then ru, so on
+        float tpLv_UD2    =    At_Level_Check(p_M[i],  0, 1, 0 );
+        Lv_UD2    =    At_Level_Check(p_M[i],  0,  -1, tpLv_UD2   );
+        float tpLv_RULD2  =    At_Level_Check(p_M[i],  -1, 1, 0 );
+        Lv_RULD2  =    At_Level_Check(p_M[i], 1, -1, tpLv_RULD2 );
+        float tpLv_LR2    =    At_Level_Check(p_M[i],  -1, 0, 0 );
+        Lv_LR2    =    At_Level_Check(p_M[i], 1,  0, tpLv_LR2   );
+        float tpLv_RDLU2  =    At_Level_Check(p_M[i],  -1,  -1, 0 );
+        Lv_RDLU2  =    At_Level_Check(p_M[i], 1, 1, tpLv_RDLU2 );
+
+        Lv_UD = Find_Out_Special(Lv_UD1, Lv_UD2);
+        Lv_LR = Find_Out_Special(Lv_LR1, Lv_LR2);
+        Lv_RULD = Find_Out_Special(Lv_RULD1, Lv_RULD2);
+        Lv_RDLU = Find_Out_Special(Lv_RDLU1, Lv_RDLU2);
+
         UU  =    At_Level_Check(p_M[i],  0, -1 );
         RU  =    At_Level_Check(p_M[i],  1, -1 );
         RR  =    At_Level_Check(p_M[i],  1,  0 );
@@ -611,7 +629,6 @@ float GXY_AI::Attack_Level(int i)
            max = Lv_RDLU;
            flag = 3;   // flag == 3
         }
-
         if(fabs(Lv_UD - 2)<0.000001 || fabs(Lv_UD - 2.75)<0.000001 || fabs(Lv_UD - 3)<0.000001)   
         {
             max = Lv_UD;   
@@ -699,6 +716,25 @@ float GXY_AI::Attack_Level(int i)
     else
         Attack_Lv[i] = 0;
     return Attack_Lv[i];
+}
+
+float GXY_AI::Find_Out_Special(float Lv1, float Lv2)
+{
+    if(fabs(Lv1 - 1.1)<0.000001 || fabs(Lv1 - 1.35)<0.000001 || fabs(Lv1 - 1.6)<0.000001 || fabs(Lv1 - 1.85)<0.000001 || fabs(Lv1 - 2.1)<0.000001 || fabs(Lv1 - 2.35)<0.000001 || fabs(Lv1 - 2.6)<0.000001 || fabs(Lv1 - -0.35)<0.000001 || fabs(Lv1 - 0.65)<0.000001 || fabs(Lv1 - 1.65)<0.000001 || fabs(Lv1 - -0.5)<0.000001 || fabs(Lv1 - 0.5)<0.000001 || fabs(Lv1 - 1.5)<0.000001 || fabs(Lv1 - 2.5)<0.000001 || fabs(Lv1 - 2)<0.000001 || fabs(Lv1 - 2.75)<0.000001 || fabs(Lv1 - 3)<0.000001)
+    {
+        return Lv1;
+    }
+    else if(fabs(Lv2 - 1.1)<0.000001 || fabs(Lv2 - 1.35)<0.000001 || fabs(Lv2 - 1.6)<0.000001 || fabs(Lv2 - 1.85)<0.000001 || fabs(Lv2 - 2.1)<0.000001 || fabs(Lv2 - 2.35)<0.000001 || fabs(Lv2 - 2.6)<0.000001 || fabs(Lv2 - -0.35)<0.000001 || fabs(Lv2 - 0.65)<0.000001 || fabs(Lv2 - 1.65)<0.000001 || fabs(Lv2 - -0.5)<0.000001 || fabs(Lv2 - 0.5)<0.000001 || fabs(Lv2 - 1.5)<0.000001 || fabs(Lv2 - 2.5)<0.000001 || fabs(Lv2 - 2)<0.000001 || fabs(Lv2 - 2.75)<0.000001 || fabs(Lv2 - 3)<0.000001)
+    {
+        return Lv2;
+    }
+    else
+    {
+        if(Lv1 > Lv2)
+            return Lv1;
+        else
+            return Lv2;
+    }
 }
 
 Point GXY_AI::Random_Move()
