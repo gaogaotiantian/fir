@@ -154,8 +154,8 @@ bool operator > (const ReqCounts &l, const ReqCounts &r)
         return true;
     else if (r.counts[0] > l.counts[0])
         return false;
-    else if (((l.counts[1] * 2 + l.counts[2]) * 3 + l.counts[3]) * 5 + l.counts[4] > 
-            ((r.counts[1] * 2 + r.counts[2]) * 3 + r.counts[3]) * 5 + r.counts[4])
+    else if (((l.counts[1] * 2 + l.counts[2]) * 4 + l.counts[3]) * 5 + l.counts[4] > 
+            ((r.counts[1] * 2 + r.counts[2]) * 4 + r.counts[3]) * 5 + r.counts[4])
         return true;
     return false;
 }
@@ -207,7 +207,7 @@ int ReqCounts::minStep() const
 }
 bool ReqCounts::isClose(const ReqCounts &r) const 
 {
-    if (r.counts[1] == counts[1] && r.counts[2] == counts[2] &&
+    if (r.counts[0] == counts[0] && r.counts[1] == counts[1] && r.counts[2] == counts[2] &&
             abs(r.counts[3]- counts[3]) <= 2)
         return true;
     return false;
@@ -296,7 +296,7 @@ PointInfo operator / (const PointInfo &l, int r)
 }
 
 bool operator > (const PointInfo &l, const PointInfo &r)
-{
+{                          
    if (l.rCount > r.rCount)
        return true;
    return false;
@@ -324,10 +324,13 @@ public:
     void Copy(const MoveEval&);
 
     Point pos;
+    Point antiPos;
     ReqCounts totalCounts;
     int atkConnectNum;
     int defConnectNum;
     bool haveToDeal;
+    bool canDeal;
+    bool blockOpp;
     int selfBestStep;
     int oppBestStep;
 };
@@ -335,29 +338,50 @@ MoveEval::MoveEval()
 {
     pos.x = -1;
     pos.y = -1;
+    antiPos.x = -1;
+    antiPos.y = -1;
     totalCounts.SetMin();
     atkConnectNum = -65535;
     defConnectNum = -65535;
     haveToDeal = false;
+    canDeal    = false;
+    blockOpp   = false;
     selfBestStep = 4;
     oppBestStep  = 4;
 }
 void MoveEval::Copy(const MoveEval & newEval)
 {
     pos           = newEval.pos;
+    antiPos       = newEval.antiPos;
     totalCounts   = newEval.totalCounts;
     atkConnectNum = newEval.atkConnectNum;
     defConnectNum = newEval.defConnectNum;
     haveToDeal    = newEval.haveToDeal;
+    canDeal       = newEval.canDeal;
+    blockOpp      = newEval.blockOpp;
     selfBestStep  = newEval.selfBestStep;
     oppBestStep   = newEval.oppBestStep;
 }
 void MoveEval::UpdateBetter(const MoveEval& newEval, Strategy s)
 {
     if (!haveToDeal && newEval.haveToDeal) {
-        pos = newEval.pos;
-        totalCounts = newEval.totalCounts;
+        this->Copy(newEval);
     } else if (haveToDeal == newEval.haveToDeal) {
+        if (!haveToDeal) {
+            if (!blockOpp && newEval.blockOpp) {
+                this->Copy(newEval);
+                return;
+            } else if (blockOpp && !newEval.blockOpp) {
+                return;
+            }
+        } else {
+            if (canDeal && !newEval.canDeal) {
+                this->Copy(newEval);
+                return;
+            } else if (!canDeal && newEval.canDeal) {
+                return;
+            }
+        }
         if (totalCounts.isClose(newEval.totalCounts)) {
             if (s == Defend) {
                 if (newEval.defConnectNum > defConnectNum)
@@ -477,7 +501,7 @@ Point GT_FIRAI::StartMove()
 {
     Point pinvalid(-1, -1);
     if ((maxInitOppInfo.rCount[1] > 0 || maxInitOppInfo.rCount[2] >= 3 || maxInitOppInfo.rCount[3] >= 8) && 
-            (maxInitSelfInfo.rCount[2] == 0 && maxInitSelfInfo.rCount[1] == 0 &&
+            (maxInitSelfInfo.rCount[2] <= 1 && maxInitSelfInfo.rCount[1] == 0 &&
              maxInitSelfInfo.rCount[0] == 0))
         return maxInitOppInfo.pos;
     return pinvalid;
@@ -522,7 +546,7 @@ Point GT_FIRAI::Move()
                 continue;
 
             int thisptSelfWinStep = TestWinMove(p, type, std::min(5, selfWinStep - 1), false);
-            int thisptOppWinStep  = TestWinMove(p, oppType, std::min(5, 5), false);
+            int thisptOppWinStep  = TestWinMove(p, oppType, 5, false);
 
             if (thisptSelfWinStep != 0 && thisptSelfWinStep < selfWinStep) {
                 selfWinStep  = thisptSelfWinStep;
@@ -542,23 +566,16 @@ Point GT_FIRAI::Move()
             }
 
             if (!hasWinPoint) {
-                ReqCounts tempTotalCount;
-                if (totalMove < 0) {
-    	            tempTotalCount = selfptInfo[p.x][p.y].rCount + oppptInfo[p.x][p.y].rCount;
-            	    if (tempTotalCount > maxTotalCount) {
-                        maxTotalCount = tempTotalCount;
-                        maxTotalPoint = p;
-                    }
-                } else if (selfptInfo[p.x][p.y].rCount > maxTotalCount) {
-                    MoveEval me = EvaluateMove(p);
-                    tempTotalCount = me.totalCounts;
+                MoveEval me = EvaluateMove(p);
+                if (totalSelfCounts < totalOppCounts)
+                    maxTotalEval.UpdateBetter(me, Defend);
+                else
                     maxTotalEval.UpdateBetter(me, Attack);
-                }
             }
         }
     }
     if (hasWinPoint) {
-        if (selfptInfo[selfWinPoint.x][selfWinPoint.y].rCount[1] > 0 || 
+        if ((selfWinStep <= 5 && selfptInfo[selfWinPoint.x][selfWinPoint.y].rCount[1] > 0) || 
                 (!oppHasFour && selfWinStep <= oppWinStep)) {
             return selfWinPoint;
         } else {
@@ -616,7 +633,7 @@ Point GT_FIRAI::Move()
             return oppWinPoint;
         }
     } else {
-        if (totalMove <= 10) {
+        if (totalMove <= 0) {
             Point pstart = StartMove();
             if (pstart.Valid())
                 return pstart;
@@ -765,6 +782,7 @@ MoveEval GT_FIRAI::EvaluateMove(const Point& p)
     MoveEval retme;
     retme.pos = p;
     ReqCounts selfCounts = selfptInfo[p.x][p.y].rCount;
+    ReqCounts oppCounts  = oppptInfo[p.x][p.y].rCount;
     ReqCounts minTotalCounts = selfCounts;
     const pointContriMap& selfInitContri = selfptInfo[p.x][p.y].pointContri;
 
@@ -775,8 +793,13 @@ MoveEval GT_FIRAI::EvaluateMove(const Point& p)
     retme.defConnectNum = GetConnectNumber(p, type, Defend);
     retme.selfBestStep = selfCounts.minStep();
 
+    if (oppCounts[1] > 0 || oppCounts[2] >= 2)
+        retme.blockOpp = true;
+
     // If opp has to deal with self move
     if (selfCounts[1] > 0 || selfCounts[2] >= 2) {
+        bool canDeal = false;
+        retme.haveToDeal  = true;
         for (selfit = selfInitContri.begin(); selfit != selfInitContri.end(); ++selfit) {
             Point antip;
             antip.Copy(selfit->first);
@@ -787,17 +810,34 @@ MoveEval GT_FIRAI::EvaluateMove(const Point& p)
                 oppit  = oppptInfo[antip.x][antip.y].pointContri.find(p);
                 if (oppit != oppptInfo[antip.x][antip.y].pointContri.end())
                     tempCounts = tempCounts + oppit->second;
+                if (minTotalCounts > tempCounts || canDeal == false) {
+                    canDeal = true;
+                    minTotalCounts = tempCounts;
+                    retme.antiPos     = antip;
+                    retme.oppBestStep = antiCounts.minStep();
+                }
+            } else if (canDeal == false) {
+                ReqCounts antiCounts = oppptInfo[antip.x][antip.y].rCount;
+                tempCounts = tempCounts - antiCounts;
+                oppit  = oppptInfo[antip.x][antip.y].pointContri.find(p);
+                if (oppit != oppptInfo[antip.x][antip.y].pointContri.end())
+                    tempCounts = tempCounts + oppit->second;
                 if (minTotalCounts > tempCounts) {
                     minTotalCounts = tempCounts;
+                    retme.antiPos     = antip;
                     retme.oppBestStep = antiCounts.minStep();
                 }
             }
         }
         retme.totalCounts = minTotalCounts;
+        retme.canDeal = canDeal;
+        retme.atkConnectNum -= GetConnectNumber(retme.antiPos, oppType, Defend);
+        retme.defConnectNum -= GetConnectNumber(retme.antiPos, oppType, Attack);
         return retme;
     } else {
         // If opp does not have to deal with self move, they will tend to make
         // three/four first
+        retme.haveToDeal = false;
         bool hasThreeFour = false;
         for (int i = 0; i < BoardSize; ++i) {
             for (int j = 0; j < BoardSize; ++j) {
@@ -820,14 +860,17 @@ MoveEval GT_FIRAI::EvaluateMove(const Point& p)
                         if (antiCounts[1] > 0 || antiCounts[2] > 1) {
                             hasThreeFour = true;
                             minTotalCounts = tempCounts;
+                            retme.antiPos = antip;
                             retme.oppBestStep = antiCounts.minStep();
                         } else if (minTotalCounts > tempCounts) {
                             minTotalCounts = tempCounts;
+                            retme.antiPos = antip;
                             retme.oppBestStep = antiCounts.minStep();
                         }
                     } else {
                         if (minTotalCounts > tempCounts && (antiCounts[1] > 0 || antiCounts[2] > 1)) {
                             minTotalCounts = tempCounts;
+                            retme.antiPos = antip;
                             retme.oppBestStep = antiCounts.minStep();
                         }
                     }
@@ -836,6 +879,9 @@ MoveEval GT_FIRAI::EvaluateMove(const Point& p)
         }
     }
     retme.totalCounts = minTotalCounts;
+    retme.atkConnectNum -= GetConnectNumber(retme.antiPos, oppType, Defend);
+    retme.defConnectNum -= GetConnectNumber(retme.antiPos, oppType, Attack);
+
     return retme;
 }
 
@@ -925,8 +971,8 @@ int GT_FIRAI::TestWinMove(const Point& p, const NodeType& t, int step, bool must
                     for (nextit = nextpList.begin(); nextit != nextpList.end(); ++nextit) {
                         if ((nextit->first != antiit->first) && (
                                 (step >= 2 && nextit->second[1] > 0) || 
-                                (step >= 3 && nextit->second[2] > 0) ||
-                                (step >= 4 && nextit->second[3] >= 1))) {
+                                (step >= 3 && nextit->second[2] > 0))) {// ||
+                                //(step >= 4 && nextit->second[3] >= 1))) {
                             Point nextp(nextit->first);
                             if (nextp.Valid() && isEmpty(nextp)) {
                                 int s = TestWinMove(nextp, t, std::min(antiWinSteps, minStep-2), mustFour);
