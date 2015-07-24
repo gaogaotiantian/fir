@@ -673,7 +673,7 @@ Point GT_FIRAI::Move()
             return oppWinPoint;
         }
     } else {
-        if (totalMove <= 0) {
+        if (totalMove <= 6) {
             Point pstart = StartMove();
             if (pstart.Valid())
                 return pstart;
@@ -699,7 +699,7 @@ void GT_FIRAI::UpdateOppWinPoint(const Point& tryp,
                 oppMaxEval->Copy(me);
                 *canStopWin   = true;
             } else {
-                if (oppMaxEval->UpdateBetter(me, Defend)) {
+                if (oppMaxEval->oppBestStep >= me.oppBestStep && oppMaxEval->UpdateBetter(me, Defend)) {
                     *oppWinPoint = tryp;
                 }
             }
@@ -820,8 +820,10 @@ int GT_FIRAI::GetConnectNumber(const Point& p, NodeType t, Strategy s)
             } else if (s == Defend) {
                 if (!thisp.Valid())
                     retnum -= 5-abs(i-4);
-                else if (board[thisp.x][thisp.y] == t || board[thisp.x][thisp.y] == oppt)
+                else if (board[thisp.x][thisp.y] == oppt)
                     retnum += 5-abs(i-4);
+                else if (board[thisp.x][thisp.y] == Empty)
+                    retnum += (5-abs(i-4))/2;
             }
         }
     }
@@ -857,10 +859,11 @@ MoveEval GT_FIRAI::EvaluateMove(const Point& p)
         for (selfit = selfInitContri.begin(); selfit != selfInitContri.end(); ++selfit) {
             Point antip;
             antip.Copy(selfit->first);
-            ReqCounts tempCounts = selfCounts - selfit->second;
+            ReqCounts tempCounts = selfCounts + oppCounts - selfit->second;
             if (tempCounts[1] == 0 && tempCounts[2] < 2) {
                 ReqCounts antiCounts = oppptInfo[antip.x][antip.y].rCount;
-                tempCounts = tempCounts - antiCounts;
+                ReqCounts antiSelfCounts = selfptInfo[antip.x][antip.y].rCount;
+                tempCounts = tempCounts - antiCounts - antiSelfCounts;
                 oppit  = oppptInfo[antip.x][antip.y].pointContri.find(p);
                 if (oppit != oppptInfo[antip.x][antip.y].pointContri.end())
                     tempCounts = tempCounts + oppit->second;
@@ -874,7 +877,8 @@ MoveEval GT_FIRAI::EvaluateMove(const Point& p)
                 }
             } else if (canDeal == false) {
                 ReqCounts antiCounts = oppptInfo[antip.x][antip.y].rCount;
-                tempCounts = tempCounts - antiCounts;
+                ReqCounts antiSelfCounts = selfptInfo[antip.x][antip.y].rCount;
+                tempCounts = tempCounts - antiCounts - antiSelfCounts;
                 oppit  = oppptInfo[antip.x][antip.y].pointContri.find(p);
                 if (oppit != oppptInfo[antip.x][antip.y].pointContri.end())
                     tempCounts = tempCounts + oppit->second;
@@ -900,7 +904,8 @@ MoveEval GT_FIRAI::EvaluateMove(const Point& p)
                 Point antip(i,j);
                 if (isEmpty(antip) && p != antip) {
                     ReqCounts antiCounts = oppptInfo[antip.x][antip.y].rCount;
-                    ReqCounts tempCounts = selfCounts - antiCounts;
+                    ReqCounts antiSelfCounts = selfptInfo[antip.x][antip.y].rCount;
+                    ReqCounts tempCounts = selfCounts + oppCounts - antiCounts - antiSelfCounts;
                     if (isConnected(p, antip)) {
                         selfit = selfInitContri.find(antip);
                         oppit  = oppptInfo[antip.x][antip.y].pointContri.find(p);
