@@ -72,7 +72,9 @@ public:
 
     int  minStep() const;
     bool isClose(const ReqCounts &l) const;
+    bool isPositive() const;
     bool isEmpty() const;
+    int  GetValue() const;
     void Clear();
     void Print() const;
     
@@ -205,10 +207,23 @@ int ReqCounts::minStep() const
         return 4;
     return 5;
 }
+
+int ReqCounts::GetValue() const
+{
+    return ((counts[1]*2 + counts[2])*3 + counts[3])*5 + counts[4];
+}
 bool ReqCounts::isClose(const ReqCounts &r) const 
 {
-    if (r.counts[0] == counts[0] && r.counts[1] == counts[1] && r.counts[2] == counts[2] &&
-            abs(r.counts[3]- counts[3]) <= 2)
+    if (r.counts[0] == counts[0] && r.counts[1] == counts[1] && abs(r.counts[2] - counts[2]) < 2 &&
+            abs(this->GetValue() - r.GetValue()) < 20)
+        return true;
+    return false;
+}
+
+bool ReqCounts::isPositive() const
+{
+    ReqCounts zero;
+    if (*this > zero)
         return true;
     return false;
 }
@@ -319,7 +334,7 @@ void PrintPointContriMap(pointContriMap m)
 class MoveEval {
 public:
     MoveEval();
-    void UpdateBetter(const MoveEval&, Strategy);
+    bool UpdateBetter(const MoveEval&, Strategy);
     //void UpdateDefBetter(MoveEval&);
     void Copy(const MoveEval&);
 
@@ -365,53 +380,67 @@ void MoveEval::Copy(const MoveEval & newEval)
     selfBestStep  = newEval.selfBestStep;
     oppBestStep   = newEval.oppBestStep;
 }
-void MoveEval::UpdateBetter(const MoveEval& newEval, Strategy s)
+bool MoveEval::UpdateBetter(const MoveEval& newEval, Strategy s)
 {
-    if (!haveToDeal && newEval.haveToDeal) {
+    if (!this->pos.Valid()) {
         this->Copy(newEval);
+        return true;
+    }
+        
+    if (!haveToDeal && newEval.haveToDeal) {
+        if(newEval.totalCounts.isPositive()) {
+            this->Copy(newEval);
+            return true;
+        }
     } else if (haveToDeal == newEval.haveToDeal) {
         if (!haveToDeal) {
             if (!blockOpp && newEval.blockOpp) {
                 this->Copy(newEval);
-                return;
+                return true;
             } else if (blockOpp && !newEval.blockOpp) {
-                return;
+                return false;
             }
             if (!defOpp && newEval.defOpp) {
                 this->Copy(newEval);
-                return;
+                return true;
             } else if (defOpp && !newEval.defOpp) {
-                return;
+                return false;
             }
         } else {
             if (canDeal && !newEval.canDeal) {
                 this->Copy(newEval);
-                return;
+                return true;
             } else if (!canDeal && newEval.canDeal) {
-                return;
+                return false;
             }
             if (s == Attack) {
                 if (totalCounts.counts[1] == newEval.totalCounts.counts[1] &&
                         totalCounts.counts[2] < newEval.totalCounts.counts[2]) {
                     this->Copy(newEval);
-                    return;
+                    return true;
                 }
             }
         }
         if (totalCounts.isClose(newEval.totalCounts)) {
             if (s == Defend) {
-                if (newEval.defConnectNum > defConnectNum)
+                if (newEval.defConnectNum > defConnectNum) {
                     this->Copy(newEval);
+                    return true;
+                }
             } else if (s == Attack) {
-                if (newEval.atkConnectNum > atkConnectNum)
+                if (newEval.atkConnectNum > atkConnectNum) {
                     this->Copy(newEval);
+                    return true;
+                }
             }
         } else {
             if (newEval.totalCounts > totalCounts) {
                 this->Copy(newEval);
+                return true;
             }
         }
     }
+    return false;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -439,7 +468,7 @@ public:
                            std::vector<Point> oppWinPointList, 
                            std::set<Point, PointComparator>* checkedPointList,
                            Point* oppWinPoint,
-                           ReqCounts* oppMaxCount,
+                           MoveEval* oppMaxEval,
                            bool* canStopWin,
                            int* selfBestMove); 
     bool CanStopOppWin(const Point& p, std::vector<Point> oppWinPointList);
@@ -596,6 +625,7 @@ Point GT_FIRAI::Move()
         } else {
             std::set<Point, PointComparator> checkedPoints;
             ReqCounts oppMaxCounts;
+            MoveEval  oppMaxEval;
             bool canStopWin = false;
             int selfBestMove = 5;
             int oppWinStep = 5;
@@ -613,7 +643,7 @@ Point GT_FIRAI::Move()
                     oppMaxCounts.SetMin();
                 }
 
-                UpdateOppWinPoint(opppt, oppWinPointList, &checkedPoints, &oppWinPoint, &oppMaxCounts, &canStopWin, &selfBestMove);
+                UpdateOppWinPoint(opppt, oppWinPointList, &checkedPoints, &oppWinPoint, &oppMaxEval, &canStopWin, &selfBestMove);
 
                 pointContriMap possiblePoints = oppptInfo[opppt.x][opppt.y].pointContri;
                 pointContriMap::iterator it = possiblePoints.begin();
@@ -625,13 +655,13 @@ Point GT_FIRAI::Move()
                             ((leftCounts[1] == 0 && leftCounts[2] < 4) || 
                              (leftCounts[1] == 1 && leftCounts[2] < 2)) && 
                             (tryCounts[1] > 0 || tryCounts[2] > 1))
-                        UpdateOppWinPoint(tryp, oppWinPointList, &checkedPoints, &oppWinPoint, &oppMaxCounts, &canStopWin, &selfBestMove);
+                        UpdateOppWinPoint(tryp, oppWinPointList, &checkedPoints, &oppWinPoint, &oppMaxEval, &canStopWin, &selfBestMove);
                 }
             }
 
             if (!canStopWin) {
                 MoveEval maxTryEval;
-                if (FourPoints.size() > 0 && selfBestMove >= 2) {
+                if (FourPoints.size() > 0 ) { // && selfBestMove >= 2) {
                     for (int i = 0; i < FourPoints.size(); ++i) {
                         MoveEval me = EvaluateMove(FourPoints[i].pos);
                         maxTryEval.UpdateBetter(me, Defend);
@@ -655,7 +685,7 @@ void GT_FIRAI::UpdateOppWinPoint(const Point& tryp,
                                  std::vector<Point> oppWinPointList, 
                                  std::set<Point, PointComparator>* checkedPointList,
                                  Point* oppWinPoint,
-                                 ReqCounts* oppMaxCounts,
+                                 MoveEval* oppMaxEval,
                                  bool* canStopWin, 
                                  int* selfBestMove) {
     if (checkedPointList->find(tryp) == checkedPointList->end()) {
@@ -663,19 +693,29 @@ void GT_FIRAI::UpdateOppWinPoint(const Point& tryp,
         ReqCounts tempCounts = me.totalCounts;
         ReqCounts selfCounts = selfptInfo[tryp.x][tryp.y].rCount;
         ReqCounts oppCounts  = oppptInfo[tryp.x][tryp.y].rCount;
-        if (tempCounts > *oppMaxCounts || !(*canStopWin)) {
+        if (!(*canStopWin)) {
             if (CanStopOppWin(tryp, oppWinPointList)) {
                 *oppWinPoint  = tryp;
-                *oppMaxCounts = tempCounts;
+                oppMaxEval->Copy(me);
                 *canStopWin   = true;
+            } else {
+                if (oppMaxEval->UpdateBetter(me, Defend)) {
+                    *oppWinPoint = tryp;
+                }
             }
-        }
+        } else {
+            if (CanStopOppWin(tryp, oppWinPointList)) {
+                if (oppMaxEval->UpdateBetter(me, Defend)) {
+                    *oppWinPoint = tryp;
+                }
+            }
+        } 
         // if we can't stop opp to win, check below:
         // 1. selfBestMove == 1, we already has a four to try
         // 2. selfBestMove == 2, opp has three, we need four or three with block
         // 3. selfBestMove == 3, opp has two, we already have three
         // 4. selfBestMove >  3, opp has two, we do not have three
-        if (!(*canStopWin)) {
+        /*if (!(*canStopWin)) {
             if (*selfBestMove == 1) {
                 if (selfCounts[1] > 0 && tempCounts > *oppMaxCounts) {
                     *oppWinPoint  = tryp;
@@ -722,7 +762,7 @@ void GT_FIRAI::UpdateOppWinPoint(const Point& tryp,
                     *selfBestMove  = 3;
                 }
             }
-        }
+        }*/
         checkedPointList->insert(tryp);
     }
 }
@@ -961,7 +1001,8 @@ int GT_FIRAI::TestWinMove(const Point& p, const NodeType& t, int step, bool must
                     pointContriMap::iterator antinextit = antipNextList.begin();
                     int antiWinSteps = 100;
                     AssumeMove(antip, antit);
-                    if (antipCounts[1] > 1 && selfCounts[1] == 0) {
+                    if ((antipCounts[1] > 1 && selfCounts[1] == 0) ||
+                            (antipCounts[1] == 1 && antiit->second[1] == selfCounts[1])) {
                         RemoveAssume(antip);
                         RemoveAssume(p);
                         return 0;
