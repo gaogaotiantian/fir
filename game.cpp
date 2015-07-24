@@ -263,8 +263,8 @@ void Game::PreSetBoard()
     NodeType t;
     for (int i = 0; i <= 2; ++i) {
         t = (i == 1) ? Black : White;
-        x = (BoardSize - 9) / 2 + rand() % 9;
-        y = (BoardSize - 9) / 2 + rand() % 9;
+        x = (BoardSize - 7) / 2 + rand() % 7;
+        y = (BoardSize - 7) / 2 + rand() % 7;
         if (board[x][y] == Empty)
             board[x][y] = t;
         else
