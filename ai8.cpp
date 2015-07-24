@@ -23,6 +23,7 @@ public:
     Point Df_Level_Check(Point p, int x1, int y1);
     Point At_Level_Check(Point p, int x1, int y1);
     Point Def_Chk_Next(); // find out next anti step which may cause two attack chains, then block up that position
+    Point Att_Chk_Next();
     Point Move();
     Point Random_Move();
 
@@ -418,6 +419,80 @@ Point GXY_AI::Def_Chk_Next()
                 Lv_LR2    =    Df_Level_Check(point, 1,  0, tpLv_LR2   );
                 float tpLv_RDLU2  =    Df_Level_Check(point,  -1,  -1, 0 );
                 Lv_RDLU2  =    Df_Level_Check(point, 1, 1, tpLv_RDLU2 );
+
+                Lv_UD = Find_Def_Special(Lv_UD1, Lv_UD2);
+                Lv_LR = Find_Def_Special(Lv_LR1, Lv_LR2);
+                Lv_RULD = Find_Def_Special(Lv_RULD1, Lv_RULD2);
+                Lv_RDLU = Find_Def_Special(Lv_RDLU1, Lv_RDLU2);
+
+                flag = 0;
+                if(fabs(Lv_UD - 1.1)<0.000001 || fabs(Lv_UD - 1.35)<0.000001 || fabs(Lv_UD - 1.6)<0.000001 || fabs(Lv_UD - 1.85)<0.000001 || fabs(Lv_UD - 2.1)<0.000001 || fabs(Lv_UD - 2.35)<0.000001 || fabs(Lv_UD - 2.6)<0.000001 || fabs(Lv_UD - 2)<0.000001 || fabs(Lv_UD - 2.75)<0.000001 || fabs(Lv_UD - 3)<0.000001)
+                {
+                    flag++;
+                }
+                if(fabs(Lv_LR - 1.1)<0.000001 || fabs(Lv_LR - 1.35)<0.000001 || fabs(Lv_LR - 1.6)<0.000001 || fabs(Lv_LR - 1.85)<0.000001 || fabs(Lv_LR - 2.1)<0.000001 || fabs(Lv_LR - 2.35)<0.000001 || fabs(Lv_LR - 2.6)<0.000001 || fabs(Lv_LR - 2)<0.000001 || fabs(Lv_LR - 2.75)<0.000001 || fabs(Lv_LR - 3)<0.000001)
+                {
+                    flag++;
+                }
+                if(fabs(Lv_RULD - 1.1)<0.000001 || fabs(Lv_RULD - 1.35)<0.000001 || fabs(Lv_RULD - 1.6)<0.000001 || fabs(Lv_RULD - 1.85)<0.000001 || fabs(Lv_RULD - 2.1)<0.000001 || fabs(Lv_RULD - 2.35)<0.000001 || fabs(Lv_RULD - 2.6)<0.000001 || fabs(Lv_RULD - 2)<0.000001 || fabs(Lv_RULD - 2.75)<0.000001 || fabs(Lv_RULD - 3)<0.000001)
+                {
+                    flag++;
+                }
+                if(fabs(Lv_RDLU - 1.1)<0.000001 || fabs(Lv_RDLU - 1.35)<0.000001 || fabs(Lv_RDLU - 1.6)<0.000001 || fabs(Lv_RDLU - 1.85)<0.000001 || fabs(Lv_RDLU - 2.1)<0.000001 || fabs(Lv_RDLU - 2.35)<0.000001 || fabs(Lv_RDLU - 2.6)<0.000001 || fabs(Lv_RDLU - 2)<0.000001 || fabs(Lv_RDLU - 2.75)<0.000001 || fabs(Lv_RDLU - 3)<0.000001)
+                {
+                    flag++;
+                }
+
+                if(flag >= 2)
+                {
+                    Point p;
+                    p.Set(x,y);
+                    return p;
+                }
+                else
+                {
+                    Point p;
+                    return p;
+                }
+            }
+        }
+    }
+    Point p;
+    return p;
+}
+
+Point GXY_AI::Att_Chk_Next()
+{
+    float Lv_UD1 = 0, Lv_LR1 = 0, Lv_RULD1 = 0, Lv_RDLU1 = 0;
+    float Lv_UD2 = 0, Lv_LR2 = 0, Lv_RULD2 = 0, Lv_RDLU2 = 0;
+    float Lv_UD = 0, Lv_LR = 0, Lv_RULD = 0, Lv_RDLU = 0;
+    int flag = 0;
+    for(int x = 0; x < BoardSize; x++)
+    {
+        for(int y = 0; y < BoardSize; y++)
+        {
+            if (myBoard[x][y] == Empty)
+            {   
+                Point point;
+                point.Set(x,y); 
+                // first up then down, first ru then ld, so on
+                float tpLv_UD1    =    At_Level_Check(point,  0, -1, 0 );
+                Lv_UD1    =    At_Level_Check(point,  0,  1, tpLv_UD1   );
+                float tpLv_RULD1  =    At_Level_Check(point,  1, -1, 0 );
+                Lv_RULD1  =    At_Level_Check(point, -1,  1, tpLv_RULD1 );
+                float tpLv_LR1    =    At_Level_Check(point,  1,  0, 0 );
+                Lv_LR1    =    At_Level_Check(point, -1,  0, tpLv_LR1   );
+                float tpLv_RDLU1  =    At_Level_Check(point,  1,  1, 0 );
+                Lv_RDLU1  =    At_Level_Check(point, -1, -1, tpLv_RDLU1 );
+                // first down then up, first ld then ru, so on
+                float tpLv_UD2    =    At_Level_Check(point,  0, 1, 0 );
+                Lv_UD2    =    At_Level_Check(point,  0,  -1, tpLv_UD2   );
+                float tpLv_RULD2  =    At_Level_Check(point,  -1, 1, 0 );
+                Lv_RULD2  =    At_Level_Check(point, 1, -1, tpLv_RULD2 );
+                float tpLv_LR2    =    At_Level_Check(point,  -1, 0, 0 );
+                Lv_LR2    =    At_Level_Check(point, 1,  0, tpLv_LR2   );
+                float tpLv_RDLU2  =    At_Level_Check(point,  -1,  -1, 0 );
+                Lv_RDLU2  =    At_Level_Check(point, 1, 1, tpLv_RDLU2 );
 
                 Lv_UD = Find_Def_Special(Lv_UD1, Lv_UD2);
                 Lv_LR = Find_Def_Special(Lv_LR1, Lv_LR2);
@@ -1008,27 +1083,35 @@ Point GXY_AI::Move()
         }
         else
         {
-            Point def_P = Def_Chk_Next();
-            if(def_P.Valid() == true)
+            Point att_P = Att_Chk_Next();
+            if(att_P.Valid() == true)
             {
-                return def_P;
+                return att_P;
             }
-
             else
             {
-                if(Attacker_Final.Valid() == true)
+                Point def_P = Def_Chk_Next();
+                if(def_P.Valid() == true)
                 {
-                    return Attacker_Final;
-                }  
-                else if(Defender_Final.Valid() == true)
-                {
-                    return Defender_Final;
-                }             
+                    return def_P;
+                }
                 else
                 {
-                    return Random_Move();
-                } 
+                    if(Attacker_Final.Valid() == true)
+                    {
+                        return Attacker_Final;
+                    }  
+                    else if(Defender_Final.Valid() == true)
+                    {
+                        return Defender_Final;
+                    }             
+                    else
+                    {
+                        return Random_Move();
+                    } 
+                }
             }
+            
         }     
     }       
 }
