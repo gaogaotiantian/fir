@@ -21,7 +21,7 @@ public:
     float Find_Att_Special(float Lv1, float Lv2);
     float Find_Def_Special(float Lv1, float Lv2);
     Point Df_Level_Check(Point p, int x1, int y1);
-    Point At_Level_Check(Point p, int x1, int y1);
+    Point At_Level_Check(Point p, int x1, int y1, float Lv);
     Point Def_Chk_Next(); // find out next anti step which may cause two attack chains, then block up that position
     Point Att_Chk_Next();
     Point Move();
@@ -643,7 +643,7 @@ float GXY_AI::At_Level_Check(Point p, int x1, int y1, float Lv, bool FLAG)
     return Lv;
 }
 
-Point GXY_AI::At_Level_Check(Point p, int x1, int y1)
+Point GXY_AI::At_Level_Check(Point p, int x1, int y1, float Lv)
 {
     int x = p.x;
     int y = p.y;
@@ -660,6 +660,13 @@ Point GXY_AI::At_Level_Check(Point p, int x1, int y1)
             }
             else if(myBoard[x][y] == Empty)
             {
+                if(fabs(Lv - 2)<0.000001) // if myType is 3 connected, it'd be better not to move towards antiType chess.
+                {
+                    if(myBoard[x+x1][y+y1] == antiType)
+                    {
+                        return pp;
+                    }
+                }           
                 pp.Set(x,y);
                 return pp;                
             }   
@@ -748,14 +755,14 @@ float GXY_AI::Attack_Level(int i)
         Lv_RULD = Find_Att_Special(Lv_RULD1, Lv_RULD2);
         Lv_RDLU = Find_Att_Special(Lv_RDLU1, Lv_RDLU2);
 
-        UU  =    At_Level_Check(p_M[i],  0, -1 );
-        RU  =    At_Level_Check(p_M[i],  1, -1 );
-        RR  =    At_Level_Check(p_M[i],  1,  0 );
-        RD  =    At_Level_Check(p_M[i],  1,  1 );
-        DD  =    At_Level_Check(p_M[i],  0,  1 );
-        LD  =    At_Level_Check(p_M[i], -1,  1 );      
-        LL  =    At_Level_Check(p_M[i], -1,  0 );     
-        LU  =    At_Level_Check(p_M[i], -1, -1 );
+        UU  =    At_Level_Check(p_M[i],  0, -1, Lv_UD );
+        RU  =    At_Level_Check(p_M[i],  1, -1, Lv_RULD );
+        RR  =    At_Level_Check(p_M[i],  1,  0, Lv_LR );
+        RD  =    At_Level_Check(p_M[i],  1,  1, Lv_RDLU );
+        DD  =    At_Level_Check(p_M[i],  0,  1, Lv_UD );
+        LD  =    At_Level_Check(p_M[i], -1,  1, Lv_RULD );      
+        LL  =    At_Level_Check(p_M[i], -1,  0, Lv_LR );     
+        LU  =    At_Level_Check(p_M[i], -1, -1, Lv_RDLU );
 
         if(fabs(Lv_UD - 1.1)<0.000001 || fabs(Lv_UD - 1.35)<0.000001 || fabs(Lv_UD - 1.6)<0.000001 || fabs(Lv_UD - 1.85)<0.000001 || fabs(Lv_UD - 2.1)<0.000001 || fabs(Lv_UD - 2.35)<0.000001 || fabs(Lv_UD - 2.6)<0.000001)   
         {
