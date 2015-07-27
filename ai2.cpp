@@ -60,6 +60,7 @@ class ReqCounts {
 public:
     ReqCounts();
     void SetMin();
+    void SetMax();
     friend ReqCounts operator + (const ReqCounts &l, const ReqCounts &r);
     friend ReqCounts operator - (const ReqCounts &l, const ReqCounts &r);
     friend ReqCounts operator - (const ReqCounts &l, int r);
@@ -96,6 +97,12 @@ void ReqCounts::SetMin()
 {
     counts[0] = -20;
     counts[1] = -20;
+}
+
+void ReqCounts::SetMax()
+{
+    counts[0] = 20;
+    counts[1] = 20;
 }
 ReqCounts operator + (const ReqCounts &l, const ReqCounts &r)
 {
@@ -835,7 +842,8 @@ MoveEval GT_FIRAI::EvaluateMove(const Point& p)
     retme.pos = p;
     ReqCounts selfCounts = selfptInfo[p.x][p.y].rCount;
     ReqCounts oppCounts  = oppptInfo[p.x][p.y].rCount;
-    ReqCounts minTotalCounts = selfCounts;
+    ReqCounts minTotalCounts;
+    minTotalCounts.SetMax();
     const pointContriMap& selfInitContri = selfptInfo[p.x][p.y].pointContri;
     bool oppFirst = false;
 
@@ -944,6 +952,10 @@ MoveEval GT_FIRAI::EvaluateMove(const Point& p)
         }
     }
     retme.totalCounts = minTotalCounts;
+    // This means we can't find any anti moves, normally the board is full
+    if (minTotalCounts[0] > 0)
+        return retme;
+    
     retme.atkConnectNum -= GetConnectNumber(retme.antiPos, oppType, Defend);
     retme.defConnectNum -= GetConnectNumber(retme.antiPos, oppType, Attack);
 
