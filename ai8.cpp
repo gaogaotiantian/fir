@@ -16,8 +16,8 @@ public:
     void Defend_Final();
     float Defend_Level(int i);
     float Attack_Level(int i);
-    float Df_Level_Check(Point p, int x1, int y1, float Lv, bool FLAG);
-    float At_Level_Check(Point p, int x1, int y1, float Lv, bool FLAG);
+    float Df_Level_Check(Point p, int x1, int y1, float Lv, bool FLAG, bool CHECK_FLAG);
+    float At_Level_Check(Point p, int x1, int y1, float Lv, bool FLAG, bool CHECK_FLAG);
     float Find_Att_Special(float Lv1, float Lv2);
     float Find_Def_Special(float Lv1, float Lv2);
     Point Df_Level_Check(Point p, int x1, int y1);
@@ -83,7 +83,7 @@ void GXY_AI::Locate_Point()
     }
 }
 
-float GXY_AI::Df_Level_Check(Point p, int x1, int y1, float Lv, bool FLAG)
+float GXY_AI::Df_Level_Check(Point p, int x1, int y1, float Lv, bool FLAG, bool CHECK_FLAG)
 {
     int x = p.x;
     int y = p.y;
@@ -105,36 +105,69 @@ float GXY_AI::Df_Level_Check(Point p, int x1, int y1, float Lv, bool FLAG)
             }          
             else if(myBoard[x][y] == Empty)
             {
-                if(fabs(Lv - 0.75)<0.000001 || fabs(Lv - 1)<0.000001 || fabs(Lv - 1.75)<0.000001 || fabs(Lv - 2)<0.000001)
+                if(CHECK_FLAG == false) // used for defending sleep 3 or 4, block up them to becom connected 5
                 {
-                    if(0 <= (x+x1) && (x+x1) < BoardSize && 0 <= (y+y1) && (y+y1) < BoardSize && myBoard[x+x1][y+y1] == antiType)
-                    {     
-                        Lv += 0.1;
-                             
-                        if(0 <= (x+2*x1) && (x+2*x1) < BoardSize && 0 <= (y+2*y1) && (y+2*y1) < BoardSize && myBoard[x+2*x1][y+2*y1] == antiType)
-                        {
-                            Lv += 0.5;
-                        }
-                        else if(0 <= (x+2*x1) && (x+2*x1) < BoardSize && 0 <= (y+2*y1) && (y+2*y1) < BoardSize && myBoard[x+2*x1][y+2*y1] == myType)
-                        {
-                            Lv -= 0.25;
-                        }
-                        else if(0 <= (x+2*x1) && (x+2*x1) < BoardSize && 0 <= (y+2*y1) && (y+2*y1) < BoardSize && myBoard[x+2*x1][y+2*y1] == Empty)
-                        {
-                            Lv += 0;
-                        }    
-                        else // outside of the board;
-                        {
-                            Lv -= 0.5;
-                        }
-
-                        if(fabs(Lv - 1.1)<0.000001 || fabs(Lv - 1.35)<0.000001 || fabs(Lv - 1.6)<0.000001 || fabs(Lv - 1.85)<0.000001 || fabs(Lv - 2.1)<0.000001 || fabs(Lv - 2.35)<0.000001 || fabs(Lv - 2.6)<0.000001)
-                        {
-                            if(FLAG == true)
+                    if(fabs(Lv - 0.75)<0.000001 || fabs(Lv - 1)<0.000001 || fabs(Lv - 1.75)<0.000001 || fabs(Lv - 2)<0.000001)
+                    {
+                        if(0 <= (x+x1) && (x+x1) < BoardSize && 0 <= (y+y1) && (y+y1) < BoardSize && myBoard[x+x1][y+y1] == antiType)
+                        {     
+                            Lv += 0.1;
+                                 
+                            if(0 <= (x+2*x1) && (x+2*x1) < BoardSize && 0 <= (y+2*y1) && (y+2*y1) < BoardSize && myBoard[x+2*x1][y+2*y1] == antiType)
                             {
-                                Defender_Final_Temp.Set(x,y);
-                            }                         
-                        }  
+                                Lv += 0.5;
+                            }
+                            else if(0 <= (x+2*x1) && (x+2*x1) < BoardSize && 0 <= (y+2*y1) && (y+2*y1) < BoardSize && myBoard[x+2*x1][y+2*y1] == myType)
+                            {
+                                Lv -= 0.25;
+                            }
+                            else if(0 <= (x+2*x1) && (x+2*x1) < BoardSize && 0 <= (y+2*y1) && (y+2*y1) < BoardSize && myBoard[x+2*x1][y+2*y1] == Empty)
+                            {
+                                Lv += 0;
+                            }    
+                            else // outside of the board;
+                            {
+                                Lv -= 0.5;
+                            }
+
+                            if(fabs(Lv - 1.1)<0.000001 || fabs(Lv - 1.35)<0.000001 || fabs(Lv - 1.6)<0.000001 || fabs(Lv - 1.85)<0.000001 || fabs(Lv - 2.1)<0.000001 || fabs(Lv - 2.35)<0.000001 || fabs(Lv - 2.6)<0.000001)
+                            {
+                                if(FLAG == true)
+                                {
+                                    Defender_Final_Temp.Set(x,y);
+                                }                         
+                            }  
+                        }
+                    }
+                }
+                else // used for check next step defense trends 0.65 1.3 1.05
+                {
+                    if(fabs(Lv - 0)<0.000001 || fabs(Lv - -0.25)<0.000001)
+                    {
+                         if(0 <= (x+x1) && (x+x1) < BoardSize && 0 <= (y+y1) && (y+y1) < BoardSize && myBoard[x+x1][y+y1] == antiType)
+                        {     
+                            Lv += 0.1;    
+                            if(0 <= (x+2*x1) && (x+2*x1) < BoardSize && 0 <= (y+2*y1) && (y+2*y1) < BoardSize && myBoard[x+2*x1][y+2*y1] == antiType)
+                            {
+                                Lv += 0.5;
+                                if(0 <= (x+3*x1) && (x+3*x1) < BoardSize && 0 <= (y+3*y1) && (y+3*y1) < BoardSize && myBoard[x+3*x1][y+3*y1] == antiType)
+                                {
+                                    Lv += 0.7;
+                                }
+                                else if(0 <= (x+3*x1) && (x+3*x1) < BoardSize && 0 <= (y+3*y1) && (y+3*y1) < BoardSize && myBoard[x+3*x1][y+3*y1] == myType)
+                                {
+                                    Lv -= 0.25;
+                                }
+                                else if(0 <= (x+3*x1) && (x+3*x1) < BoardSize && 0 <= (y+3*y1) && (y+3*y1) < BoardSize && myBoard[x+3*x1][y+3*y1] == Empty)
+                                {
+                                    Lv += 0.05;
+                                }    
+                                else // outside of the board;
+                                {
+                                    Lv -= 0.5;
+                                }
+                            }
+                        }
                     }
                 }
             }   
@@ -232,23 +265,23 @@ float GXY_AI::Defend_Level(int i)
     if (p_A[i].Valid() == true && myBoard[p_A[i].x][p_A[i].y] == antiType)
     {    
         // first up then down, first ru then ld, so on
-        float tpLv_UD1    =    Df_Level_Check(p_A[i],  0, -1, 0, false);
-        Lv_UD1    =    Df_Level_Check(p_A[i],  0,  1, tpLv_UD1, true);
-        float tpLv_RULD1  =    Df_Level_Check(p_A[i],  1, -1, 0, false);
-        Lv_RULD1  =    Df_Level_Check(p_A[i], -1,  1, tpLv_RULD1, true);
-        float tpLv_LR1    =    Df_Level_Check(p_A[i],  1,  0, 0, false);
-        Lv_LR1    =    Df_Level_Check(p_A[i], -1,  0, tpLv_LR1, true);
-        float tpLv_RDLU1  =    Df_Level_Check(p_A[i],  1,  1, 0, false);
-        Lv_RDLU1  =    Df_Level_Check(p_A[i], -1, -1, tpLv_RDLU1, true);
+        float tpLv_UD1    =    Df_Level_Check(p_A[i],  0, -1, 0, false, false);
+        Lv_UD1    =    Df_Level_Check(p_A[i],  0,  1, tpLv_UD1, true, false);
+        float tpLv_RULD1  =    Df_Level_Check(p_A[i],  1, -1, 0, false, false);
+        Lv_RULD1  =    Df_Level_Check(p_A[i], -1,  1, tpLv_RULD1, true, false);
+        float tpLv_LR1    =    Df_Level_Check(p_A[i],  1,  0, 0, false, false);
+        Lv_LR1    =    Df_Level_Check(p_A[i], -1,  0, tpLv_LR1, true, false);
+        float tpLv_RDLU1  =    Df_Level_Check(p_A[i],  1,  1, 0, false, false);
+        Lv_RDLU1  =    Df_Level_Check(p_A[i], -1, -1, tpLv_RDLU1, true, false);
         // first down then up, first ld then ru, so on
-        float tpLv_UD2    =    Df_Level_Check(p_A[i],  0, 1, 0, false);
-        Lv_UD2    =    Df_Level_Check(p_A[i],  0,  -1, tpLv_UD2, true);
-        float tpLv_RULD2  =    Df_Level_Check(p_A[i],  -1, 1, 0, false);
-        Lv_RULD2  =    Df_Level_Check(p_A[i], 1, -1, tpLv_RULD2, true);
-        float tpLv_LR2    =    Df_Level_Check(p_A[i],  -1, 0, 0, false);
-        Lv_LR2    =    Df_Level_Check(p_A[i], 1,  0, tpLv_LR2, true);
-        float tpLv_RDLU2  =    Df_Level_Check(p_A[i],  -1,  -1, 0, false);
-        Lv_RDLU2  =    Df_Level_Check(p_A[i], 1, 1, tpLv_RDLU2, true);
+        float tpLv_UD2    =    Df_Level_Check(p_A[i],  0, 1, 0, false, false);
+        Lv_UD2    =    Df_Level_Check(p_A[i],  0,  -1, tpLv_UD2, true, false);
+        float tpLv_RULD2  =    Df_Level_Check(p_A[i],  -1, 1, 0, false, false);
+        Lv_RULD2  =    Df_Level_Check(p_A[i], 1, -1, tpLv_RULD2, true, false);
+        float tpLv_LR2    =    Df_Level_Check(p_A[i],  -1, 0, 0, false, false);
+        Lv_LR2    =    Df_Level_Check(p_A[i], 1,  0, tpLv_LR2, true, false);
+        float tpLv_RDLU2  =    Df_Level_Check(p_A[i],  -1,  -1, 0, false, false);
+        Lv_RDLU2  =    Df_Level_Check(p_A[i], 1, 1, tpLv_RDLU2, true, false);
 
         Lv_UD = Find_Def_Special(Lv_UD1, Lv_UD2);
         Lv_LR = Find_Def_Special(Lv_LR1, Lv_LR2);
@@ -406,23 +439,23 @@ Point GXY_AI::Def_Chk_Next()
                 Point point;
                 point.Set(x,y); 
                 // first up then down, first ru then ld, so on
-                float tpLv_UD1    =    Df_Level_Check(point,  0, -1, 0, false);
-                Lv_UD1    =    Df_Level_Check(point,  0,  1, tpLv_UD1, true);
-                float tpLv_RULD1  =    Df_Level_Check(point,  1, -1, 0, false);
-                Lv_RULD1  =    Df_Level_Check(point, -1,  1, tpLv_RULD1, true);
-                float tpLv_LR1    =    Df_Level_Check(point,  1,  0, 0, false);
-                Lv_LR1    =    Df_Level_Check(point, -1,  0, tpLv_LR1, true);
-                float tpLv_RDLU1  =    Df_Level_Check(point,  1,  1, 0, false);
-                Lv_RDLU1  =    Df_Level_Check(point, -1, -1, tpLv_RDLU1, true);
+                float tpLv_UD1    =    Df_Level_Check(point,  0, -1, 0, false, false);
+                Lv_UD1    =    Df_Level_Check(point,  0,  1, tpLv_UD1, false, false);
+                float tpLv_RULD1  =    Df_Level_Check(point,  1, -1, 0, false, false);
+                Lv_RULD1  =    Df_Level_Check(point, -1,  1, tpLv_RULD1, false, false);
+                float tpLv_LR1    =    Df_Level_Check(point,  1,  0, 0, false, false);
+                Lv_LR1    =    Df_Level_Check(point, -1,  0, tpLv_LR1, false, false);
+                float tpLv_RDLU1  =    Df_Level_Check(point,  1,  1, 0, false, false);
+                Lv_RDLU1  =    Df_Level_Check(point, -1, -1, tpLv_RDLU1, false, false);
                 // first down then up, first ld then ru, so on
-                float tpLv_UD2    =    Df_Level_Check(point,  0, 1, 0, false);
-                Lv_UD2    =    Df_Level_Check(point,  0,  -1, tpLv_UD2, true);
-                float tpLv_RULD2  =    Df_Level_Check(point,  -1, 1, 0, false);
-                Lv_RULD2  =    Df_Level_Check(point, 1, -1, tpLv_RULD2, true);
-                float tpLv_LR2    =    Df_Level_Check(point,  -1, 0, 0, false);
-                Lv_LR2    =    Df_Level_Check(point, 1,  0, tpLv_LR2, true);
-                float tpLv_RDLU2  =    Df_Level_Check(point, -1, -1, 0, false);
-                Lv_RDLU2  =    Df_Level_Check(point, 1, 1, tpLv_RDLU2, true);
+                float tpLv_UD2    =    Df_Level_Check(point,  0, 1, 0, false, false);
+                Lv_UD2    =    Df_Level_Check(point,  0,  -1, tpLv_UD2, false, false);
+                float tpLv_RULD2  =    Df_Level_Check(point,  -1, 1, 0, false, false);
+                Lv_RULD2  =    Df_Level_Check(point, 1, -1, tpLv_RULD2, false, false);
+                float tpLv_LR2    =    Df_Level_Check(point,  -1, 0, 0, false, false);
+                Lv_LR2    =    Df_Level_Check(point, 1,  0, tpLv_LR2, false, false);
+                float tpLv_RDLU2  =    Df_Level_Check(point, -1, -1, 0, false, false);
+                Lv_RDLU2  =    Df_Level_Check(point, 1, 1, tpLv_RDLU2, false, false);
 
                 Lv_UD = Find_Def_Special(Lv_UD1, Lv_UD2);
                 Lv_LR = Find_Def_Special(Lv_LR1, Lv_LR2);
@@ -443,6 +476,46 @@ Point GXY_AI::Def_Chk_Next()
                     flag++;
                 }
                 if(fabs(Lv_RDLU - 1.1)<0.000001 || fabs(Lv_RDLU - 1.35)<0.000001 || fabs(Lv_RDLU - 1.6)<0.000001 || fabs(Lv_RDLU - 1.85)<0.000001 || fabs(Lv_RDLU - 2.1)<0.000001 || fabs(Lv_RDLU - 2.35)<0.000001 || fabs(Lv_RDLU - 2.6)<0.000001 || fabs(Lv_RDLU - 2)<0.000001 || fabs(Lv_RDLU - 2.75)<0.000001 || fabs(Lv_RDLU - 3)<0.000001)
+                {
+                    flag++;
+                }
+
+                tpLv_UD1    =    Df_Level_Check(point,  0, -1, 0, false, true);
+                Lv_UD1      =    Df_Level_Check(point,  0,  1, tpLv_UD1, false, true);
+                tpLv_RULD1  =    Df_Level_Check(point,  1, -1, 0, false, true);
+                Lv_RULD1    =    Df_Level_Check(point, -1,  1, tpLv_RULD1, false, true);
+                tpLv_LR1    =    Df_Level_Check(point,  1,  0, 0, false, true);
+                Lv_LR1      =    Df_Level_Check(point, -1,  0, tpLv_LR1, false, true);
+                tpLv_RDLU1  =    Df_Level_Check(point,  1,  1, 0, false, true);
+                Lv_RDLU1    =    Df_Level_Check(point, -1, -1, tpLv_RDLU1, false, true);
+                // first down then up, first ld then ru, so on
+                tpLv_UD2    =    Df_Level_Check(point,  0, 1, 0, false, true);
+                Lv_UD2      =    Df_Level_Check(point,  0,  -1, tpLv_UD2, false, true);
+                tpLv_RULD2  =    Df_Level_Check(point,  -1, 1, 0, false, true);
+                Lv_RULD2    =    Df_Level_Check(point, 1, -1, tpLv_RULD2, false, true);
+                tpLv_LR2    =    Df_Level_Check(point,  -1, 0, 0, false, true);
+                Lv_LR2      =    Df_Level_Check(point, 1,  0, tpLv_LR2, false, true);
+                tpLv_RDLU2  =    Df_Level_Check(point, -1, -1, 0, false, true);
+                Lv_RDLU2    =    Df_Level_Check(point, 1, 1, tpLv_RDLU2, false, true);
+
+                Lv_UD = Find_Def_Special(Lv_UD1, Lv_UD2);
+                Lv_LR = Find_Def_Special(Lv_LR1, Lv_LR2);
+                Lv_RULD = Find_Def_Special(Lv_RULD1, Lv_RULD2);
+                Lv_RDLU = Find_Def_Special(Lv_RDLU1, Lv_RDLU2);
+
+                if(fabs(Lv_UD - 0.65)<0.000001 || fabs(Lv_UD - 1.05)<0.000001 || fabs(Lv_UD - 1.3)<0.000001)
+                {
+                    flag++;
+                }
+                if(fabs(Lv_LR - 0.65)<0.000001 || fabs(Lv_LR - 1.05)<0.000001 || fabs(Lv_LR - 1.3)<0.000001)
+                {
+                    flag++;
+                }
+                if(fabs(Lv_RULD - 0.65)<0.000001 || fabs(Lv_RULD - 1.05)<0.000001 || fabs(Lv_RULD - 1.3)<0.000001)
+                {
+                    flag++;
+                }
+                if(fabs(Lv_RDLU - 0.65)<0.000001 || fabs(Lv_RDLU - 1.05)<0.000001 || fabs(Lv_RDLU - 1.3)<0.000001)
                 {
                     flag++;
                 }
@@ -479,23 +552,23 @@ Point GXY_AI::Att_Chk_Next()
                 Point point;
                 point.Set(x,y); 
                 // first up then down, first ru then ld, so on
-                float tpLv_UD1    =    At_Level_Check(point,  0, -1, 0, false);
-                Lv_UD1    =    At_Level_Check(point,  0,  1, tpLv_UD1, true);
-                float tpLv_RULD1  =    At_Level_Check(point,  1, -1, 0, false);
-                Lv_RULD1  =    At_Level_Check(point, -1,  1, tpLv_RULD1, true);
-                float tpLv_LR1    =    At_Level_Check(point,  1,  0, 0, false);
-                Lv_LR1    =    At_Level_Check(point, -1,  0, tpLv_LR1, true);
-                float tpLv_RDLU1  =    At_Level_Check(point,  1,  1, 0, false);
-                Lv_RDLU1  =    At_Level_Check(point, -1, -1, tpLv_RDLU1, true);
+                float tpLv_UD1    =    At_Level_Check(point,  0, -1, 0, false, false);
+                Lv_UD1    =    At_Level_Check(point,  0,  1, tpLv_UD1, false, false);
+                float tpLv_RULD1  =    At_Level_Check(point,  1, -1, 0, false, false);
+                Lv_RULD1  =    At_Level_Check(point, -1,  1, tpLv_RULD1, false, false);
+                float tpLv_LR1    =    At_Level_Check(point,  1,  0, 0, false, false);
+                Lv_LR1    =    At_Level_Check(point, -1,  0, tpLv_LR1, false, false);
+                float tpLv_RDLU1  =    At_Level_Check(point,  1,  1, 0, false, false);
+                Lv_RDLU1  =    At_Level_Check(point, -1, -1, tpLv_RDLU1, false, false);
                 // first down then up, first ld then ru, so on
-                float tpLv_UD2    =    At_Level_Check(point,  0, 1, 0, false);
-                Lv_UD2    =    At_Level_Check(point,  0,  -1, tpLv_UD2, true);
-                float tpLv_RULD2  =    At_Level_Check(point,  -1, 1, 0, false);
-                Lv_RULD2  =    At_Level_Check(point, 1, -1, tpLv_RULD2, true);
-                float tpLv_LR2    =    At_Level_Check(point,  -1, 0, 0, false);
-                Lv_LR2    =    At_Level_Check(point, 1,  0, tpLv_LR2, true);
-                float tpLv_RDLU2  =    At_Level_Check(point, -1, -1, 0, false);
-                Lv_RDLU2  =    At_Level_Check(point, 1, 1, tpLv_RDLU2, true);
+                float tpLv_UD2    =    At_Level_Check(point,  0, 1, 0, false, false);
+                Lv_UD2    =    At_Level_Check(point,  0,  -1, tpLv_UD2, false, false);
+                float tpLv_RULD2  =    At_Level_Check(point,  -1, 1, 0, false, false);
+                Lv_RULD2  =    At_Level_Check(point, 1, -1, tpLv_RULD2, false, false);
+                float tpLv_LR2    =    At_Level_Check(point,  -1, 0, 0, false, false);
+                Lv_LR2    =    At_Level_Check(point, 1,  0, tpLv_LR2, false, false);
+                float tpLv_RDLU2  =    At_Level_Check(point, -1, -1, 0, false, false);
+                Lv_RDLU2  =    At_Level_Check(point, 1, 1, tpLv_RDLU2, false, false);
 
                 Lv_UD = Find_Def_Special(Lv_UD1, Lv_UD2);
                 Lv_LR = Find_Def_Special(Lv_LR1, Lv_LR2);
@@ -520,6 +593,46 @@ Point GXY_AI::Att_Chk_Next()
                     flag++;
                 }
 
+                tpLv_UD1    =    At_Level_Check(point,  0, -1, 0, false, true);
+                Lv_UD1      =    At_Level_Check(point,  0,  1, tpLv_UD1, false, true);
+                tpLv_RULD1  =    At_Level_Check(point,  1, -1, 0, false, true);
+                Lv_RULD1    =    At_Level_Check(point, -1,  1, tpLv_RULD1, false, true);
+                tpLv_LR1    =    At_Level_Check(point,  1,  0, 0, false, true);
+                Lv_LR1      =    At_Level_Check(point, -1,  0, tpLv_LR1, false, true);
+                tpLv_RDLU1  =    At_Level_Check(point,  1,  1, 0, false, true);
+                Lv_RDLU1    =    At_Level_Check(point, -1, -1, tpLv_RDLU1, false, true);
+                // first down then up, first ld then ru, so on
+                tpLv_UD2    =    At_Level_Check(point,  0, 1, 0, false, true);
+                Lv_UD2      =    At_Level_Check(point,  0,  -1, tpLv_UD2, false, true);
+                tpLv_RULD2  =    At_Level_Check(point,  -1, 1, 0, false, true);
+                Lv_RULD2    =    At_Level_Check(point, 1, -1, tpLv_RULD2, false, true);
+                tpLv_LR2    =    At_Level_Check(point,  -1, 0, 0, false, true);
+                Lv_LR2      =    At_Level_Check(point, 1,  0, tpLv_LR2, false, true);
+                tpLv_RDLU2  =    At_Level_Check(point, -1, -1, 0, false, true);
+                Lv_RDLU2    =    At_Level_Check(point, 1, 1, tpLv_RDLU2, false, true);
+
+                Lv_UD = Find_Def_Special(Lv_UD1, Lv_UD2);
+                Lv_LR = Find_Def_Special(Lv_LR1, Lv_LR2);
+                Lv_RULD = Find_Def_Special(Lv_RULD1, Lv_RULD2);
+                Lv_RDLU = Find_Def_Special(Lv_RDLU1, Lv_RDLU2);
+
+                if(fabs(Lv_UD - 0.65)<0.000001 || fabs(Lv_UD - 1.05)<0.000001 || fabs(Lv_UD - 1.3)<0.000001)
+                {
+                    flag++;
+                }
+                if(fabs(Lv_LR - 0.65)<0.000001 || fabs(Lv_LR - 1.05)<0.000001 || fabs(Lv_LR - 1.3)<0.000001)
+                {
+                    flag++;
+                }
+                if(fabs(Lv_RULD - 0.65)<0.000001 || fabs(Lv_RULD - 1.05)<0.000001 || fabs(Lv_RULD - 1.3)<0.000001)
+                {
+                    flag++;
+                }
+                if(fabs(Lv_RDLU - 0.65)<0.000001 || fabs(Lv_RDLU - 1.05)<0.000001 || fabs(Lv_RDLU - 1.3)<0.000001)
+                {
+                    flag++;
+                }
+
                 if(flag >= 2)
                 {
                     Point p;
@@ -537,7 +650,7 @@ Point GXY_AI::Att_Chk_Next()
     return p;
 }
 
-float GXY_AI::At_Level_Check(Point p, int x1, int y1, float Lv, bool FLAG)
+float GXY_AI::At_Level_Check(Point p, int x1, int y1, float Lv, bool FLAG, bool CHECK_FLAG)
 {
     int x = p.x;
     int y = p.y;
@@ -558,80 +671,114 @@ float GXY_AI::At_Level_Check(Point p, int x1, int y1, float Lv, bool FLAG)
             }
             else if(myBoard[x][y] == Empty)
             {
-                if(fabs(Lv - 0.75)<0.000001 || fabs(Lv - 1)<0.000001 || fabs(Lv - 1.75)<0.000001 || fabs(Lv - 2)<0.000001)
+                if(CHECK_FLAG == false)
                 {
-                    if(0 <= (x+x1) && (x+x1) < BoardSize && 0 <= (y+y1) && (y+y1) < BoardSize && myBoard[x+x1][y+y1] == myType)
-                    {          
-                        Lv += 0.1;
-                            
-                        if(0 <= (x+2*x1) && (x+2*x1) < BoardSize && 0 <= (y+2*y1) && (y+2*y1) < BoardSize && myBoard[x+2*x1][y+2*y1] == myType)
-                        {                    
-                            Lv += 0.5;
-                        }
-                        else if(0 <= (x+2*x1) && (x+2*x1) < BoardSize && 0 <= (y+2*y1) && (y+2*y1) < BoardSize && myBoard[x+2*x1][y+2*y1] == antiType)
-                        {   
-                            Lv -= 0.25;
-                        }
-                        else if(0 <= (x+2*x1) && (x+2*x1) < BoardSize && 0 <= (y+2*y1) && (y+2*y1) < BoardSize && myBoard[x+2*x1][y+2*y1] == Empty)
-                        {
-                            Lv += 0;
-                        }    
-                        else // outside of the board;
-                        {
-                            Lv -= 0.5;
-                        }
-                        if(fabs(Lv - 1.1)<0.000001 || fabs(Lv - 1.35)<0.000001 || fabs(Lv - 1.6)<0.000001 || fabs(Lv - 1.85)<0.000001 || fabs(Lv - 2.1)<0.000001 || fabs(Lv - 2.35)<0.000001 || fabs(Lv - 2.6)<0.000001)
-                        {
-                            if(FLAG == true)
-                            {
-                                Attacker_Final_Temp.Set(x,y); 
-                            }
-                        }      
-                    }
-                }
-                if(fabs(Lv - -0.25)<0.000001 || fabs(Lv - 0.75)<0.000001 || fabs(Lv - 1.75)<0.000001)
-                {
-                    if(0 <= (x+x1) && (x+x1) < BoardSize && 0 <= (y+y1) && (y+y1) < BoardSize)
+                    if(fabs(Lv - 0.75)<0.000001 || fabs(Lv - 1)<0.000001 || fabs(Lv - 1.75)<0.000001 || fabs(Lv - 2)<0.000001)
                     {
-                        if(myBoard[x+x1][y+y1] == antiType)
-                        {
-                            Lv -= 0.1;
-                        }          
-                        else
-                        {
-                            if(0 <= (x+2*x1) && (x+2*x1) < BoardSize && 0 <= (y+2*y1) && (y+2*y1) < BoardSize)
+                        if(0 <= (x+x1) && (x+x1) < BoardSize && 0 <= (y+y1) && (y+y1) < BoardSize && myBoard[x+x1][y+y1] == myType)
+                        {          
+                            Lv += 0.1;
+                                
+                            if(0 <= (x+2*x1) && (x+2*x1) < BoardSize && 0 <= (y+2*y1) && (y+2*y1) < BoardSize && myBoard[x+2*x1][y+2*y1] == myType)
+                            {                    
+                                Lv += 0.5;
+                            }
+                            else if(0 <= (x+2*x1) && (x+2*x1) < BoardSize && 0 <= (y+2*y1) && (y+2*y1) < BoardSize && myBoard[x+2*x1][y+2*y1] == antiType)
+                            {   
+                                Lv -= 0.25;
+                            }
+                            else if(0 <= (x+2*x1) && (x+2*x1) < BoardSize && 0 <= (y+2*y1) && (y+2*y1) < BoardSize && myBoard[x+2*x1][y+2*y1] == Empty)
                             {
-                                if(myBoard[x+2*x1][y+2*y1] == antiType)
+                                Lv += 0;
+                            }    
+                            else // outside of the board;
+                            {
+                                Lv -= 0.5;
+                            }
+                            if(fabs(Lv - 1.1)<0.000001 || fabs(Lv - 1.35)<0.000001 || fabs(Lv - 1.6)<0.000001 || fabs(Lv - 1.85)<0.000001 || fabs(Lv - 2.1)<0.000001 || fabs(Lv - 2.35)<0.000001 || fabs(Lv - 2.6)<0.000001)
+                            {
+                                if(FLAG == true)
                                 {
-                                    Lv -= 0.1;
+                                    Attacker_Final_Temp.Set(x,y); 
                                 }
-                                else
+                            }      
+                        }
+                    }
+                    if(fabs(Lv - -0.25)<0.000001 || fabs(Lv - 0.75)<0.000001 || fabs(Lv - 1.75)<0.000001) // 0.75 repeated, couldn't find a valid solution to de-bug!!!
+                    {
+                        if(0 <= (x+x1) && (x+x1) < BoardSize && 0 <= (y+y1) && (y+y1) < BoardSize)
+                        {
+                            if(myBoard[x+x1][y+y1] == antiType)
+                            {
+                                Lv -= 0.1;
+                            }          
+                            else
+                            {
+                                if(0 <= (x+2*x1) && (x+2*x1) < BoardSize && 0 <= (y+2*y1) && (y+2*y1) < BoardSize)
                                 {
-                                    if(0 <= (x+3*x1) && (x+3*x1) < BoardSize && 0 <= (y+3*y1) && (y+3*y1) < BoardSize)
+                                    if(myBoard[x+2*x1][y+2*y1] == antiType)
                                     {
-                                        if(myBoard[x+3*x1][y+3*y1] == antiType)
+                                        Lv -= 0.1;
+                                    }
+                                    else
+                                    {
+                                        if(0 <= (x+3*x1) && (x+3*x1) < BoardSize && 0 <= (y+3*y1) && (y+3*y1) < BoardSize)
+                                        {
+                                            if(myBoard[x+3*x1][y+3*y1] == antiType)
+                                            {
+                                                Lv -= 0.1;
+                                            }
+                                        }
+                                        else
                                         {
                                             Lv -= 0.1;
                                         }
                                     }
-                                    else
-                                    {
-                                        Lv -= 0.1;
-                                    }
+                                }
+                                else
+                                {
+                                    Lv -= 0.1;
                                 }
                             }
-                            else
+                        }
+                        else
+                        {
+                            Lv -= 0.1;
+                        }
+                    }
+                }
+                else // used for check next step defense trends 0.65 1.3 1.05
+                {
+                    if(fabs(Lv - 0)<0.000001 || fabs(Lv - -0.25)<0.000001)
+                    {
+                         if(0 <= (x+x1) && (x+x1) < BoardSize && 0 <= (y+y1) && (y+y1) < BoardSize && myBoard[x+x1][y+y1] == myType)
+                        {     
+                            Lv += 0.1;    
+                            if(0 <= (x+2*x1) && (x+2*x1) < BoardSize && 0 <= (y+2*y1) && (y+2*y1) < BoardSize && myBoard[x+2*x1][y+2*y1] == myType)
                             {
-                                Lv -= 0.1;
+                                Lv += 0.5;
+                                if(0 <= (x+3*x1) && (x+3*x1) < BoardSize && 0 <= (y+3*y1) && (y+3*y1) < BoardSize && myBoard[x+3*x1][y+3*y1] == myType)
+                                {
+                                    Lv += 0.7;
+                                }
+                                else if(0 <= (x+3*x1) && (x+3*x1) < BoardSize && 0 <= (y+3*y1) && (y+3*y1) < BoardSize && myBoard[x+3*x1][y+3*y1] == antiType)
+                                {
+                                    Lv -= 0.25;
+                                }
+                                else if(0 <= (x+3*x1) && (x+3*x1) < BoardSize && 0 <= (y+3*y1) && (y+3*y1) < BoardSize && myBoard[x+3*x1][y+3*y1] == Empty)
+                                {
+                                    Lv += 0.05;
+                                }    
+                                else // outside of the board;
+                                {
+                                    Lv -= 0.5;
+                                }
                             }
                         }
                     }
-                    else
-                    {
-                        Lv -= 0.1;
-                    }
                 }
-            } 
+
+            }
             break;
         }
         else // outside of the board
@@ -732,23 +879,23 @@ float GXY_AI::Attack_Level(int i)
     if (p_M[i].Valid() == true && myBoard[p_M[i].x][p_M[i].y] == myType)
     {   
         // first up then down, first ru then ld, so on
-        float tpLv_UD1    =    At_Level_Check(p_M[i],  0, -1, 0, false);
-        Lv_UD1    =    At_Level_Check(p_M[i],  0,  1, tpLv_UD1, true);
-        float tpLv_RULD1  =    At_Level_Check(p_M[i],  1, -1, 0, false);
-        Lv_RULD1  =    At_Level_Check(p_M[i], -1,  1, tpLv_RULD1, true);
-        float tpLv_LR1    =    At_Level_Check(p_M[i],  1,  0, 0, false);
-        Lv_LR1    =    At_Level_Check(p_M[i], -1,  0, tpLv_LR1, true);
-        float tpLv_RDLU1  =    At_Level_Check(p_M[i],  1,  1, 0, false);
-        Lv_RDLU1  =    At_Level_Check(p_M[i], -1, -1, tpLv_RDLU1, true);
+        float tpLv_UD1    =    At_Level_Check(p_M[i],  0, -1, 0, false, false);
+        Lv_UD1    =    At_Level_Check(p_M[i],  0,  1, tpLv_UD1, true, false);
+        float tpLv_RULD1  =    At_Level_Check(p_M[i],  1, -1, 0, false, false);
+        Lv_RULD1  =    At_Level_Check(p_M[i], -1,  1, tpLv_RULD1, true, false);
+        float tpLv_LR1    =    At_Level_Check(p_M[i],  1,  0, 0, false, false);
+        Lv_LR1    =    At_Level_Check(p_M[i], -1,  0, tpLv_LR1, true, false);
+        float tpLv_RDLU1  =    At_Level_Check(p_M[i],  1,  1, 0, false, false);
+        Lv_RDLU1  =    At_Level_Check(p_M[i], -1, -1, tpLv_RDLU1, true, false);
         // first down then up, first ld then ru, so on
-        float tpLv_UD2    =    At_Level_Check(p_M[i],  0, 1, 0, false);
-        Lv_UD2    =    At_Level_Check(p_M[i],  0,  -1, tpLv_UD2, true);
-        float tpLv_RULD2  =    At_Level_Check(p_M[i],  -1, 1, 0, false);
-        Lv_RULD2  =    At_Level_Check(p_M[i], 1, -1, tpLv_RULD2, true);
-        float tpLv_LR2    =    At_Level_Check(p_M[i],  -1, 0, 0, false);
-        Lv_LR2    =    At_Level_Check(p_M[i], 1,  0, tpLv_LR2, true);
-        float tpLv_RDLU2  =    At_Level_Check(p_M[i], -1, -1, 0, false);
-        Lv_RDLU2  =    At_Level_Check(p_M[i], 1, 1, tpLv_RDLU2, true);
+        float tpLv_UD2    =    At_Level_Check(p_M[i],  0, 1, 0, false, false);
+        Lv_UD2    =    At_Level_Check(p_M[i],  0,  -1, tpLv_UD2, true, false);
+        float tpLv_RULD2  =    At_Level_Check(p_M[i],  -1, 1, 0, false, false);
+        Lv_RULD2  =    At_Level_Check(p_M[i], 1, -1, tpLv_RULD2, true, false);
+        float tpLv_LR2    =    At_Level_Check(p_M[i],  -1, 0, 0, false, false);
+        Lv_LR2    =    At_Level_Check(p_M[i], 1,  0, tpLv_LR2, true, false);
+        float tpLv_RDLU2  =    At_Level_Check(p_M[i], -1, -1, 0, false, false);
+        Lv_RDLU2  =    At_Level_Check(p_M[i], 1, 1, tpLv_RDLU2, true, false);
 
         Lv_UD = Find_Att_Special(Lv_UD1, Lv_UD2);
         Lv_LR = Find_Att_Special(Lv_LR1, Lv_LR2);
@@ -921,11 +1068,11 @@ float GXY_AI::Find_Att_Special(float Lv1, float Lv2)
 
 float GXY_AI::Find_Def_Special(float Lv1, float Lv2)
 {
-    if(fabs(Lv1 - 1.1)<0.000001 || fabs(Lv1 - 1.35)<0.000001 || fabs(Lv1 - 1.6)<0.000001 || fabs(Lv1 - 1.85)<0.000001 || fabs(Lv1 - 2.1)<0.000001 || fabs(Lv1 - 2.35)<0.000001 || fabs(Lv1 - 2.6)<0.000001 || fabs(Lv1 - 2)<0.000001 || fabs(Lv1 - 2.75)<0.000001 || fabs(Lv1 - 3)<0.000001)
+    if(fabs(Lv1 - 1.1)<0.000001 || fabs(Lv1 - 1.35)<0.000001 || fabs(Lv1 - 1.6)<0.000001 || fabs(Lv1 - 1.85)<0.000001 || fabs(Lv1 - 2.1)<0.000001 || fabs(Lv1 - 2.35)<0.000001 || fabs(Lv1 - 2.6)<0.000001 || fabs(Lv1 - 2)<0.000001 || fabs(Lv1 - 2.75)<0.000001 || fabs(Lv1 - 3)<0.000001 || fabs(Lv1 - 0.65)<0.000001 || fabs(Lv1 - 1.05)<0.000001 || fabs(Lv1 - 1.3)<0.000001)
     {
         return Lv1;
     }
-    else if(fabs(Lv2 - 1.1)<0.000001 || fabs(Lv2 - 1.35)<0.000001 || fabs(Lv2 - 1.6)<0.000001 || fabs(Lv2 - 1.85)<0.000001 || fabs(Lv2 - 2.1)<0.000001 || fabs(Lv2 - 2.35)<0.000001 || fabs(Lv2 - 2.6)<0.000001 || fabs(Lv2 - 2)<0.000001 || fabs(Lv2 - 2.75)<0.000001 || fabs(Lv2 - 3)<0.000001)
+    else if(fabs(Lv2 - 1.1)<0.000001 || fabs(Lv2 - 1.35)<0.000001 || fabs(Lv2 - 1.6)<0.000001 || fabs(Lv2 - 1.85)<0.000001 || fabs(Lv2 - 2.1)<0.000001 || fabs(Lv2 - 2.35)<0.000001 || fabs(Lv2 - 2.6)<0.000001 || fabs(Lv2 - 2)<0.000001 || fabs(Lv2 - 2.75)<0.000001 || fabs(Lv2 - 3)<0.000001 || fabs(Lv1 - 0.65)<0.000001 || fabs(Lv1 - 1.05)<0.000001 || fabs(Lv1 - 1.3)<0.000001)
     {
         return Lv2;
     }
