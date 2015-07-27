@@ -68,7 +68,7 @@ public:
     void Initialize();
     bool Move(Point p);
     NodeType Play(S_AI, S_AI);
-    NodeType CheckVictory();
+    NodeType CheckVictory(NodeType);
     NodeType GetType(Point p);
     void PrintBoard();
     void PreSetBoard();

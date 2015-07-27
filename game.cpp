@@ -124,7 +124,7 @@ NodeType Game::Play(S_AI blackAI, S_AI whiteAI) {
             printf("%s made a move at (%d, %d)\n", blackChar, p.x, p.y);
             sleep(settings.sleepTime);
         }
-        if (CheckVictory() == Black) {
+        if (CheckVictory(Black) == Black) {
             return Black;
         }
         
@@ -139,7 +139,7 @@ NodeType Game::Play(S_AI blackAI, S_AI whiteAI) {
             printf("%s made a move at (%d, %d)\n", whiteChar, p.x, p.y);
             sleep(settings.sleepTime);
         }
-        if (CheckVictory() == White) {
+        if (CheckVictory(White) == White) {
             return White;
         }
     }
@@ -167,8 +167,9 @@ NodeType Game::GetType(Point p)
     assert(0 <= p.y && p.y < BoardSize);
     return board[p.x][p.y];
 }
-NodeType Game::CheckVictory()
+NodeType Game::CheckVictory(NodeType t)
 {
+    bool isFull = true;
     for (int i = 0; i < BoardSize; ++i) {
         for (int j = 0; j < BoardSize; ++j) {
             Point p(i,j);
@@ -177,8 +178,12 @@ NodeType Game::CheckVictory()
                 return Black;
             else if (winType == White)
                 return White;
+            if (board[p.x][p.y] == Empty)
+                isFull = false;
         }
     }
+    if (isFull == true)
+        return t;
     return Empty;
 }
 // We only check right, down and right-down
