@@ -170,13 +170,15 @@ static void PutPiece(GtkWidget *widget,
                      GdkEventMotion *event, 
                      gpointer   data)
 {
+    NodeType playerType = game.blackAI.id == 10 ? Black : White;
+    NodeType aiType     = playerType == Black ? White : Black;
     if (game.winner == Empty && game.isBlackPlaying == (game.blackAI.id == 10)) {
         Point p(GetRowColFromPixel(event->x), GetRowColFromPixel(event->y));
         if (game.Move(p) == true) {
             DrawPiece(GetRowColFromPixel(event->x), GetRowColFromPixel(event->y), 
                     game.isBlackPlaying ? White : Black);
             gtk_widget_queue_draw_area(widget, 0, 0, CanvasWidth, CanvasWidth);
-            if (game.CheckVictory() != Empty) {
+            if (game.CheckVictory(playerType) != Empty) {
                 return;
             } else {
                 if (game.isBlackPlaying) {
@@ -188,7 +190,7 @@ static void PutPiece(GtkWidget *widget,
                     game.Move(p);
                     DrawPiece(p.x, p.y, White);
                 }
-                if (game.CheckVictory() != Empty)
+                if (game.CheckVictory(aiType) != Empty)
                     return;
             }
         }
