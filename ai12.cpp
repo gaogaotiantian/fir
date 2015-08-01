@@ -107,7 +107,7 @@ Point yhfAI(const NodeType board[BoardSize][BoardSize], NodeType yourType) {
     buildStatusBoard(board, heStatusBoard, heType);
 
     bool allEmpty = true;
-    int maxMy = 0, maxHe = 0, maxMyI = 0, maxMyJ = 0, maxHeI = 0, maxHeJ;
+    int maxMy = 0, maxHe = 0, maxSum = 0, maxMyI = 0, maxMyJ = 0, maxHeI = 0, maxHeJ = 0, maxSumI = 0, maxSumJ = 0;
     int THRESHOLD = 124;
     vector<int> dangerPoints;
     for (int i = 0; i < BoardSize; i++) {
@@ -129,11 +129,15 @@ Point yhfAI(const NodeType board[BoardSize][BoardSize], NodeType yourType) {
                 maxMyI = i;
                 maxMyJ = j;
             }
-
             if (heStatusBoard[i][j][4] > maxHe) {
                 maxHe = heStatusBoard[i][j][4];
                 maxHeI = i;
                 maxHeJ = j;
+            }
+            if (myStatusBoard[i][j][4] + heStatusBoard[i][j][4] > maxSum) {
+                maxSum = myStatusBoard[i][j][4] + heStatusBoard[i][j][4];
+                maxSumI = i;
+                maxSumJ = j;
             }
         }
     }
@@ -164,7 +168,7 @@ Point yhfAI(const NodeType board[BoardSize][BoardSize], NodeType yourType) {
             return p;
         }
     } else {
-        Point p(maxMyI, maxMyJ);
+        Point p(maxSumI, maxSumJ);
         return p;
     }
 
