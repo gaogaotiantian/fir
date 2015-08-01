@@ -24,6 +24,7 @@ public:
     Point At_Level_Check(Point p, int x1, int y1, float Lv);
     Point Def_Chk_Next(); // find out next anti step which may cause two attack chains, then block up that position
     Point Att_Chk_Next();
+    Point Max_Active_Two();
     Point Move();
     Point Random_Move();
 
@@ -1151,14 +1152,175 @@ Point GXY_AI::Random_Move()
     return p;
 }
 
+Point GXY_AI::Max_Active_Two()
+{
+    int flag[BoardSize][BoardSize];
+    int max;
+    Point pp;
+    for(int i = 0; i < BoardSize; i++)
+        for(int j = 0; j < BoardSize; j++)
+            flag[i][j] = 0;
+    for(int x = 0; x < BoardSize; x++)
+    {
+        for(int y = 0; y < BoardSize; y++)
+        {
+            if(myBoard[x][y] == Empty)
+            {
+                // Up-Down
+                // Type-1
+                if(myBoard[x][y-1] == myType && myBoard[x][y-2] == Empty && myBoard[x][y-3] == Empty && myBoard[x][y+1] == Empty && myBoard[x][y+2] == Empty)
+                    flag[x][y] ++;
+                else if(myBoard[x][y+1] == myType && myBoard[x][y+2] == Empty && myBoard[x][y+3] == Empty && myBoard[x][y-1] == Empty && myBoard[x][y-2] == Empty)
+                    flag[x][y] ++;
+                // Type-2
+                else if(myBoard[x][y-1] == myType && myBoard[x][y-2] == Empty && myBoard[x][y-3] == Empty && myBoard[x][y-4] == Empty && myBoard[x][y+1] == Empty)
+                    flag[x][y] ++;
+                else if(myBoard[x][y-1] == Empty && myBoard[x][y-2] == Empty && myBoard[x][y-3] == Empty && myBoard[x][y+1] == myType && myBoard[x][y+2] == Empty)
+                    flag[x][y] ++;
+                else if(myBoard[x][y+1] == myType && myBoard[x][y+2] == Empty && myBoard[x][y+3] == Empty && myBoard[x][y+4] == Empty && myBoard[x][y-1] == Empty)
+                    flag[x][y] ++;
+                else if(myBoard[x][y+1] == Empty && myBoard[x][y+2] == Empty && myBoard[x][y+3] == Empty && myBoard[x][y-1] == myType && myBoard[x][y-2] == Empty)
+                    flag[x][y] ++;
+                // Type-3
+                else if(myBoard[x][y-1] == Empty && myBoard[x][y-2] == myType && myBoard[x][y-3] == Empty && myBoard[x][y-4] == Empty && myBoard[x][y+1] == Empty)
+                    flag[x][y] ++;
+                else if(myBoard[x][y-1] == Empty && myBoard[x][y-2] == Empty && myBoard[x][y+1] == Empty && myBoard[x][y+2] == myType && myBoard[x][y+2] == Empty)
+                    flag[x][y] ++;
+                else if(myBoard[x][y+1] == Empty && myBoard[x][y+2] == myType && myBoard[x][y+3] == Empty && myBoard[x][y+4] == Empty && myBoard[x][y-1] == Empty)
+                    flag[x][y] ++;
+                else if(myBoard[x][y+1] == Empty && myBoard[x][y+2] == Empty && myBoard[x][y-1] == Empty && myBoard[x][y-2] == myType && myBoard[x][y-2] == Empty)
+                    flag[x][y] ++;
+                // Type-4
+                else if(myBoard[x][y-1] == Empty && myBoard[x][y+1] == Empty && myBoard[x][y+2] == Empty && myBoard[x][y+3] == myType && myBoard[x][y+4] == Empty)
+                    flag[x][y] ++;
+                else if(myBoard[x][y+1] == Empty && myBoard[x][y-1] == Empty && myBoard[x][y-2] == Empty && myBoard[x][y-3] == myType && myBoard[x][y-4] == Empty)
+                    flag[x][y] ++;
+
+                // Right-Up-Left-Down
+                // Type-1
+                if(myBoard[x+1][y-1] == myType && myBoard[x+2][y-2] == Empty && myBoard[x+3][y-3] == Empty && myBoard[x-1][y+1] == Empty && myBoard[x-2][y+2] == Empty)
+                    flag[x][y] ++;
+                else if(myBoard[x-1][y+1] == myType && myBoard[x-2][y+2] == Empty && myBoard[x-3][y+3] == Empty && myBoard[x+1][y-1] == Empty && myBoard[x+2][y-2] == Empty)
+                    flag[x][y] ++;
+                // Type-2
+                else if(myBoard[x+1][y-1] == myType && myBoard[x+2][y-2] == Empty && myBoard[x+3][y-3] == Empty && myBoard[x+4][y-4] == Empty && myBoard[x-1][y+1] == Empty)
+                    flag[x][y] ++;
+                else if(myBoard[x+1][y-1] == Empty && myBoard[x+2][y-2] == Empty && myBoard[x+3][y-3] == Empty && myBoard[x-1][y+1] == myType && myBoard[x-2][y+2] == Empty)
+                    flag[x][y] ++;
+                else if(myBoard[x-1][y+1] == myType && myBoard[x-2][y+2] == Empty && myBoard[x-3][y+3] == Empty && myBoard[x-4][y+4] == Empty && myBoard[x+1][y-1] == Empty)
+                    flag[x][y] ++;
+                else if(myBoard[x-1][y+1] == Empty && myBoard[x-2][y+2] == Empty && myBoard[x-3][y+3] == Empty && myBoard[x+1][y-1] == myType && myBoard[x+2][y-2] == Empty)
+                    flag[x][y] ++;
+                // Type-3
+                else if(myBoard[x+1][y-1] == Empty && myBoard[x+2][y-2] == myType && myBoard[x+3][y-3] == Empty && myBoard[x+4][y-4] == Empty && myBoard[x-1][y+1] == Empty)
+                    flag[x][y] ++;
+                else if(myBoard[x+1][y-1] == Empty && myBoard[x+2][y-2] == Empty && myBoard[x-1][y+1] == Empty && myBoard[x-2][y+2] == myType && myBoard[x-2][y+2] == Empty)
+                    flag[x][y] ++;
+                else if(myBoard[x-1][y+1] == Empty && myBoard[x-2][y+2] == myType && myBoard[x-3][y+3] == Empty && myBoard[x-4][y+4] == Empty && myBoard[x+1][y-1] == Empty)
+                    flag[x][y] ++;
+                else if(myBoard[x-1][y+1] == Empty && myBoard[x-2][y+2] == Empty && myBoard[x+1][y-1] == Empty && myBoard[x+2][y-2] == myType && myBoard[x+2][y-2] == Empty)
+                    flag[x][y] ++;
+                // Type-4
+                else if(myBoard[x+1][y-1] == Empty && myBoard[x-1][y+1] == Empty && myBoard[x-2][y+2] == Empty && myBoard[x-3][y+3] == myType && myBoard[x-4][y+4] == Empty)
+                    flag[x][y] ++;
+                else if(myBoard[x-1][y+1] == Empty && myBoard[x+1][y-1] == Empty && myBoard[x+2][y-2] == Empty && myBoard[x+3][y-3] == myType && myBoard[x+4][y-4] == Empty)
+                    flag[x][y] ++;
+
+                // Left-Right
+                // Type-1
+                if(myBoard[x-1][y] == myType && myBoard[x-2][y] == Empty && myBoard[x-3][y] == Empty && myBoard[x+1][y] == Empty && myBoard[x+2][y] == Empty)
+                    flag[x][y] ++;
+                else if(myBoard[x+1][y] == myType && myBoard[x+2][y] == Empty && myBoard[x+3][y] == Empty && myBoard[x-1][y] == Empty && myBoard[x-2][y] == Empty)
+                    flag[x][y] ++;
+                // Type-2
+                else if(myBoard[x-1][y] == myType && myBoard[x-2][y] == Empty && myBoard[x-3][y] == Empty && myBoard[x-4][y] == Empty && myBoard[x+1][y] == Empty)
+                    flag[x][y] ++;
+                else if(myBoard[x-1][y] == Empty && myBoard[x-2][y] == Empty && myBoard[x-3][y] == Empty && myBoard[x+1][y] == myType && myBoard[x+2][y] == Empty)
+                    flag[x][y] ++;
+                else if(myBoard[x+1][y] == myType && myBoard[x+2][y] == Empty && myBoard[x+3][y] == Empty && myBoard[x+4][y] == Empty && myBoard[x-1][y] == Empty)
+                    flag[x][y] ++;
+                else if(myBoard[x+1][y] == Empty && myBoard[x+2][y] == Empty && myBoard[x+3][y] == Empty && myBoard[x-1][y] == myType && myBoard[x-2][y] == Empty)
+                    flag[x][y] ++;
+                // Type-3
+                else if(myBoard[x-1][y] == Empty && myBoard[x-2][y] == myType && myBoard[x-3][y] == Empty && myBoard[x-4][y] == Empty && myBoard[x+1][y] == Empty)
+                    flag[x][y] ++;
+                else if(myBoard[x-1][y] == Empty && myBoard[x-2][y] == Empty && myBoard[x+1][y] == Empty && myBoard[x+2][y] == myType && myBoard[x+2][y] == Empty)
+                    flag[x][y] ++;
+                else if(myBoard[x+1][y] == Empty && myBoard[x+2][y] == myType && myBoard[x+3][y] == Empty && myBoard[x+4][y] == Empty && myBoard[x-1][y] == Empty)
+                    flag[x][y] ++;
+                else if(myBoard[x+1][y] == Empty && myBoard[x+2][y] == Empty && myBoard[x-1][y] == Empty && myBoard[x-2][y] == myType && myBoard[x-2][y] == Empty)
+                    flag[x][y] ++;
+                // Type-4
+                else if(myBoard[x-1][y] == Empty && myBoard[x+1][y] == Empty && myBoard[x+2][y] == Empty && myBoard[x+3][y] == myType && myBoard[x+4][y] == Empty)
+                    flag[x][y] ++;
+                else if(myBoard[x+1][y] == Empty && myBoard[x-1][y] == Empty && myBoard[x-2][y] == Empty && myBoard[x-3][y] == myType && myBoard[x-4][y] == Empty)
+                    flag[x][y] ++;
+
+                // Left-Up-Right-Down
+                // Type-1
+                if(myBoard[x-1][y-1] == myType && myBoard[x-2][y-2] == Empty && myBoard[x-3][y-3] == Empty && myBoard[x+1][y+1] == Empty && myBoard[x+2][y+2] == Empty)
+                    flag[x][y] ++;
+                else if(myBoard[x+1][y+1] == myType && myBoard[x+2][y+2] == Empty && myBoard[x+3][y+3] == Empty && myBoard[x-1][y-1] == Empty && myBoard[x-2][y-2] == Empty)
+                    flag[x][y] ++;
+                // Type-2
+                else if(myBoard[x-1][y-1] == myType && myBoard[x-2][y-2] == Empty && myBoard[x-3][y-3] == Empty && myBoard[x-4][y-4] == Empty && myBoard[x+1][y+1] == Empty)
+                    flag[x][y] ++;
+                else if(myBoard[x-1][y-1] == Empty && myBoard[x-2][y-2] == Empty && myBoard[x-3][y-3] == Empty && myBoard[x+1][y+1] == myType && myBoard[x+2][y+2] == Empty)
+                    flag[x][y] ++;
+                else if(myBoard[x+1][y+1] == myType && myBoard[x+2][y+2] == Empty && myBoard[x+3][y+3] == Empty && myBoard[x+4][y+4] == Empty && myBoard[x-1][y-1] == Empty)
+                    flag[x][y] ++;
+                else if(myBoard[x+1][y+1] == Empty && myBoard[x+2][y+2] == Empty && myBoard[x+3][y+3] == Empty && myBoard[x-1][y-1] == myType && myBoard[x-2][y-2] == Empty)
+                    flag[x][y] ++;
+                // Type-3
+                else if(myBoard[x-1][y-1] == Empty && myBoard[x-2][y-2] == myType && myBoard[x-3][y-3] == Empty && myBoard[x-4][y-4] == Empty && myBoard[x+1][y+1] == Empty)
+                    flag[x][y] ++;
+                else if(myBoard[x-1][y-1] == Empty && myBoard[x-2][y-2] == Empty && myBoard[x+1][y+1] == Empty && myBoard[x+2][y+2] == myType && myBoard[x+2][y+2] == Empty)
+                    flag[x][y] ++;
+                else if(myBoard[x+1][y+1] == Empty && myBoard[x+2][y+2] == myType && myBoard[x+3][y+3] == Empty && myBoard[x+4][y+4] == Empty && myBoard[x-1][y-1] == Empty)
+                    flag[x][y] ++;
+                else if(myBoard[x+1][y+1] == Empty && myBoard[x+2][y+2] == Empty && myBoard[x-1][y-1] == Empty && myBoard[x-2][y-2] == myType && myBoard[x-2][y-2] == Empty)
+                    flag[x][y] ++;
+                // Type-4
+                else if(myBoard[x-1][y-1] == Empty && myBoard[x+1][y+1] == Empty && myBoard[x+2][y+2] == Empty && myBoard[x+3][y+3] == myType && myBoard[x+4][y+4] == Empty)
+                    flag[x][y] ++;
+                else if(myBoard[x+1][y+1] == Empty && myBoard[x-1][y-1] == Empty && myBoard[x-2][y-2] == Empty && myBoard[x-3][y-3] == myType && myBoard[x-4][y-4] == Empty)
+                    flag[x][y] ++;
+            }
+        }
+    }
+    max = flag[0][0];
+    pp.Set(0,0);
+    for(int x = 0; x < BoardSize; x++)
+    {
+        for(int y = 0; y < BoardSize; y++)
+        {
+            if(flag[x][y] > max)
+            {
+                max = flag[x][y];
+                pp.Set(x,y);
+            }
+        }
+    }
+    if(max >= 2)
+    {
+        return pp;
+    }
+    else
+    {
+        Point p;
+        return p;
+    }
+}
+
 Point GXY_AI::Move()
 {
     Locate_Point();
     Defend_Final();
     Attack_Final();
-    
+    // Defend sleep 4 or connected 4
     if(fabs(Defend_Lv_Final - 1.35)<0.000001 || fabs(Defend_Lv_Final - 1.6)<0.000001 || fabs(Defend_Lv_Final - 1.85)<0.000001 || fabs(Defend_Lv_Final - 2.1)<0.000001 || fabs(Defend_Lv_Final - 2.35)<0.000001 || fabs(Defend_Lv_Final - 2.6)<0.000001 || fabs(Defend_Lv_Final - 2.75)<0.000001 || fabs(Defend_Lv_Final - 3)<0.000001)   
     {
+        // if I have sleep 4 or connected 4, then I choose to attack
         if(fabs(Attack_Lv_Final - 1.35)<0.000001 || fabs(Attack_Lv_Final - 1.6)<0.000001 || fabs(Attack_Lv_Final - 1.85)<0.000001 || fabs(Attack_Lv_Final - 2.1)<0.000001 || fabs(Attack_Lv_Final - 2.35)<0.000001 || fabs(Attack_Lv_Final - 2.6)<0.000001 || fabs(Attack_Lv_Final - 2.75)<0.000001 || fabs(Attack_Lv_Final - 3)<0.000001)
         {
             if(Attacker_Final.Valid() == true)
@@ -1174,6 +1336,7 @@ Point GXY_AI::Move()
                 return Random_Move();
             }     
         }
+        // else I choose to defend
         else
         {
             if(Defender_Final.Valid() == true)
@@ -1190,9 +1353,10 @@ Point GXY_AI::Move()
             }    
         }  
     }     
-        
+    // Defend sleep 3 or connected 3
     else if(fabs(Defend_Lv_Final - 1.1)<0.000001 || fabs(Defend_Lv_Final - 2)<0.000001)
     {
+        // if I have sleep 3 or connected 3, then I choose to attack
         if(fabs(Attack_Lv_Final - 1.1)<0.000001 || fabs(Attack_Lv_Final - 1.35)<0.000001 || fabs(Attack_Lv_Final - 1.6)<0.000001 || fabs(Attack_Lv_Final - 1.85)<0.000001 || fabs(Attack_Lv_Final - 2)<0.000001 || fabs(Attack_Lv_Final - 2.1)<0.000001 || fabs(Attack_Lv_Final - 2.35)<0.000001 || fabs(Attack_Lv_Final - 2.6)<0.000001 || fabs(Attack_Lv_Final - 2.75)<0.000001 || fabs(Attack_Lv_Final - 3)<0.000001)
         {
             if(Attacker_Final.Valid() == true)
@@ -1208,6 +1372,7 @@ Point GXY_AI::Move()
                 return Random_Move();
             } 
         }
+        // else I choose to defend
         else
         {
             if(Defender_Final.Valid() == true)
@@ -1224,10 +1389,11 @@ Point GXY_AI::Move()
             }   
         }
     }             
-
+    // if there is no obvious defense to do
     else
     {
-        if(fabs(Attack_Lv_Final - 1.35)<0.000001 || fabs(Attack_Lv_Final - 1.6)<0.000001 || fabs(Attack_Lv_Final - 1.85)<0.000001 || fabs(Attack_Lv_Final - 2)<0.000001 || fabs(Attack_Lv_Final - 2.1)<0.000001 || fabs(Attack_Lv_Final - 2.35)<0.000001 || fabs(Attack_Lv_Final - 2.6)<0.000001 || fabs(Attack_Lv_Final - 2.75)<0.000001 || fabs(Attack_Lv_Final - 3)<0.000001)
+        // if I have one step to win, then I choose to move and win
+        if(fabs(Attack_Lv_Final - 1.1)<0.000001 || fabs(Attack_Lv_Final - 1.35)<0.000001 || fabs(Attack_Lv_Final - 1.6)<0.000001 || fabs(Attack_Lv_Final - 1.85)<0.000001 || fabs(Attack_Lv_Final - 2)<0.000001 || fabs(Attack_Lv_Final - 2.1)<0.000001 || fabs(Attack_Lv_Final - 2.35)<0.000001 || fabs(Attack_Lv_Final - 2.6)<0.000001 || fabs(Attack_Lv_Final - 2.75)<0.000001 || fabs(Attack_Lv_Final - 3)<0.000001)
         {
             if(Attacker_Final.Valid() == true)
             {
@@ -1244,6 +1410,7 @@ Point GXY_AI::Move()
         }
         else
         {
+            // check the whole board to find if there is one move could lead to 2 or more connected or sleep 3 or 4 to prepare for the next attack
             Point att_P = Att_Chk_Next();
             if(att_P.Valid() == true)
             {
@@ -1251,6 +1418,7 @@ Point GXY_AI::Move()
             }
             else
             {
+                // else to find one defense move could block up the potential anti move which could cause 2 or more anti-attack
                 Point def_P = Def_Chk_Next();
                 if(def_P.Valid() == true)
                 {
@@ -1258,21 +1426,29 @@ Point GXY_AI::Move()
                 }
                 else
                 {
-                    if(Attacker_Final.Valid() == true)
+                    // finally I choose to attack
+                    Point att_P_active_Two = Max_Active_Two();
+                    if(att_P_active_Two.Valid() == true)
                     {
-                        return Attacker_Final;
-                    }  
-                    else if(Defender_Final.Valid() == true)
-                    {
-                        return Defender_Final;
-                    }             
+                        return att_P_active_Two;
+                    }
                     else
                     {
-                        return Random_Move();
-                    } 
+                        if(Attacker_Final.Valid() == true)
+                        {
+                            return Attacker_Final;
+                        }  
+                        else if(Defender_Final.Valid() == true)
+                        {
+                            return Defender_Final;
+                        }             
+                        else
+                        {
+                            return Random_Move();
+                        } 
+                    }
                 }
             }
-            
         }     
     }       
 }
