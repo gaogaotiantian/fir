@@ -1,4 +1,7 @@
 #include "game.h"
+#include <math.h>
+#include <vector>
+using namespace std;
 
 void buildStatusBoard(const NodeType board[BoardSize][BoardSize], int statusBoard[BoardSize][BoardSize][5], NodeType type) {
     for (int i = 0; i < BoardSize; i++) {
@@ -83,10 +86,10 @@ void buildStatusBoard(const NodeType board[BoardSize][BoardSize], int statusBoar
                 int rightDiagnalCount = (offsetRightTop - 1) + (offsetLeftBottom - 1) + 1;
 
 
-                statusBoard[i][j][0] = horizonCount * horizonCount * horizonCount * horizonBlock;
-                statusBoard[i][j][1] = verticalCount * verticalCount * verticalCount * verticalBlock;
-                statusBoard[i][j][2] = leftDiagnalCount * leftDiagnalCount * leftDiagnalCount * leftDiagnalBlock;
-                statusBoard[i][j][3] = rightDiagnalCount * rightDiagnalCount * rightDiagnalCount * rightDiagnalBlock;
+                statusBoard[i][j][0] = (int) pow(horizonCount, 3) * horizonBlock;
+                statusBoard[i][j][1] = (int) pow(verticalCount, 3) * verticalBlock;
+                statusBoard[i][j][2] = (int) pow(leftDiagnalCount, 3) * leftDiagnalBlock;
+                statusBoard[i][j][3] = (int) pow(rightDiagnalCount, 3) * rightDiagnalBlock;
                 statusBoard[i][j][4] = statusBoard[i][j][0] + statusBoard[i][j][1] + statusBoard[i][j][2] + statusBoard[i][j][3];
             }
         }
@@ -106,15 +109,20 @@ Point yhfAI(const NodeType board[BoardSize][BoardSize], NodeType yourType) {
     bool allEmpty = true;
     int maxMy = 0, maxHe = 0, maxMyI = 0, maxMyJ = 0, maxHeI = 0, maxHeJ;
     int THRESHOLD = 124;
+    vector<int> dangerPoints;
     for (int i = 0; i < BoardSize; i++) {
         for (int j = 0; j < BoardSize; j++) {
             if (heStatusBoard[i][j][0] >= THRESHOLD || heStatusBoard[i][j][1] >= THRESHOLD ||
                 heStatusBoard[i][j][2] >= THRESHOLD || heStatusBoard[i][j][3] >= THRESHOLD) {
-                Point p(i, j);
-                return p;
+                dangerPoints.push_back(i * BoardSize + j);
             }
             if (board[i][j] == yourType) {
                 allEmpty = false;
+            }
+            if (myStatusBoard[i][j][0] >= THRESHOLD || myStatusBoard[i][j][1] >= THRESHOLD ||
+                myStatusBoard[i][j][2] >= THRESHOLD || myStatusBoard[i][j][3] >= THRESHOLD) {
+                Point p(i, j);
+                return p;
             }
             if (myStatusBoard[i][j][4] > maxMy) {
                 maxMy = myStatusBoard[i][j][4];
@@ -128,6 +136,23 @@ Point yhfAI(const NodeType board[BoardSize][BoardSize], NodeType yourType) {
                 maxHeJ = j;
             }
         }
+    }
+
+    if (dangerPoints.size() > 0) {
+        // find the most dangerous point from dangerPoints.
+        int heMaxStatus = 0;
+        int heMaxI, heMaxJ;
+        for (int &index : dangerPoints) {
+            int i = index / BoardSize;
+            int j = index % BoardSize;
+            if (heStatusBoard[i][j][4] > heMaxStatus) {
+                heMaxStatus = heStatusBoard[i][j][4];
+                heMaxI = i;
+                heMaxJ = j;
+            }
+        }
+        Point p(heMaxI, heMaxJ);
+        return p;
     }
 
     if (allEmpty) {
