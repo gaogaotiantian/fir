@@ -23,7 +23,8 @@ public:
     Point Df_Level_Check(Point p, int x1, int y1);
     Point At_Level_Check(Point p, int x1, int y1, float Lv);
     Point Def_Chk_Next(); // find out next anti step which may cause two attack chains, then block up that position
-    Point Att_Chk_Next();
+    Point Att_Chk_Next_33();
+    Point Att_Chk_Next_23();
     Point Max_Active_Two();
     Point Move();
     Point Random_Move();
@@ -538,7 +539,116 @@ Point GXY_AI::Def_Chk_Next()
     return p;
 }
 
-Point GXY_AI::Att_Chk_Next()
+Point GXY_AI::Att_Chk_Next_33()
+{
+    float Lv_UD1 = 0, Lv_LR1 = 0, Lv_RULD1 = 0, Lv_RDLU1 = 0;
+    float Lv_UD2 = 0, Lv_LR2 = 0, Lv_RULD2 = 0, Lv_RDLU2 = 0;
+    float Lv_UD = 0, Lv_LR = 0, Lv_RULD = 0, Lv_RDLU = 0;
+    int flagg = 0;
+    for(int x = 0; x < BoardSize; x++)
+    {
+        for(int y = 0; y < BoardSize; y++)
+        {
+            if (myBoard[x][y] == Empty)
+            {   
+                Point point;
+                point.Set(x,y); 
+                // first up then down, first ru then ld, so on
+                float tpLv_UD1    =    At_Level_Check(point,  0, -1, 0, false, false);
+                Lv_UD1    =    At_Level_Check(point,  0,  1, tpLv_UD1, false, false);
+                float tpLv_RULD1  =    At_Level_Check(point,  1, -1, 0, false, false);
+                Lv_RULD1  =    At_Level_Check(point, -1,  1, tpLv_RULD1, false, false);
+                float tpLv_LR1    =    At_Level_Check(point,  1,  0, 0, false, false);
+                Lv_LR1    =    At_Level_Check(point, -1,  0, tpLv_LR1, false, false);
+                float tpLv_RDLU1  =    At_Level_Check(point,  1,  1, 0, false, false);
+                Lv_RDLU1  =    At_Level_Check(point, -1, -1, tpLv_RDLU1, false, false);
+                // first down then up, first ld then ru, so on
+                float tpLv_UD2    =    At_Level_Check(point,  0, 1, 0, false, false);
+                Lv_UD2    =    At_Level_Check(point,  0,  -1, tpLv_UD2, false, false);
+                float tpLv_RULD2  =    At_Level_Check(point,  -1, 1, 0, false, false);
+                Lv_RULD2  =    At_Level_Check(point, 1, -1, tpLv_RULD2, false, false);
+                float tpLv_LR2    =    At_Level_Check(point,  -1, 0, 0, false, false);
+                Lv_LR2    =    At_Level_Check(point, 1,  0, tpLv_LR2, false, false);
+                float tpLv_RDLU2  =    At_Level_Check(point, -1, -1, 0, false, false);
+                Lv_RDLU2  =    At_Level_Check(point, 1, 1, tpLv_RDLU2, false, false);
+
+                Lv_UD = Find_Def_Special(Lv_UD1, Lv_UD2);
+                Lv_LR = Find_Def_Special(Lv_LR1, Lv_LR2);
+                Lv_RULD = Find_Def_Special(Lv_RULD1, Lv_RULD2);
+                Lv_RDLU = Find_Def_Special(Lv_RDLU1, Lv_RDLU2);
+
+                flagg = 0;
+                if(fabs(Lv_UD - 1.1)<0.000001 || fabs(Lv_UD - 1.35)<0.000001 || fabs(Lv_UD - 1.6)<0.000001 || fabs(Lv_UD - 1.85)<0.000001 || fabs(Lv_UD - 2.1)<0.000001 || fabs(Lv_UD - 2.35)<0.000001 || fabs(Lv_UD - 2.6)<0.000001 || fabs(Lv_UD - 2)<0.000001 || fabs(Lv_UD - 2.75)<0.000001 || fabs(Lv_UD - 3)<0.000001)
+                {
+                    flagg++;
+                }
+                if(fabs(Lv_LR - 1.1)<0.000001 || fabs(Lv_LR - 1.35)<0.000001 || fabs(Lv_LR - 1.6)<0.000001 || fabs(Lv_LR - 1.85)<0.000001 || fabs(Lv_LR - 2.1)<0.000001 || fabs(Lv_LR - 2.35)<0.000001 || fabs(Lv_LR - 2.6)<0.000001 || fabs(Lv_LR - 2)<0.000001 || fabs(Lv_LR - 2.75)<0.000001 || fabs(Lv_LR - 3)<0.000001)
+                {
+                    flagg++;
+                }
+                if(fabs(Lv_RULD - 1.1)<0.000001 || fabs(Lv_RULD - 1.35)<0.000001 || fabs(Lv_RULD - 1.6)<0.000001 || fabs(Lv_RULD - 1.85)<0.000001 || fabs(Lv_RULD - 2.1)<0.000001 || fabs(Lv_RULD - 2.35)<0.000001 || fabs(Lv_RULD - 2.6)<0.000001 || fabs(Lv_RULD - 2)<0.000001 || fabs(Lv_RULD - 2.75)<0.000001 || fabs(Lv_RULD - 3)<0.000001)
+                {
+                    flagg++;
+                }
+                if(fabs(Lv_RDLU - 1.1)<0.000001 || fabs(Lv_RDLU - 1.35)<0.000001 || fabs(Lv_RDLU - 1.6)<0.000001 || fabs(Lv_RDLU - 1.85)<0.000001 || fabs(Lv_RDLU - 2.1)<0.000001 || fabs(Lv_RDLU - 2.35)<0.000001 || fabs(Lv_RDLU - 2.6)<0.000001 || fabs(Lv_RDLU - 2)<0.000001 || fabs(Lv_RDLU - 2.75)<0.000001 || fabs(Lv_RDLU - 3)<0.000001)
+                {
+                    flagg++;
+                }
+
+                tpLv_UD1    =    At_Level_Check(point,  0, -1, 0, false, true);
+                Lv_UD1      =    At_Level_Check(point,  0,  1, tpLv_UD1, false, true);
+                tpLv_RULD1  =    At_Level_Check(point,  1, -1, 0, false, true);
+                Lv_RULD1    =    At_Level_Check(point, -1,  1, tpLv_RULD1, false, true);
+                tpLv_LR1    =    At_Level_Check(point,  1,  0, 0, false, true);
+                Lv_LR1      =    At_Level_Check(point, -1,  0, tpLv_LR1, false, true);
+                tpLv_RDLU1  =    At_Level_Check(point,  1,  1, 0, false, true);
+                Lv_RDLU1    =    At_Level_Check(point, -1, -1, tpLv_RDLU1, false, true);
+                // first down then up, first ld then ru, so on
+                tpLv_UD2    =    At_Level_Check(point,  0, 1, 0, false, true);
+                Lv_UD2      =    At_Level_Check(point,  0,  -1, tpLv_UD2, false, true);
+                tpLv_RULD2  =    At_Level_Check(point,  -1, 1, 0, false, true);
+                Lv_RULD2    =    At_Level_Check(point, 1, -1, tpLv_RULD2, false, true);
+                tpLv_LR2    =    At_Level_Check(point,  -1, 0, 0, false, true);
+                Lv_LR2      =    At_Level_Check(point, 1,  0, tpLv_LR2, false, true);
+                tpLv_RDLU2  =    At_Level_Check(point, -1, -1, 0, false, true);
+                Lv_RDLU2    =    At_Level_Check(point, 1, 1, tpLv_RDLU2, false, true);
+
+                Lv_UD = Find_Def_Special(Lv_UD1, Lv_UD2);
+                Lv_LR = Find_Def_Special(Lv_LR1, Lv_LR2);
+                Lv_RULD = Find_Def_Special(Lv_RULD1, Lv_RULD2);
+                Lv_RDLU = Find_Def_Special(Lv_RDLU1, Lv_RDLU2);
+
+                if(fabs(Lv_UD - 0.65)<0.000001 || fabs(Lv_UD - 1.05)<0.000001 || fabs(Lv_UD - 1.3)<0.000001)
+                {
+                    flagg++;
+                }
+                if(fabs(Lv_LR - 0.65)<0.000001 || fabs(Lv_LR - 1.05)<0.000001 || fabs(Lv_LR - 1.3)<0.000001)
+                {
+                    flagg++;
+                }
+                if(fabs(Lv_RULD - 0.65)<0.000001 || fabs(Lv_RULD - 1.05)<0.000001 || fabs(Lv_RULD - 1.3)<0.000001)
+                {
+                    flagg++;
+                }
+                if(fabs(Lv_RDLU - 0.65)<0.000001 || fabs(Lv_RDLU - 1.05)<0.000001 || fabs(Lv_RDLU - 1.3)<0.000001)
+                {
+                    flagg++;
+                }
+
+                if(flagg >= 2)
+                {
+                    Point pp;
+                    pp.Set(x,y);
+                    return pp;
+                }
+            }
+        }
+    }
+    Point p;
+    return p;
+}
+
+Point GXY_AI::Att_Chk_Next_23()
 {
     float Lv_UD1 = 0, Lv_LR1 = 0, Lv_RULD1 = 0, Lv_RDLU1 = 0;
     float Lv_UD2 = 0, Lv_LR2 = 0, Lv_RULD2 = 0, Lv_RDLU2 = 0;
@@ -634,17 +744,11 @@ Point GXY_AI::Att_Chk_Next()
                 {
                     flagg++;
                 }
-
-                if(flagg >= 2)
-                {
-                    Point p;
-                    p.Set(x,y);
-                    return p;
-                }
                 
                 for(int i = 0; i < BoardSize; i++)
                     for(int j = 0; j < BoardSize; j++)
                         flag[i][j] = 0;
+
                 if(flagg == 1)
                 {
                     // Up-Down
@@ -1556,10 +1660,10 @@ Point GXY_AI::Move()
         else
         {
             // check the whole board to find if there is one move could lead to 2 or more connected or sleep 3 or 4 to prepare for the next attack
-            Point att_P = Att_Chk_Next();
-            if(att_P.Valid() == true)
+            Point att_P_33 = Att_Chk_Next_33();
+            if(att_P_33.Valid() == true)
             {
-                return att_P;
+                return att_P_33;
             }
             else
             {
@@ -1570,28 +1674,36 @@ Point GXY_AI::Move()
                     return def_P;
                 }
                 else
-                {
+                { 
                     // finally I choose to attack
-                    Point att_P_active_Two = Max_Active_Two();
-                    if(att_P_active_Two.Valid() == true)
+                    Point att_P_23 = Att_Chk_Next_23();
+                    if(att_P_23.Valid() == true)
                     {
-                        return att_P_active_Two;
+                        return att_P_23;
                     }
                     else
                     {
-                        if(Attacker_Final.Valid() == true)
+                        Point att_P_active_Two = Max_Active_Two();
+                        if(att_P_active_Two.Valid() == true)
                         {
-                            return Attacker_Final;
-                        }  
-                        else if(Defender_Final.Valid() == true)
-                        {
-                            return Defender_Final;
-                        }             
+                            return att_P_active_Two;
+                        }
                         else
                         {
-                            return Random_Move();
+                            if(Attacker_Final.Valid() == true)
+                            {
+                                return Attacker_Final;
+                            }  
+                            else if(Defender_Final.Valid() == true)
+                            {
+                                return Defender_Final;
+                            }             
+                            else
+                            {
+                                return Random_Move();
+                            } 
                         } 
-                    }
+                    }     
                 }
             }
         }     
