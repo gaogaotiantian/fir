@@ -543,7 +543,8 @@ Point GXY_AI::Att_Chk_Next()
     float Lv_UD1 = 0, Lv_LR1 = 0, Lv_RULD1 = 0, Lv_RDLU1 = 0;
     float Lv_UD2 = 0, Lv_LR2 = 0, Lv_RULD2 = 0, Lv_RDLU2 = 0;
     float Lv_UD = 0, Lv_LR = 0, Lv_RULD = 0, Lv_RDLU = 0;
-    int flag = 0;
+    int flagg = 0;
+    int flag[BoardSize][BoardSize];
     for(int x = 0; x < BoardSize; x++)
     {
         for(int y = 0; y < BoardSize; y++)
@@ -576,22 +577,22 @@ Point GXY_AI::Att_Chk_Next()
                 Lv_RULD = Find_Def_Special(Lv_RULD1, Lv_RULD2);
                 Lv_RDLU = Find_Def_Special(Lv_RDLU1, Lv_RDLU2);
 
-                flag = 0;
+                flagg = 0;
                 if(fabs(Lv_UD - 1.1)<0.000001 || fabs(Lv_UD - 1.35)<0.000001 || fabs(Lv_UD - 1.6)<0.000001 || fabs(Lv_UD - 1.85)<0.000001 || fabs(Lv_UD - 2.1)<0.000001 || fabs(Lv_UD - 2.35)<0.000001 || fabs(Lv_UD - 2.6)<0.000001 || fabs(Lv_UD - 2)<0.000001 || fabs(Lv_UD - 2.75)<0.000001 || fabs(Lv_UD - 3)<0.000001)
                 {
-                    flag++;
+                    flagg++;
                 }
                 if(fabs(Lv_LR - 1.1)<0.000001 || fabs(Lv_LR - 1.35)<0.000001 || fabs(Lv_LR - 1.6)<0.000001 || fabs(Lv_LR - 1.85)<0.000001 || fabs(Lv_LR - 2.1)<0.000001 || fabs(Lv_LR - 2.35)<0.000001 || fabs(Lv_LR - 2.6)<0.000001 || fabs(Lv_LR - 2)<0.000001 || fabs(Lv_LR - 2.75)<0.000001 || fabs(Lv_LR - 3)<0.000001)
                 {
-                    flag++;
+                    flagg++;
                 }
                 if(fabs(Lv_RULD - 1.1)<0.000001 || fabs(Lv_RULD - 1.35)<0.000001 || fabs(Lv_RULD - 1.6)<0.000001 || fabs(Lv_RULD - 1.85)<0.000001 || fabs(Lv_RULD - 2.1)<0.000001 || fabs(Lv_RULD - 2.35)<0.000001 || fabs(Lv_RULD - 2.6)<0.000001 || fabs(Lv_RULD - 2)<0.000001 || fabs(Lv_RULD - 2.75)<0.000001 || fabs(Lv_RULD - 3)<0.000001)
                 {
-                    flag++;
+                    flagg++;
                 }
                 if(fabs(Lv_RDLU - 1.1)<0.000001 || fabs(Lv_RDLU - 1.35)<0.000001 || fabs(Lv_RDLU - 1.6)<0.000001 || fabs(Lv_RDLU - 1.85)<0.000001 || fabs(Lv_RDLU - 2.1)<0.000001 || fabs(Lv_RDLU - 2.35)<0.000001 || fabs(Lv_RDLU - 2.6)<0.000001 || fabs(Lv_RDLU - 2)<0.000001 || fabs(Lv_RDLU - 2.75)<0.000001 || fabs(Lv_RDLU - 3)<0.000001)
                 {
-                    flag++;
+                    flagg++;
                 }
 
                 tpLv_UD1    =    At_Level_Check(point,  0, -1, 0, false, true);
@@ -619,36 +620,180 @@ Point GXY_AI::Att_Chk_Next()
 
                 if(fabs(Lv_UD - 0.65)<0.000001 || fabs(Lv_UD - 1.05)<0.000001 || fabs(Lv_UD - 1.3)<0.000001)
                 {
-                    flag++;
+                    flagg++;
                 }
                 if(fabs(Lv_LR - 0.65)<0.000001 || fabs(Lv_LR - 1.05)<0.000001 || fabs(Lv_LR - 1.3)<0.000001)
                 {
-                    flag++;
+                    flagg++;
                 }
                 if(fabs(Lv_RULD - 0.65)<0.000001 || fabs(Lv_RULD - 1.05)<0.000001 || fabs(Lv_RULD - 1.3)<0.000001)
                 {
-                    flag++;
+                    flagg++;
                 }
                 if(fabs(Lv_RDLU - 0.65)<0.000001 || fabs(Lv_RDLU - 1.05)<0.000001 || fabs(Lv_RDLU - 1.3)<0.000001)
                 {
-                    flag++;
+                    flagg++;
                 }
 
-                if(flag >= 2)
+                if(flagg >= 2)
                 {
                     Point p;
                     p.Set(x,y);
                     return p;
                 }
-                else
+                
+                for(int i = 0; i < BoardSize; i++)
+                    for(int j = 0; j < BoardSize; j++)
+                        flag[i][j] = 0;
+                if(flagg == 1)
                 {
-                    continue;
+                    // Up-Down
+                    // Type-1
+                    if(myBoard[x][y-1] == myType && myBoard[x][y-2] == Empty && myBoard[x][y-3] == Empty && myBoard[x][y+1] == Empty && myBoard[x][y+2] == Empty)
+                        flag[x][y] ++;
+                    else if(myBoard[x][y+1] == myType && myBoard[x][y+2] == Empty && myBoard[x][y+3] == Empty && myBoard[x][y-1] == Empty && myBoard[x][y-2] == Empty)
+                        flag[x][y] ++;
+                    // Type-2
+                    else if(myBoard[x][y-1] == myType && myBoard[x][y-2] == Empty && myBoard[x][y-3] == Empty && myBoard[x][y-4] == Empty && myBoard[x][y+1] == Empty)
+                        flag[x][y] ++;
+                    else if(myBoard[x][y-1] == Empty && myBoard[x][y-2] == Empty && myBoard[x][y-3] == Empty && myBoard[x][y+1] == myType && myBoard[x][y+2] == Empty)
+                        flag[x][y] ++;
+                    else if(myBoard[x][y+1] == myType && myBoard[x][y+2] == Empty && myBoard[x][y+3] == Empty && myBoard[x][y+4] == Empty && myBoard[x][y-1] == Empty)
+                        flag[x][y] ++;
+                    else if(myBoard[x][y+1] == Empty && myBoard[x][y+2] == Empty && myBoard[x][y+3] == Empty && myBoard[x][y-1] == myType && myBoard[x][y-2] == Empty)
+                        flag[x][y] ++;
+                    // Type-3
+                    else if(myBoard[x][y-1] == Empty && myBoard[x][y-2] == myType && myBoard[x][y-3] == Empty && myBoard[x][y-4] == Empty && myBoard[x][y+1] == Empty)
+                        flag[x][y] ++;
+                    else if(myBoard[x][y-1] == Empty && myBoard[x][y-2] == Empty && myBoard[x][y+1] == Empty && myBoard[x][y+2] == myType && myBoard[x][y+2] == Empty)
+                        flag[x][y] ++;
+                    else if(myBoard[x][y+1] == Empty && myBoard[x][y+2] == myType && myBoard[x][y+3] == Empty && myBoard[x][y+4] == Empty && myBoard[x][y-1] == Empty)
+                        flag[x][y] ++;
+                    else if(myBoard[x][y+1] == Empty && myBoard[x][y+2] == Empty && myBoard[x][y-1] == Empty && myBoard[x][y-2] == myType && myBoard[x][y-2] == Empty)
+                        flag[x][y] ++;
+                    // Type-4
+                    else if(myBoard[x][y-1] == Empty && myBoard[x][y+1] == Empty && myBoard[x][y+2] == Empty && myBoard[x][y+3] == myType && myBoard[x][y+4] == Empty)
+                        flag[x][y] ++;
+                    else if(myBoard[x][y+1] == Empty && myBoard[x][y-1] == Empty && myBoard[x][y-2] == Empty && myBoard[x][y-3] == myType && myBoard[x][y-4] == Empty)
+                        flag[x][y] ++;
+
+                    // Right-Up-Left-Down
+                    // Type-1
+                    if(myBoard[x+1][y-1] == myType && myBoard[x+2][y-2] == Empty && myBoard[x+3][y-3] == Empty && myBoard[x-1][y+1] == Empty && myBoard[x-2][y+2] == Empty)
+                        flag[x][y] ++;
+                    else if(myBoard[x-1][y+1] == myType && myBoard[x-2][y+2] == Empty && myBoard[x-3][y+3] == Empty && myBoard[x+1][y-1] == Empty && myBoard[x+2][y-2] == Empty)
+                        flag[x][y] ++;
+                    // Type-2
+                    else if(myBoard[x+1][y-1] == myType && myBoard[x+2][y-2] == Empty && myBoard[x+3][y-3] == Empty && myBoard[x+4][y-4] == Empty && myBoard[x-1][y+1] == Empty)
+                        flag[x][y] ++;
+                    else if(myBoard[x+1][y-1] == Empty && myBoard[x+2][y-2] == Empty && myBoard[x+3][y-3] == Empty && myBoard[x-1][y+1] == myType && myBoard[x-2][y+2] == Empty)
+                        flag[x][y] ++;
+                    else if(myBoard[x-1][y+1] == myType && myBoard[x-2][y+2] == Empty && myBoard[x-3][y+3] == Empty && myBoard[x-4][y+4] == Empty && myBoard[x+1][y-1] == Empty)
+                        flag[x][y] ++;
+                    else if(myBoard[x-1][y+1] == Empty && myBoard[x-2][y+2] == Empty && myBoard[x-3][y+3] == Empty && myBoard[x+1][y-1] == myType && myBoard[x+2][y-2] == Empty)
+                        flag[x][y] ++;
+                    // Type-3
+                    else if(myBoard[x+1][y-1] == Empty && myBoard[x+2][y-2] == myType && myBoard[x+3][y-3] == Empty && myBoard[x+4][y-4] == Empty && myBoard[x-1][y+1] == Empty)
+                        flag[x][y] ++;
+                    else if(myBoard[x+1][y-1] == Empty && myBoard[x+2][y-2] == Empty && myBoard[x-1][y+1] == Empty && myBoard[x-2][y+2] == myType && myBoard[x-2][y+2] == Empty)
+                        flag[x][y] ++;
+                    else if(myBoard[x-1][y+1] == Empty && myBoard[x-2][y+2] == myType && myBoard[x-3][y+3] == Empty && myBoard[x-4][y+4] == Empty && myBoard[x+1][y-1] == Empty)
+                        flag[x][y] ++;
+                    else if(myBoard[x-1][y+1] == Empty && myBoard[x-2][y+2] == Empty && myBoard[x+1][y-1] == Empty && myBoard[x+2][y-2] == myType && myBoard[x+2][y-2] == Empty)
+                        flag[x][y] ++;
+                    // Type-4
+                    else if(myBoard[x+1][y-1] == Empty && myBoard[x-1][y+1] == Empty && myBoard[x-2][y+2] == Empty && myBoard[x-3][y+3] == myType && myBoard[x-4][y+4] == Empty)
+                        flag[x][y] ++;
+                    else if(myBoard[x-1][y+1] == Empty && myBoard[x+1][y-1] == Empty && myBoard[x+2][y-2] == Empty && myBoard[x+3][y-3] == myType && myBoard[x+4][y-4] == Empty)
+                        flag[x][y] ++;
+
+                    // Left-Right
+                    // Type-1
+                    if(myBoard[x-1][y] == myType && myBoard[x-2][y] == Empty && myBoard[x-3][y] == Empty && myBoard[x+1][y] == Empty && myBoard[x+2][y] == Empty)
+                        flag[x][y] ++;
+                    else if(myBoard[x+1][y] == myType && myBoard[x+2][y] == Empty && myBoard[x+3][y] == Empty && myBoard[x-1][y] == Empty && myBoard[x-2][y] == Empty)
+                        flag[x][y] ++;
+                    // Type-2
+                    else if(myBoard[x-1][y] == myType && myBoard[x-2][y] == Empty && myBoard[x-3][y] == Empty && myBoard[x-4][y] == Empty && myBoard[x+1][y] == Empty)
+                        flag[x][y] ++;
+                    else if(myBoard[x-1][y] == Empty && myBoard[x-2][y] == Empty && myBoard[x-3][y] == Empty && myBoard[x+1][y] == myType && myBoard[x+2][y] == Empty)
+                        flag[x][y] ++;
+                    else if(myBoard[x+1][y] == myType && myBoard[x+2][y] == Empty && myBoard[x+3][y] == Empty && myBoard[x+4][y] == Empty && myBoard[x-1][y] == Empty)
+                        flag[x][y] ++;
+                    else if(myBoard[x+1][y] == Empty && myBoard[x+2][y] == Empty && myBoard[x+3][y] == Empty && myBoard[x-1][y] == myType && myBoard[x-2][y] == Empty)
+                        flag[x][y] ++;
+                    // Type-3
+                    else if(myBoard[x-1][y] == Empty && myBoard[x-2][y] == myType && myBoard[x-3][y] == Empty && myBoard[x-4][y] == Empty && myBoard[x+1][y] == Empty)
+                        flag[x][y] ++;
+                    else if(myBoard[x-1][y] == Empty && myBoard[x-2][y] == Empty && myBoard[x+1][y] == Empty && myBoard[x+2][y] == myType && myBoard[x+2][y] == Empty)
+                        flag[x][y] ++;
+                    else if(myBoard[x+1][y] == Empty && myBoard[x+2][y] == myType && myBoard[x+3][y] == Empty && myBoard[x+4][y] == Empty && myBoard[x-1][y] == Empty)
+                        flag[x][y] ++;
+                    else if(myBoard[x+1][y] == Empty && myBoard[x+2][y] == Empty && myBoard[x-1][y] == Empty && myBoard[x-2][y] == myType && myBoard[x-2][y] == Empty)
+                        flag[x][y] ++;
+                    // Type-4
+                    else if(myBoard[x-1][y] == Empty && myBoard[x+1][y] == Empty && myBoard[x+2][y] == Empty && myBoard[x+3][y] == myType && myBoard[x+4][y] == Empty)
+                        flag[x][y] ++;
+                    else if(myBoard[x+1][y] == Empty && myBoard[x-1][y] == Empty && myBoard[x-2][y] == Empty && myBoard[x-3][y] == myType && myBoard[x-4][y] == Empty)
+                        flag[x][y] ++;
+
+                    // Left-Up-Right-Down
+                    // Type-1
+                    if(myBoard[x-1][y-1] == myType && myBoard[x-2][y-2] == Empty && myBoard[x-3][y-3] == Empty && myBoard[x+1][y+1] == Empty && myBoard[x+2][y+2] == Empty)
+                        flag[x][y] ++;
+                    else if(myBoard[x+1][y+1] == myType && myBoard[x+2][y+2] == Empty && myBoard[x+3][y+3] == Empty && myBoard[x-1][y-1] == Empty && myBoard[x-2][y-2] == Empty)
+                        flag[x][y] ++;
+                    // Type-2
+                    else if(myBoard[x-1][y-1] == myType && myBoard[x-2][y-2] == Empty && myBoard[x-3][y-3] == Empty && myBoard[x-4][y-4] == Empty && myBoard[x+1][y+1] == Empty)
+                        flag[x][y] ++;
+                    else if(myBoard[x-1][y-1] == Empty && myBoard[x-2][y-2] == Empty && myBoard[x-3][y-3] == Empty && myBoard[x+1][y+1] == myType && myBoard[x+2][y+2] == Empty)
+                        flag[x][y] ++;
+                    else if(myBoard[x+1][y+1] == myType && myBoard[x+2][y+2] == Empty && myBoard[x+3][y+3] == Empty && myBoard[x+4][y+4] == Empty && myBoard[x-1][y-1] == Empty)
+                        flag[x][y] ++;
+                    else if(myBoard[x+1][y+1] == Empty && myBoard[x+2][y+2] == Empty && myBoard[x+3][y+3] == Empty && myBoard[x-1][y-1] == myType && myBoard[x-2][y-2] == Empty)
+                        flag[x][y] ++;
+                    // Type-3
+                    else if(myBoard[x-1][y-1] == Empty && myBoard[x-2][y-2] == myType && myBoard[x-3][y-3] == Empty && myBoard[x-4][y-4] == Empty && myBoard[x+1][y+1] == Empty)
+                        flag[x][y] ++;
+                    else if(myBoard[x-1][y-1] == Empty && myBoard[x-2][y-2] == Empty && myBoard[x+1][y+1] == Empty && myBoard[x+2][y+2] == myType && myBoard[x+2][y+2] == Empty)
+                        flag[x][y] ++;
+                    else if(myBoard[x+1][y+1] == Empty && myBoard[x+2][y+2] == myType && myBoard[x+3][y+3] == Empty && myBoard[x+4][y+4] == Empty && myBoard[x-1][y-1] == Empty)
+                        flag[x][y] ++;
+                    else if(myBoard[x+1][y+1] == Empty && myBoard[x+2][y+2] == Empty && myBoard[x-1][y-1] == Empty && myBoard[x-2][y-2] == myType && myBoard[x-2][y-2] == Empty)
+                        flag[x][y] ++;
+                    // Type-4
+                    else if(myBoard[x-1][y-1] == Empty && myBoard[x+1][y+1] == Empty && myBoard[x+2][y+2] == Empty && myBoard[x+3][y+3] == myType && myBoard[x+4][y+4] == Empty)
+                        flag[x][y] ++;
+                    else if(myBoard[x+1][y+1] == Empty && myBoard[x-1][y-1] == Empty && myBoard[x-2][y-2] == Empty && myBoard[x-3][y-3] == myType && myBoard[x-4][y-4] == Empty)
+                        flag[x][y] ++;
                 }
             }
         }
     }
-    Point p;
-    return p;
+    int max = flag[0][0];
+    Point pp;
+    pp.Set(0,0);
+    // find MAX!!!
+    for(int x = 0; x < BoardSize; x++)
+    {
+        for(int y = 0; y < BoardSize; y++)
+        {
+            if(flag[x][y] > max)
+            {
+                max = flag[x][y];
+                pp.Set(x,y);
+            }
+        }
+    }
+    if(max >= 1)
+    {
+        return pp;
+    }
+    else
+    {
+        Point p;
+        return p;
+    }
 }
 
 float GXY_AI::At_Level_Check(Point p, int x1, int y1, float Lv, bool FLAG, bool CHECK_FLAG)
