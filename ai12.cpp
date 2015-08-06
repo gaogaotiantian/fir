@@ -146,10 +146,9 @@ Point yhfAI(const NodeType board[BoardSize][BoardSize], NodeType yourType) {
         // find the most dangerous point from dangerPoints.
         int heMaxStatus = 0;
         int heMaxI, heMaxJ;
-        for (int k = 0; k < dangerPoints.size(); k++) {
-            int index = dangerPoints[k];
-            int i = index / BoardSize;
-            int j = index % BoardSize;
+        for(vector<int>::iterator index = dangerPoints.begin(); index != dangerPoints.end(); ++index) {
+            int i = *index / BoardSize;
+            int j = *index % BoardSize;
             if (heStatusBoard[i][j][4] > heMaxStatus) {
                 heMaxStatus = heStatusBoard[i][j][4];
                 heMaxI = i;
